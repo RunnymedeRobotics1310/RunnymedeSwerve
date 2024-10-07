@@ -1,6 +1,6 @@
-package ca.team1310.swervedrive.core;
+package ca.team1310.swerve.core;
 
-import ca.team1310.swervedrive.SwerveTelemetry;
+import ca.team1310.swerve.SwerveTelemetry;
 
 public interface AbsoluteAngleEncoder {
 

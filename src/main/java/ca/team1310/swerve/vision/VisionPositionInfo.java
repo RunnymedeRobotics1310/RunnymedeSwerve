@@ -1,4 +1,4 @@
-package ca.team1310.swervedrive.vision;
+package ca.team1310.swerve.vision;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;

@@ -1,10 +1,10 @@
-package ca.team1310.swervedrive.odometry;
+package ca.team1310.swerve.odometry;
 
-import ca.team1310.swervedrive.SwerveTelemetry;
-import ca.team1310.swervedrive.core.CoreSwerveDrive;
-import ca.team1310.swervedrive.core.config.CoreSwerveConfig;
-import ca.team1310.swervedrive.odometry.hardware.MXPNavX;
-import ca.team1310.swervedrive.odometry.hardware.SimulatedGyro;
+import ca.team1310.swerve.SwerveTelemetry;
+import ca.team1310.swerve.core.CoreSwerveDrive;
+import ca.team1310.swerve.core.config.CoreSwerveConfig;
+import ca.team1310.swerve.odometry.hardware.MXPNavX;
+import ca.team1310.swerve.odometry.hardware.SimulatedGyro;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;

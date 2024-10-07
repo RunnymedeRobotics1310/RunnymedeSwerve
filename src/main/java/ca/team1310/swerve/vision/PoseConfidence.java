@@ -1,4 +1,4 @@
-package ca.team1310.swervedrive.vision;
+package ca.team1310.swerve.vision;
 
 public enum PoseConfidence {
     NONE,

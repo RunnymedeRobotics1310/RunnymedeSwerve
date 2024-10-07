@@ -1,4 +1,4 @@
-package ca.team1310.swervedrive;
+package ca.team1310.swerve;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation3d;

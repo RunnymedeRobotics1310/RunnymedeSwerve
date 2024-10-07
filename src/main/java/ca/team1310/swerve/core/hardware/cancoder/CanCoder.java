@@ -1,8 +1,8 @@
-package ca.team1310.swervedrive.core.hardware.cancoder;
+package ca.team1310.swerve.core.hardware.cancoder;
 
-import ca.team1310.swervedrive.SwerveTelemetry;
-import ca.team1310.swervedrive.core.config.EncoderConfig;
-import ca.team1310.swervedrive.core.AbsoluteAngleEncoder;
+import ca.team1310.swerve.SwerveTelemetry;
+import ca.team1310.swerve.core.config.EncoderConfig;
+import ca.team1310.swerve.core.AbsoluteAngleEncoder;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;

@@ -1,6 +1,6 @@
-package ca.team1310.swervedrive.core.config;
+package ca.team1310.swerve.core.config;
 
-import ca.team1310.swervedrive.SwerveTelemetry;
+import ca.team1310.swerve.SwerveTelemetry;
 
 public record CoreSwerveConfig(
     double wheelBaseMetres,

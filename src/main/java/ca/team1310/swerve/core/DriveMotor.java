@@ -1,4 +1,4 @@
-package ca.team1310.swervedrive.core;
+package ca.team1310.swerve.core;
 
 public interface DriveMotor {
 

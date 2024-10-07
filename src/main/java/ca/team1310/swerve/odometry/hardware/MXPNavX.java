@@ -1,7 +1,7 @@
-package ca.team1310.swervedrive.odometry.hardware;
+package ca.team1310.swerve.odometry.hardware;
 
-import ca.team1310.swervedrive.SwerveTelemetry;
-import ca.team1310.swervedrive.odometry.Gyro;
+import ca.team1310.swerve.SwerveTelemetry;
+import ca.team1310.swerve.odometry.Gyro;
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;

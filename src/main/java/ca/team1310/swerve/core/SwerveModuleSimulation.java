@@ -1,7 +1,7 @@
-package ca.team1310.swervedrive.core;
+package ca.team1310.swerve.core;
 
-import ca.team1310.swervedrive.SwerveTelemetry;
-import ca.team1310.swervedrive.core.config.ModuleConfig;
+import ca.team1310.swerve.SwerveTelemetry;
+import ca.team1310.swerve.core.config.ModuleConfig;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;

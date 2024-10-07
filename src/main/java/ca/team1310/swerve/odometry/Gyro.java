@@ -1,6 +1,6 @@
-package ca.team1310.swervedrive.odometry;
+package ca.team1310.swerve.odometry;
 
-import ca.team1310.swervedrive.SwerveTelemetry;
+import ca.team1310.swerve.SwerveTelemetry;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;

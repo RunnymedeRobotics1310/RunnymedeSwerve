@@ -1,9 +1,9 @@
-package ca.team1310.swervedrive.vision;
+package ca.team1310.swerve.vision;
 
-import ca.team1310.swervedrive.RunnymedeSwerveDrive;
-import ca.team1310.swervedrive.SwerveTelemetry;
-import ca.team1310.swervedrive.core.config.CoreSwerveConfig;
-import ca.team1310.swervedrive.odometry.FieldAwareSwerveDrive;
+import ca.team1310.swerve.RunnymedeSwerveDrive;
+import ca.team1310.swerve.SwerveTelemetry;
+import ca.team1310.swerve.core.config.CoreSwerveConfig;
+import ca.team1310.swerve.odometry.FieldAwareSwerveDrive;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -18,7 +18,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 
-import static ca.team1310.swervedrive.vision.PoseConfidence.NONE;
+import static ca.team1310.swerve.vision.PoseConfidence.NONE;
 
 public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive implements RunnymedeSwerveDrive {
 

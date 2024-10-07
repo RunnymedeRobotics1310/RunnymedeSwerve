@@ -1,6 +1,6 @@
-package ca.team1310.swervedrive;
+package ca.team1310.swerve;
 
-import ca.team1310.swervedrive.vision.PoseConfidence;
+import ca.team1310.swerve.vision.PoseConfidence;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public final class SwerveTelemetry {

@@ -1,7 +1,7 @@
-package ca.team1310.swervedrive.core.hardware.neosparkmax;
+package ca.team1310.swerve.core.hardware.neosparkmax;
 
-import ca.team1310.swervedrive.core.AngleMotor;
-import ca.team1310.swervedrive.core.config.MotorConfig;
+import ca.team1310.swerve.core.AngleMotor;
+import ca.team1310.swerve.core.config.MotorConfig;
 import com.revrobotics.CANSparkBase;
 
 public class NSMAngleMotor extends NSMMotor implements AngleMotor {

@@ -1,4 +1,4 @@
-package ca.team1310.swervedrive.core.config;
+package ca.team1310.swerve.core.config;
 
 public record MotorConfig(
     boolean inverted,

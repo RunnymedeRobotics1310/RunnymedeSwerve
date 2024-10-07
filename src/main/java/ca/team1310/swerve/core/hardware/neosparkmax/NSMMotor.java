@@ -1,4 +1,4 @@
-package ca.team1310.swervedrive.core.hardware.neosparkmax;
+package ca.team1310.swerve.core.hardware.neosparkmax;
 
 import com.revrobotics.*;
 import edu.wpi.first.wpilibj.DriverStation;
