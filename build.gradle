@@ -1,0 +1,27 @@
+plugins {
+    id 'java-library'
+    id "edu.wpi.first.GradleRIO" version "2024.3.2"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+    gradlePluginPortal()
+}
+
+dependencies {
+    implementation wpi.java.deps.wpilib()
+    implementation wpi.java.vendor.java()
+
+    testImplementation libs.junit.jupiter
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
