@@ -1,6 +1,7 @@
 plugins {
     id 'java-library'
     id "edu.wpi.first.GradleRIO" version "2024.3.2"
+    id "maven-publish"
 }
 
 java {
@@ -24,4 +25,71 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+tasks.register('javadocJar', Jar) {
+    archiveClassifier.set('javadoc')
+    from tasks.javadoc
+}
+
+tasks.register('sourcesJar', Jar) {
+    archiveClassifier.set('sources')
+    from sourceSets.main.allSource
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            // Set artifact details
+            groupId = 'ca.team1310'
+            artifactId = 'swerve'
+            version = '1.0.0'
+
+            // Include sources and Javadoc JARs
+            artifact tasks.javadocJar
+            artifact tasks.sourcesJar
+
+            pom {
+                name.set('RunnymedeSwerve') // Replace with your library name
+                description.set('An FRC Swerve Library by Team 1310')
+                url.set('https://github.com/RunnymedeRobotics1310/RunnymedeSwerve') 
+
+                licenses {
+                    license {
+                        name.set('The Apache License, Version 2.0')
+                        url.set('http://www.apache.org/licenses/LICENSE-2.0.txt')
+                    }
+                }
+
+                developers {
+                    developer {
+                        id.set('team1310') // Replace with your ID
+                        name.set('Runnymede Robotics (Team 1310)')
+                        email.set('1310.runnymede.robotics@gmail.com')
+                    }
+                }
+
+                scm {
+                    connection.set('https://github.com/RunnymedeRobotics1310/RunnymedeSwerve.git')
+                    developerConnection.set('https://github.com/RunnymedeRobotics1310/RunnymedeSwerve.git')
+                    url.set('https://github.com/RunnymedeRobotics1310/RunnymedeSwerve') 
+                }
+            }
+        }
+    }
+
+     repositories {
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/RunnymedeRobotics1310/RunnymedeSwerve"
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.token") ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+
+    
 }
