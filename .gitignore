@@ -8,3 +8,6 @@ build
 
 # Ignore node_modules directory (used for the prettier plugin)
 node_modules
+
+# Don't check in gradle.properties with tokens/auth
+gradle.properties
