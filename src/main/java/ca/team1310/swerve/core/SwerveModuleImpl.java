@@ -12,24 +12,24 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 class SwerveModuleImpl implements SwerveModule {
 
-    private final String               name;
-    private final Translation2d        location;
-    private final DriveMotor           driveMotor;
-    private final AngleMotor           angleMotor;
+    private final String name;
+    private final Translation2d location;
+    private final DriveMotor driveMotor;
+    private final AngleMotor angleMotor;
     private final AbsoluteAngleEncoder angleEncoder;
-    private final int                  internalEncoderUpdateFrequency;
-    private int                        internalEncoderUpdateCount = 0;
-    private SwerveModuleState          desiredState;
+    private final int internalEncoderUpdateFrequency;
+    private int internalEncoderUpdateCount = 0;
+    private SwerveModuleState desiredState;
 
 
     SwerveModuleImpl(ModuleConfig cfg) {
-        this.name                           = cfg.name();
-        this.location                       = new Translation2d(cfg.xPositionMetres(), cfg.yPositionMetres());
-        this.driveMotor                     = new NSMDriveMotor(cfg.driveMotorCanId(), cfg.driveMotorConfig(),
-            cfg.wheelRadiusMetres());
-        this.angleMotor                     = new NSMAngleMotor(cfg.angleMotorCanId(), cfg.angleMotorConfig());
-        this.angleEncoder                   = new CanCoder(cfg.angleEncoderCanId(), cfg.angleEncoderAbsoluteOffsetDegrees(),
-            cfg.absoluteAngleEncoderConfig());
+        this.name = cfg.name();
+        this.location = new Translation2d(cfg.xPositionMetres(), cfg.yPositionMetres());
+        this.driveMotor = new NSMDriveMotor(cfg.driveMotorCanId(), cfg.driveMotorConfig(),
+                cfg.wheelRadiusMetres());
+        this.angleMotor = new NSMAngleMotor(cfg.angleMotorCanId(), cfg.angleMotorConfig());
+        this.angleEncoder = new CanCoder(cfg.angleEncoderCanId(), cfg.angleEncoderAbsoluteOffsetDegrees(),
+                cfg.absoluteAngleEncoderConfig());
         this.internalEncoderUpdateFrequency = cfg.angleMotorEncoderUpdateFrequency();
     }
 
@@ -57,10 +57,10 @@ class SwerveModuleImpl implements SwerveModule {
 
     private void updateMotors() {
 
-        Rotation2d        currentHeading = Rotation2d.fromDegrees(angleMotor.getPosition());
+        Rotation2d currentHeading = Rotation2d.fromDegrees(angleMotor.getPosition());
 
         // Optimize the reference state to avoid spinning further than 90 degrees
-        SwerveModuleState optimizedState = SwerveModuleState.optimize(desiredState, currentHeading);
+        desiredState.optimize(currentHeading);
 
         /*
          * Scale down speed when wheels aren't facing the right direction
@@ -73,14 +73,14 @@ class SwerveModuleImpl implements SwerveModule {
          * desired direction of travel that can occur when modules change directions. This results
          * in smoother driving.
          */
-        Rotation2d        steerError     = optimizedState.angle.minus(currentHeading);
-        double            cosineScalar   = steerError.getCos();
-        optimizedState.speedMetersPerSecond *= (cosineScalar < 0 ? 0 : cosineScalar);
+        Rotation2d steerError = desiredState.angle.minus(currentHeading);
+        double cosineScalar = steerError.getCos();
+        desiredState.speedMetersPerSecond *= (cosineScalar < 0 ? 0 : cosineScalar);
 
 
-        driveMotor.setReferenceVelocity(optimizedState.speedMetersPerSecond);
+        driveMotor.setReferenceVelocity(desiredState.speedMetersPerSecond);
 
-        angleMotor.setReferenceAngle(optimizedState.angle.getDegrees());
+        angleMotor.setReferenceAngle(desiredState.angle.getDegrees());
     }
 
     private void updateInternalEncoder() {
@@ -95,21 +95,21 @@ class SwerveModuleImpl implements SwerveModule {
 
     public void populateTelemetry(SwerveTelemetry telemetry, int moduleIndex) {
         // identify the module
-        telemetry.moduleNames[moduleIndex]                     = name;
-        telemetry.moduleWheelLocations[moduleIndex * 2]        = location.getX();
-        telemetry.moduleWheelLocations[moduleIndex * 2 + 1]    = location.getY();
+        telemetry.moduleNames[moduleIndex] = name;
+        telemetry.moduleWheelLocations[moduleIndex * 2] = location.getX();
+        telemetry.moduleWheelLocations[moduleIndex * 2 + 1] = location.getY();
 
         // desired states
-        telemetry.moduleDesiredStates[moduleIndex * 2]         = desiredState.angle.getDegrees();
-        telemetry.moduleDesiredStates[moduleIndex * 2 + 1]     = desiredState.speedMetersPerSecond;
+        telemetry.moduleDesiredStates[moduleIndex * 2] = desiredState.angle.getDegrees();
+        telemetry.moduleDesiredStates[moduleIndex * 2 + 1] = desiredState.speedMetersPerSecond;
 
         // measured states
-        telemetry.moduleMeasuredStates[moduleIndex * 2]        = angleMotor.getPosition();
-        telemetry.moduleMeasuredStates[moduleIndex * 2 + 1]    = driveMotor.getVelocity();
+        telemetry.moduleMeasuredStates[moduleIndex * 2] = angleMotor.getPosition();
+        telemetry.moduleMeasuredStates[moduleIndex * 2 + 1] = driveMotor.getVelocity();
 
         // position information
         telemetry.moduleAngleMotorPositionDegrees[moduleIndex] = angleMotor.getPosition();
-        telemetry.moduleDriveMotorPositionMetres[moduleIndex]  = driveMotor.getDistance();
+        telemetry.moduleDriveMotorPositionMetres[moduleIndex] = driveMotor.getDistance();
 
         angleEncoder.populateTelemetry(telemetry, moduleIndex);
     }

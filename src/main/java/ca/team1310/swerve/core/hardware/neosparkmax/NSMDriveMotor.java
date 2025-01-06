@@ -2,37 +2,63 @@ package ca.team1310.swerve.core.hardware.neosparkmax;
 
 import ca.team1310.swerve.core.DriveMotor;
 import ca.team1310.swerve.core.config.MotorConfig;
-import com.revrobotics.CANSparkBase;
+import com.revrobotics.spark.SparkBase;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.config.ClosedLoopConfig;
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 
 public class NSMDriveMotor extends NSMMotor implements DriveMotor {
     public NSMDriveMotor(int canId, MotorConfig cfg, double wheelRadiusMetres) {
         super(canId);
 
-        // instantiate & configure motor
-        this.motor.setInverted(cfg.inverted());
-        configureSparkMax(() -> motor.enableVoltageCompensation(cfg.nominalVoltage()));
-        configureSparkMax(() -> motor.setSmartCurrentLimit(cfg.currentLimitAmps()));
-        configureSparkMax(() -> motor.setClosedLoopRampRate(cfg.rampRateSecondsZeroToFull()));
+        SparkMaxConfig config = new SparkMaxConfig();
+        config.inverted(cfg.inverted());
+        config.idleMode(SparkBaseConfig.IdleMode.kBrake);
+        config.voltageCompensation(cfg.nominalVoltage());
+        config.smartCurrentLimit(cfg.currentLimitAmps());
+        config.closedLoopRampRate(cfg.rampRateSecondsZeroToFull());
+        config.openLoopRampRate(cfg.rampRateSecondsZeroToFull());
 
-        // configure integrated encoder
+        // default signals
+        config.signals.absoluteEncoderPositionAlwaysOn(false)
+                .absoluteEncoderVelocityAlwaysOn(false)
+                .analogPositionAlwaysOn(false)
+                .analogVelocityAlwaysOn(false)
+                .analogVoltageAlwaysOn(false)
+                .externalOrAltEncoderPositionAlwaysOn(false)
+                .externalOrAltEncoderVelocityAlwaysOn(false)
+                .primaryEncoderPositionAlwaysOn(false)
+                .primaryEncoderVelocityAlwaysOn(false)
+                .iAccumulationAlwaysOn(false)
+                .appliedOutputPeriodMs(10)
+                .faultsPeriodMs(20);
+
+        // drive motor signals
+        config.signals.primaryEncoderVelocityAlwaysOn(true)
+                .primaryEncoderPositionAlwaysOn(true)
+                .primaryEncoderPositionPeriodMs(20);
+
+        // Drive motor
         final double positionConversionfactor = (2 * Math.PI * wheelRadiusMetres) / cfg.gearRatio();
         // report in metres not rotations
-        configureSparkMax(() -> encoder.setPositionConversionFactor(positionConversionfactor));
+        config.encoder.positionConversionFactor(positionConversionfactor);
         // report in metres per second not rotations per minute
-        configureSparkMax(() -> encoder.setVelocityConversionFactor(positionConversionfactor / 60));
+        config.encoder.velocityConversionFactor(positionConversionfactor / 60);
+        // reduce measurement lag
+        config.encoder
+                .quadratureMeasurementPeriod(10)
+                .quadratureAverageDepth(2);
 
-        pid.setFeedbackDevice(encoder); // Configure feedback of the PID controller as the
-        // integrated encoder.
-        configureSparkMax(() -> pid.setP(cfg.p(), 0));
-        configureSparkMax(() -> pid.setI(cfg.i(), 0));
-        configureSparkMax(() -> pid.setD(cfg.d(), 0));
-        configureSparkMax(() -> pid.setFF(cfg.ff(), 0));
-        configureSparkMax(() -> pid.setIZone(cfg.izone(), 0));
-        configureSparkMax(() -> pid.setOutputRange(-1, 1, 0));
-        configureSparkMax(() -> pid.setPositionPIDWrappingEnabled(false));
-        setMotorBrake(true);
+        // configure PID controller
+        config.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
+                .pidf(cfg.p(), cfg.i(), cfg.d(), cfg.ff())
+                .iZone(cfg.izone())
+                .outputRange(-1, 1)
+                .positionWrappingEnabled(false);
 
-        burnFlash();
+        // send them to the motor
+        doWithRetry(() -> motor.configure(config, SparkBase.ResetMode.kNoResetSafeParameters, SparkBase.PersistMode.kPersistParameters));
     }
 
     @Override
@@ -42,7 +68,7 @@ public class NSMDriveMotor extends NSMMotor implements DriveMotor {
 
     @Override
     public void setReferenceVelocity(double targetVelocityMPS) {
-        configureSparkMax(() -> pid.setReference(targetVelocityMPS, CANSparkBase.ControlType.kVelocity, 0, 0));
+        doWithRetry(() -> controller.setReference(targetVelocityMPS, ControlType.kVelocity));
     }
 
     @Override
