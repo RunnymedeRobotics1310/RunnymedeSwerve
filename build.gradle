@@ -11,7 +11,7 @@ java {
     }
 }
 
-version = '2.0.1' // Set a valid semver version
+version = '2.0.2' // Set a valid semver version
 
 repositories {
     mavenCentral()
