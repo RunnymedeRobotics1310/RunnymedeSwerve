@@ -1,5 +1,6 @@
 package ca.team1310.swerve.odometry;
 
+import ca.team1310.swerve.RunnymedeSwerveDrive;
 import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.CoreSwerveDrive;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
@@ -17,21 +18,21 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-public class FieldAwareSwerveDrive extends CoreSwerveDrive {
-    private final Gyro                     gyro;
-    private final Field2d                  field;
+public class FieldAwareSwerveDrive extends CoreSwerveDrive implements RunnymedeSwerveDrive {
+    private final Gyro gyro;
+    private final Field2d field;
     private final SwerveDrivePoseEstimator estimator;
-    private final SwerveTelemetry          telemetry;
+    private final SwerveTelemetry telemetry;
 
     public FieldAwareSwerveDrive(CoreSwerveConfig cfg) {
         super(cfg);
-        this.gyro      = RobotBase.isSimulation() ? new SimulatedGyro() : new MXPNavX();
-        this.field     = new Field2d();
+        this.gyro = RobotBase.isSimulation() ? new SimulatedGyro() : new MXPNavX();
+        this.field = new Field2d();
         this.estimator = new SwerveDrivePoseEstimator(
-            kinematics,
-            gyro.getRotation2d(),
-            getModulePositions(),
-            new Pose2d(new Translation2d(0, 0), new Rotation2d(0)));
+                kinematics,
+                gyro.getRotation2d(),
+                getModulePositions(),
+                new Pose2d(new Translation2d(0, 0), new Rotation2d(0)));
 
         SmartDashboard.putData(this.field);
         SmartDashboard.putData(this.gyro);
@@ -69,8 +70,8 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
 
     private void populateTelemetry(Pose2d pose) {
         gyro.populateTelemetry(telemetry);
-        telemetry.poseMetresX        = pose.getX();
-        telemetry.poseMetresY        = pose.getY();
+        telemetry.poseMetresX = pose.getX();
+        telemetry.poseMetresY = pose.getY();
         telemetry.poseHeadingDegrees = pose.getRotation().getDegrees();
     }
 }
