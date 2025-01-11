@@ -11,3 +11,11 @@ node_modules
 
 # Don't check in gradle.properties with tokens/auth
 gradle.properties
+
+# Ignore bin folder (not sure yet where this is created)
+bin
+
+# Ignore IDE folders - for now
+.idea
+.vscode
+

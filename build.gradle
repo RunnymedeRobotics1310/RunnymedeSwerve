@@ -1,6 +1,6 @@
 plugins {
     id 'java-library'
-    id "edu.wpi.first.GradleRIO" version "2024.3.2"
+    id "edu.wpi.first.GradleRIO" version "2025.1.1"
     id "maven-publish"
     id "org.jreleaser" version "1.15.0"
 }
@@ -11,7 +11,7 @@ java {
     }
 }
 
-version = '1.0.0' // Set a valid semver version
+version = '2.0.0-SNAPSHOT' // Set a valid semver version
 
 repositories {
     mavenCentral()
@@ -49,7 +49,7 @@ publishing {
             // Set artifact details
             groupId = 'ca.team1310'
             artifactId = 'swerve'
-            version = '1.0.0'
+            version = '2.0.0-SNAPSHOT'
 
             // Include sources and Javadoc JARs
             artifact tasks.javadocJar
@@ -58,7 +58,7 @@ publishing {
             pom {
                 name.set('RunnymedeSwerve') // Replace with your library name
                 description.set('An FRC Swerve Library by Team 1310')
-                url.set('https://github.com/RunnymedeRobotics1310/RunnymedeSwerve') 
+                url.set('https://github.com/RunnymedeRobotics1310/RunnymedeSwerve')
 
                 licenses {
                     license {
@@ -78,7 +78,7 @@ publishing {
                 scm {
                     connection.set('https://github.com/RunnymedeRobotics1310/RunnymedeSwerve.git')
                     developerConnection.set('https://github.com/RunnymedeRobotics1310/RunnymedeSwerve.git')
-                    url.set('https://github.com/RunnymedeRobotics1310/RunnymedeSwerve') 
+                    url.set('https://github.com/RunnymedeRobotics1310/RunnymedeSwerve')
                 }
             }
         }
@@ -107,5 +107,5 @@ jreleaser {
                 }
             }
         }
-    }   
+    }
 }

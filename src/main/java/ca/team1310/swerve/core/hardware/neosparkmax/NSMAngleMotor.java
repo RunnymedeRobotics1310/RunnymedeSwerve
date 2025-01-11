@@ -2,39 +2,66 @@ package ca.team1310.swerve.core.hardware.neosparkmax;
 
 import ca.team1310.swerve.core.AngleMotor;
 import ca.team1310.swerve.core.config.MotorConfig;
-import com.revrobotics.CANSparkBase;
+import com.revrobotics.spark.SparkBase;
+import com.revrobotics.spark.SparkBase.ControlType;
+import com.revrobotics.spark.config.ClosedLoopConfig;
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
+
 
 public class NSMAngleMotor extends NSMMotor implements AngleMotor {
 
     public NSMAngleMotor(int canId, MotorConfig cfg) {
         super(canId);
-        // instantiate & configure motor
-        this.motor.setInverted(cfg.inverted());
-        configureSparkMax(() -> motor.enableVoltageCompensation(cfg.nominalVoltage()));
-        configureSparkMax(() -> motor.setSmartCurrentLimit(cfg.currentLimitAmps()));
-        configureSparkMax(() -> motor.setClosedLoopRampRate(cfg.rampRateSecondsZeroToFull()));
 
-        // configure integrated encoder
+        SparkMaxConfig config = new SparkMaxConfig();
+        config.inverted(cfg.inverted());
+        config.idleMode(SparkBaseConfig.IdleMode.kBrake);
+        config.voltageCompensation(cfg.nominalVoltage());
+        config.smartCurrentLimit(cfg.currentLimitAmps());
+        config.closedLoopRampRate(cfg.rampRateSecondsZeroToFull());
+        config.openLoopRampRate(cfg.rampRateSecondsZeroToFull());
+
+        // default signals
+        config.signals.absoluteEncoderPositionAlwaysOn(false)
+                .absoluteEncoderVelocityAlwaysOn(false)
+                .analogPositionAlwaysOn(false)
+                .analogVelocityAlwaysOn(false)
+                .analogVoltageAlwaysOn(false)
+                .externalOrAltEncoderPositionAlwaysOn(false)
+                .externalOrAltEncoderVelocityAlwaysOn(false)
+                .primaryEncoderPositionAlwaysOn(false)
+                .primaryEncoderVelocityAlwaysOn(false)
+                .iAccumulationAlwaysOn(false)
+                .appliedOutputPeriodMs(10)
+                .faultsPeriodMs(20);
+
+        // angle motor signals
+        config.signals.primaryEncoderVelocityAlwaysOn(false)
+                .primaryEncoderPositionAlwaysOn(true)
+                .primaryEncoderPositionPeriodMs(20);
+
+        // Angle motor
         final double angleConversionFactor = 360 / cfg.gearRatio();
         // report in degrees not rotations
-        configureSparkMax(() -> encoder.setPositionConversionFactor(angleConversionFactor));
+        config.encoder.positionConversionFactor(angleConversionFactor);
         // report in degrees per second not rotations per minute
-        configureSparkMax(() -> encoder.setVelocityConversionFactor(angleConversionFactor / 60));
+        config.encoder.velocityConversionFactor(angleConversionFactor / 60);
+        // reduce measurement lag
+        config.encoder
+                .quadratureMeasurementPeriod(10)
+                .quadratureAverageDepth(2);
 
-        pid.setFeedbackDevice(encoder);
-        configureSparkMax(() -> pid.setP(cfg.p(), 0));
-        configureSparkMax(() -> pid.setI(cfg.i(), 0));
-        configureSparkMax(() -> pid.setD(cfg.d(), 0));
-        configureSparkMax(() -> pid.setFF(cfg.ff(), 0));
-        configureSparkMax(() -> pid.setIZone(cfg.izone(), 0));
-        configureSparkMax(() -> pid.setOutputRange(-180, 180, 0));
-        configureSparkMax(() -> pid.setPositionPIDWrappingEnabled(true));
-        configureSparkMax(() -> pid.setPositionPIDWrappingMinInput(-180));
-        configureSparkMax(() -> pid.setPositionPIDWrappingMaxInput(180));
+        // configure PID controller
+        config.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
+                .pidf(cfg.p(), cfg.i(), cfg.d(), cfg.ff())
+                .iZone(cfg.izone())
+                .outputRange(-180, 180)
+                .positionWrappingEnabled(true)
+                .positionWrappingInputRange(-180, 180);
 
-        setMotorBrake(true);
-
-        burnFlash();
+        // send them to the motor
+        doWithRetry(() -> motor.configure(config, SparkBase.ResetMode.kNoResetSafeParameters, SparkBase.PersistMode.kPersistParameters));
     }
 
     @Override
@@ -44,13 +71,13 @@ public class NSMAngleMotor extends NSMMotor implements AngleMotor {
 
     @Override
     public void setReferenceAngle(double degrees) {
-        configureSparkMax(() -> pid.setReference(degrees, CANSparkBase.ControlType.kPosition, 0, 0));
+        doWithRetry(() -> controller.setReference(degrees, ControlType.kPosition));
     }
 
     @Override
     public void setEncoderPosition(double actualAngleDegrees) {
         if (encoder.getPosition() != actualAngleDegrees) {
-            configureSparkMax(() -> encoder.setPosition(actualAngleDegrees));
+            doWithRetry(() -> encoder.setPosition(actualAngleDegrees));
         }
     }
 }
