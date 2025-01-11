@@ -1,5 +1,20 @@
 # Runnymede Swerve
 
+## Local Development
+
+If you are actively developing this library, or require a local build for some reason, you can build the library
+locally.
+
+```bash
+./gradlew clean
+./gradlew build
+./gradlew publishToMavenLocal
+```
+
+This will publish the library to your local maven repository, which you can then reference in your project. However,
+your project must include the `mavenLocal()` repository. WPILIB projects do not include this by default (they look for a
+maven repository in a different location).
+
 ## Publishing Maven Package
 
 You need to make a `gradle.properties` in the base directory, containing:
