@@ -15,6 +15,9 @@ This will publish the library to your local maven repository, which you can then
 your project must include the `mavenLocal()` repository. WPILIB projects do not include this by default (they look for a
 maven repository in a different location).
 
+### Code Formatting
+This library uses prettier java code formatting. [Be sure to follow the instructions here](https://github.com/jhipster/prettier-java/blob/main/docs/advanced_usage.md).
+
 ## Publishing Maven Package
 
 You need to make a `gradle.properties` in the base directory, containing:
