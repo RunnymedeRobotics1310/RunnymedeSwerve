@@ -40,17 +40,6 @@ public interface RunnymedeSwerveDrive {
      */
     void setModuleState(String moduleName, SwerveModuleState desiredState);
 
-
-    // odometry-related
-    // todo: figure out if this can be simplified or cleaned up
-    // Do we need zeroGyro()? Should we rename the Gyro methods?
-
-    /**
-     * Update the robot's internal understanding of its position and rotation.
-     * // todo: does this need to be explicitly called or can it be done internally?
-     */
-    void updateOdometry();
-
     /**
      * Change the robot's internal understanding of its position and rotation. This
      * is not an incremental change or suggestion, it discontinuously re-sets the

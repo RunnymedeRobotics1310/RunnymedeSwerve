@@ -60,7 +60,7 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive implements Run
         this.telemetry = coreSwerveConfig.telemetry();
     }
 
-    public void updateOdometry() {
+    protected void updateOdometry() {
         super.updateOdometry();
 
         final String NOT_AVAILABLE = "hugh-free";
