@@ -1,0 +1,11 @@
+{
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "filewatcher.commands": [
+    {
+      "match": "\\.java",
+      "isAsync": true,
+      "cmd": "npx prettier --write ${file}",
+      "event": "onFileChange"
+    }
+  ]
+}

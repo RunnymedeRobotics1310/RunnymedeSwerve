@@ -3,7 +3,6 @@ package ca.team1310.swerve.core;
 import ca.team1310.swerve.SwerveTelemetry;
 
 public interface AbsoluteAngleEncoder {
-
     /**
      * Get the absolute position of the encoder.
      *

@@ -14,8 +14,3 @@ gradle.properties
 
 # Ignore bin folder (not sure yet where this is created)
 bin
-
-# Ignore IDE folders - for now
-.idea
-.vscode
-
