@@ -6,7 +6,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 public interface RunnymedeSwerveDrive {
-
     /**
      * The main internal method for controlling the drivebase. This code does not apply any
      * limiters or validation, and should be used by implementing swerve drive subsystems
@@ -15,7 +14,7 @@ public interface RunnymedeSwerveDrive {
      * Takes the desired chassis speeds of the robot - in a robot-oriented configuration.
      *
      * @param rawDesiredRobotOrientedVelocity The intended velocity of the robot chassis relative to
-     * itself.
+     *                                        itself.
      */
     void drive(ChassisSpeeds rawDesiredRobotOrientedVelocity);
 
@@ -31,11 +30,11 @@ public interface RunnymedeSwerveDrive {
      * Set the desired module state for the named module WHEN IN TEST MODE ONLY.
      *
      * <strong>This is a backdoor function. Use with caution.</strong>
-     *
+     * <p>
      * This SHOULD NOT be called during normal operation - it is designed for TEST MODE ONLY
      * when testing parts of the drivebase in a controlled environment.
-     * 
-     * @param moduleName the module to activate
+     *
+     * @param moduleName   the module to activate
      * @param desiredState the state of the specified module.
      */
     void setModuleState(String moduleName, SwerveModuleState desiredState);
@@ -44,7 +43,7 @@ public interface RunnymedeSwerveDrive {
      * Change the robot's internal understanding of its position and rotation. This
      * is not an incremental change or suggestion, it discontinuously re-sets the
      * pose to the specified pose.
-     * 
+     *
      * @param pose the new location and heading of the robot.
      */
     void resetOdometry(Pose2d pose);
@@ -69,5 +68,4 @@ public interface RunnymedeSwerveDrive {
      * @return adjusted Rotation3d from the gyro
      */
     Rotation3d getGyroRotation3d();
-
 }
