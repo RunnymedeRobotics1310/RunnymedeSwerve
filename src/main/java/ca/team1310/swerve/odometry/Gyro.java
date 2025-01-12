@@ -8,7 +8,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-
 import java.util.function.DoubleConsumer;
 
 public interface Gyro extends Sendable {
@@ -34,14 +33,18 @@ public interface Gyro extends Sendable {
 
     /**
      * Update the gyro in simulation mode. Not used in normal operation
-     * 
+     *
      * @param kinematics
      * @param states
      * @param modulePoses
      * @param field
      */
-    void updateOdometryForSimulation(SwerveDriveKinematics kinematics, SwerveModuleState[] states, Pose2d[] modulePoses,
-        Field2d field);
+    void updateOdometryForSimulation(
+        SwerveDriveKinematics kinematics,
+        SwerveModuleState[] states,
+        Pose2d[] modulePoses,
+        Field2d field
+    );
 
     void populateTelemetry(SwerveTelemetry telemetry);
 

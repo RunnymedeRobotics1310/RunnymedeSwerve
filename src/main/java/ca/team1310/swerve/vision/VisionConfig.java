@@ -7,5 +7,5 @@ public record VisionConfig(
     double fieldExtentMetresY,
     double maxAmbiguity,
     double highQualityAmbiguity,
-    double maxVisposeDeltaDistanceMetres) {
-}
+    double maxVisposeDeltaDistanceMetres
+) {}

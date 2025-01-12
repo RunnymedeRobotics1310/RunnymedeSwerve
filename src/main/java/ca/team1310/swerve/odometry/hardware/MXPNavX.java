@@ -10,6 +10,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 
 public class MXPNavX implements Gyro {
+
     private final AHRS navx;
     private double rollOffset;
     private double pitchOffset;
@@ -45,9 +46,12 @@ public class MXPNavX implements Gyro {
     }
 
     @Override
-    public void updateOdometryForSimulation(SwerveDriveKinematics kinematics, SwerveModuleState[] states, Pose2d[] modulePoses,
-                                            Field2d field) {
-    }
+    public void updateOdometryForSimulation(
+        SwerveDriveKinematics kinematics,
+        SwerveModuleState[] states,
+        Pose2d[] modulePoses,
+        Field2d field
+    ) {}
 
     @Override
     public void populateTelemetry(SwerveTelemetry telemetry) {

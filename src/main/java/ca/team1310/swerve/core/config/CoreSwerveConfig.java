@@ -14,5 +14,5 @@ public record CoreSwerveConfig(
     ModuleConfig frontRightModuleConfig,
     ModuleConfig backLeftModuleConfig,
     ModuleConfig backRightModuleConfig,
-    SwerveTelemetry telemetry) {
-}
+    SwerveTelemetry telemetry
+) {}

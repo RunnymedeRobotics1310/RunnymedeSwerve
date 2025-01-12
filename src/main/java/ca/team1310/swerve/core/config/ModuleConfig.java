@@ -12,5 +12,5 @@ public record ModuleConfig(
     int angleEncoderCanId,
     double angleEncoderAbsoluteOffsetDegrees,
     EncoderConfig absoluteAngleEncoderConfig,
-    int angleMotorEncoderUpdateFrequency) {
-}
+    int angleMotorEncoderUpdateFrequency
+) {}

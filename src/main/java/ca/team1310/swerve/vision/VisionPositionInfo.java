@@ -10,13 +10,16 @@ public record VisionPositionInfo(
     double timestampSeconds,
     Matrix<N3, N1> deviation,
     PoseConfidence confidence,
-    double odometryDistDelta) {
+    double odometryDistDelta
+) {
     public String toString() {
-        return String.format("(%.2f,%.2f)m %.0fd %.0fms %s",
+        return String.format(
+            "(%.2f,%.2f)m %.0fd %.0fms %s",
             pose.getTranslation().getX(),
             pose.getTranslation().getY(),
             pose.getRotation().getDegrees(),
             timestampSeconds,
-            confidence);
+            confidence
+        );
     }
 }

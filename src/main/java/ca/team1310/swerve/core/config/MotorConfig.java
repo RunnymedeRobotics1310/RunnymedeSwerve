@@ -10,5 +10,5 @@ public record MotorConfig(
     double i,
     double d,
     double ff,
-    double izone) {
-}
+    double izone
+) {}

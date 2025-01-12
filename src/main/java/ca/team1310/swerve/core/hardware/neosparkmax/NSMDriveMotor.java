@@ -9,9 +9,9 @@ import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 public class NSMDriveMotor extends NSMMotor implements DriveMotor {
+
     public NSMDriveMotor(int canId, MotorConfig cfg, double wheelRadiusMetres) {
         super(canId);
-
         SparkMaxConfig config = new SparkMaxConfig();
         config.inverted(cfg.inverted());
         config.idleMode(SparkBaseConfig.IdleMode.kBrake);
@@ -21,23 +21,25 @@ public class NSMDriveMotor extends NSMMotor implements DriveMotor {
         config.openLoopRampRate(cfg.rampRateSecondsZeroToFull());
 
         // default signals
-        config.signals.absoluteEncoderPositionAlwaysOn(false)
-                .absoluteEncoderVelocityAlwaysOn(false)
-                .analogPositionAlwaysOn(false)
-                .analogVelocityAlwaysOn(false)
-                .analogVoltageAlwaysOn(false)
-                .externalOrAltEncoderPositionAlwaysOn(false)
-                .externalOrAltEncoderVelocityAlwaysOn(false)
-                .primaryEncoderPositionAlwaysOn(false)
-                .primaryEncoderVelocityAlwaysOn(false)
-                .iAccumulationAlwaysOn(false)
-                .appliedOutputPeriodMs(10)
-                .faultsPeriodMs(20);
+        config.signals
+            .absoluteEncoderPositionAlwaysOn(false)
+            .absoluteEncoderVelocityAlwaysOn(false)
+            .analogPositionAlwaysOn(false)
+            .analogVelocityAlwaysOn(false)
+            .analogVoltageAlwaysOn(false)
+            .externalOrAltEncoderPositionAlwaysOn(false)
+            .externalOrAltEncoderVelocityAlwaysOn(false)
+            .primaryEncoderPositionAlwaysOn(false)
+            .primaryEncoderVelocityAlwaysOn(false)
+            .iAccumulationAlwaysOn(false)
+            .appliedOutputPeriodMs(10)
+            .faultsPeriodMs(20);
 
         // drive motor signals
-        config.signals.primaryEncoderVelocityAlwaysOn(true)
-                .primaryEncoderPositionAlwaysOn(true)
-                .primaryEncoderPositionPeriodMs(20);
+        config.signals
+            .primaryEncoderVelocityAlwaysOn(true)
+            .primaryEncoderPositionAlwaysOn(true)
+            .primaryEncoderPositionPeriodMs(20);
 
         // Drive motor
         final double positionConversionfactor = (2 * Math.PI * wheelRadiusMetres) / cfg.gearRatio();
@@ -46,19 +48,25 @@ public class NSMDriveMotor extends NSMMotor implements DriveMotor {
         // report in metres per second not rotations per minute
         config.encoder.velocityConversionFactor(positionConversionfactor / 60);
         // reduce measurement lag
-        config.encoder
-                .quadratureMeasurementPeriod(10)
-                .quadratureAverageDepth(2);
+        config.encoder.quadratureMeasurementPeriod(10).quadratureAverageDepth(2);
 
         // configure PID controller
-        config.closedLoop.feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
-                .pidf(cfg.p(), cfg.i(), cfg.d(), cfg.ff())
-                .iZone(cfg.izone())
-                .outputRange(-1, 1)
-                .positionWrappingEnabled(false);
+        config.closedLoop
+            .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
+            .pidf(cfg.p(), cfg.i(), cfg.d(), cfg.ff())
+            .iZone(cfg.izone())
+            .outputRange(-1, 1)
+            .positionWrappingEnabled(false);
 
         // send them to the motor
-        doWithRetry(() -> motor.configure(config, SparkBase.ResetMode.kNoResetSafeParameters, SparkBase.PersistMode.kPersistParameters));
+        doWithRetry(
+            () ->
+                motor.configure(
+                    config,
+                    SparkBase.ResetMode.kNoResetSafeParameters,
+                    SparkBase.PersistMode.kPersistParameters
+                )
+        );
     }
 
     @Override

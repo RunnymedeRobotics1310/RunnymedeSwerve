@@ -1,7 +1,6 @@
 package ca.team1310.swerve.core;
 
 public interface DriveMotor {
-
     /**
      * Get the distance the motor has traveled since the last reset in metres
      */
@@ -9,7 +8,7 @@ public interface DriveMotor {
 
     /**
      * Set the target velocity in metres per second
-     * 
+     *
      * @param targetVelocityMPS
      */
     void setReferenceVelocity(double targetVelocityMPS);

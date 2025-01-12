@@ -21,15 +21,16 @@ class SwerveModuleImpl implements SwerveModule {
     private int internalEncoderUpdateCount = 0;
     private SwerveModuleState desiredState;
 
-
     SwerveModuleImpl(ModuleConfig cfg) {
         this.name = cfg.name();
         this.location = new Translation2d(cfg.xPositionMetres(), cfg.yPositionMetres());
-        this.driveMotor = new NSMDriveMotor(cfg.driveMotorCanId(), cfg.driveMotorConfig(),
-                cfg.wheelRadiusMetres());
+        this.driveMotor = new NSMDriveMotor(cfg.driveMotorCanId(), cfg.driveMotorConfig(), cfg.wheelRadiusMetres());
         this.angleMotor = new NSMAngleMotor(cfg.angleMotorCanId(), cfg.angleMotorConfig());
-        this.angleEncoder = new CanCoder(cfg.angleEncoderCanId(), cfg.angleEncoderAbsoluteOffsetDegrees(),
-                cfg.absoluteAngleEncoderConfig());
+        this.angleEncoder = new CanCoder(
+            cfg.angleEncoderCanId(),
+            cfg.angleEncoderAbsoluteOffsetDegrees(),
+            cfg.absoluteAngleEncoderConfig()
+        );
         this.internalEncoderUpdateFrequency = cfg.angleMotorEncoderUpdateFrequency();
     }
 
@@ -56,7 +57,6 @@ class SwerveModuleImpl implements SwerveModule {
     }
 
     private void updateMotors() {
-
         Rotation2d currentHeading = Rotation2d.fromDegrees(angleMotor.getPosition());
 
         // Optimize the reference state to avoid spinning further than 90 degrees
@@ -76,7 +76,6 @@ class SwerveModuleImpl implements SwerveModule {
         Rotation2d steerError = desiredState.angle.minus(currentHeading);
         double cosineScalar = steerError.getCos();
         desiredState.speedMetersPerSecond *= (cosineScalar < 0 ? 0 : cosineScalar);
-
 
         driveMotor.setReferenceVelocity(desiredState.speedMetersPerSecond);
 

@@ -1,5 +1,7 @@
 package ca.team1310.swerve.vision;
 
+import static ca.team1310.swerve.vision.PoseConfidence.NONE;
+
 import ca.team1310.swerve.RunnymedeSwerveDrive;
 import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
@@ -17,8 +19,6 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
-
-import static ca.team1310.swerve.vision.PoseConfidence.NONE;
 
 public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive implements RunnymedeSwerveDrive {
 
@@ -82,7 +82,6 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive implements Run
             if (!RobotBase.isSimulation()) {
                 System.out.println("Failure reading data from vision subsystem: " + e);
             }
-
         }
 
         if (confidence != NONE) {
@@ -107,7 +106,6 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive implements Run
         // todo: is this data required?
         telemetry.visionAprilTagInfo = aprilTagInfoArrayToString(poseEstimate.rawFiducials);
         telemetry.visionPoseSwerveDiff = visPosInfo == null ? Double.MIN_VALUE : visPosInfo.odometryDistDelta();
-
     }
 
     /**
@@ -123,20 +121,26 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive implements Run
         return visPosInfo;
     }
 
-
     private String aprilTagInfoArrayToString(RawFiducial[] rawFiducials) {
         if (rawFiducials == null) {
             return "null";
         }
         StringBuilder sb = new StringBuilder();
         for (RawFiducial rawFiducial : rawFiducials) {
-            sb.append("[id:").append(rawFiducial.id)
-                    .append(",distToRobot:").append(rawFiducial.distToRobot)
-                    .append(",ambiguity:").append(rawFiducial.ambiguity)
-                    .append(",txnc:").append(rawFiducial.txnc)
-                    .append(",tync:").append(rawFiducial.tync)
-                    .append(",ta:").append(rawFiducial.ta)
-                    .append("]");
+            sb
+                .append("[id:")
+                .append(rawFiducial.id)
+                .append(",distToRobot:")
+                .append(rawFiducial.distToRobot)
+                .append(",ambiguity:")
+                .append(rawFiducial.ambiguity)
+                .append(",txnc:")
+                .append(rawFiducial.txnc)
+                .append(",tync:")
+                .append(rawFiducial.tync)
+                .append(",ta:")
+                .append(rawFiducial.ta)
+                .append("]");
         }
         return sb.toString();
     }
@@ -155,12 +159,14 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive implements Run
     private static double extractBotPoseEntry(double[] inData, int position) throws InvalidVisionDataException {
         if (inData.length < position + 1) {
             throw new InvalidVisionDataException(
-                    "Cannot reference position: " + position + " in data array of length: " + inData.length);
+                "Cannot reference position: " + position + " in data array of length: " + inData.length
+            );
         }
         return inData[position];
     }
 
-    private static PoseEstimate getBotPoseEstimate(NetworkTableEntry botpose_wpiblue) throws InvalidVisionDataException {
+    private static PoseEstimate getBotPoseEstimate(NetworkTableEntry botpose_wpiblue)
+        throws InvalidVisionDataException {
         var poseArray = botpose_wpiblue.getDoubleArray(new double[0]);
         var pose = toPose2D(poseArray);
         double latency = extractBotPoseEntry(poseArray, 6);
@@ -194,11 +200,7 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive implements Run
 
     private void publishToField(Pose2d llPose) {
         // If you have a Field2D you can easily push it that way here.
-        limelightPub.set(new double[]{
-                llPose.getX(),
-                llPose.getY(),
-                llPose.getRotation().getDegrees()
-        });
+        limelightPub.set(new double[] { llPose.getX(), llPose.getY(), llPose.getRotation().getDegrees() });
     }
 
     /**
@@ -217,12 +219,13 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive implements Run
         double compareDistance = poseEstimate.pose.getTranslation().getDistance(odometryPose.getTranslation());
 
         // If pose is 0,0 or no tags in view, we don't actually have data - return null
-        if (poseEstimate.pose.getX() > 0
-                && poseEstimate.pose.getY() > 0
-                && poseEstimate.rawFiducials.length >= 1
-                && poseEstimate.pose.getX() < fieldExtentMetresX
-                && poseEstimate.pose.getY() < fieldExtentMetresY) {
-
+        if (
+            poseEstimate.pose.getX() > 0 &&
+            poseEstimate.pose.getY() > 0 &&
+            poseEstimate.rawFiducials.length >= 1 &&
+            poseEstimate.pose.getX() < fieldExtentMetresX &&
+            poseEstimate.pose.getY() < fieldExtentMetresY
+        ) {
             // Get the "best" tag - assuming the first one is the best - TBD TODO
             RawFiducial rawFiducial = poseEstimate.rawFiducials[0];
 
@@ -244,7 +247,12 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive implements Run
         }
 
         Matrix<N3, N1> deviation = VecBuilder.fill(stdDevRatio, stdDevRatio, 5 * stdDevRatio);
-        return new VisionPositionInfo(poseEstimate.pose, poseEstimate.timestampSeconds, deviation, poseConfidence,
-                compareDistance);
+        return new VisionPositionInfo(
+            poseEstimate.pose,
+            poseEstimate.timestampSeconds,
+            deviation,
+            poseConfidence,
+            compareDistance
+        );
     }
 }

@@ -10,19 +10,19 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.RobotBase;
-
 import java.util.Arrays;
 
 public class CoreSwerveDrive {
-    private final SwerveModule[]          modules;
-    protected final SwerveDriveKinematics kinematics;
-    private final double                  robotPeriodSeconds;
-    private final double                  maxModuleMPS;
-    private final double                  maxTranslationMPS;
-    private final double                  maxOmegaRadPerSec;
 
-    private ChassisSpeeds                 desiredChassisSpeeds;
-    private final SwerveTelemetry         telemetry;
+    private final SwerveModule[] modules;
+    protected final SwerveDriveKinematics kinematics;
+    private final double robotPeriodSeconds;
+    private final double maxModuleMPS;
+    private final double maxTranslationMPS;
+    private final double maxOmegaRadPerSec;
+
+    private ChassisSpeeds desiredChassisSpeeds;
+    private final SwerveTelemetry telemetry;
 
     public CoreSwerveDrive(CoreSwerveConfig cfg) {
         // order matters in case we want to use AdvantageScope
@@ -32,29 +32,29 @@ public class CoreSwerveDrive {
             this.modules[1] = new SwerveModuleSimulation(cfg.frontRightModuleConfig());
             this.modules[2] = new SwerveModuleSimulation(cfg.backLeftModuleConfig());
             this.modules[3] = new SwerveModuleSimulation(cfg.backRightModuleConfig());
-        }
-        else {
+        } else {
             this.modules[0] = new SwerveModuleImpl(cfg.frontLeftModuleConfig());
             this.modules[1] = new SwerveModuleImpl(cfg.frontRightModuleConfig());
             this.modules[2] = new SwerveModuleImpl(cfg.backLeftModuleConfig());
             this.modules[3] = new SwerveModuleImpl(cfg.backRightModuleConfig());
         }
 
-        this.kinematics                           = new SwerveDriveKinematics(
-            Arrays.stream(modules).map(SwerveModule::getLocation).toArray(Translation2d[]::new));
+        this.kinematics = new SwerveDriveKinematics(
+            Arrays.stream(modules).map(SwerveModule::getLocation).toArray(Translation2d[]::new)
+        );
 
-        this.robotPeriodSeconds                   = cfg.robotPeriodSeconds();
-        this.maxModuleMPS                         = cfg.maxAttainableModuleSpeedMetresPerSecond();
-        this.maxTranslationMPS                    = cfg.maxAttainableTranslationSpeedMetresPerSecond();
-        this.maxOmegaRadPerSec                    = cfg.maxAchievableRotationalVelocityRadiansPerSecond();
+        this.robotPeriodSeconds = cfg.robotPeriodSeconds();
+        this.maxModuleMPS = cfg.maxAttainableModuleSpeedMetresPerSecond();
+        this.maxTranslationMPS = cfg.maxAttainableTranslationSpeedMetresPerSecond();
+        this.maxOmegaRadPerSec = cfg.maxAchievableRotationalVelocityRadiansPerSecond();
 
-        this.telemetry                            = cfg.telemetry();
-        this.telemetry.maxModuleSpeedMPS          = cfg.maxAttainableModuleSpeedMetresPerSecond();
-        this.telemetry.maxTranslationSpeedMPS     = cfg.maxAttainableTranslationSpeedMetresPerSecond();
+        this.telemetry = cfg.telemetry();
+        this.telemetry.maxModuleSpeedMPS = cfg.maxAttainableModuleSpeedMetresPerSecond();
+        this.telemetry.maxTranslationSpeedMPS = cfg.maxAttainableTranslationSpeedMetresPerSecond();
         this.telemetry.maxRotationalVelocityRadPS = cfg.maxAchievableRotationalVelocityRadiansPerSecond();
-        this.telemetry.trackWidthMetres           = cfg.trackWidthMetres();
-        this.telemetry.wheelBaseMetres            = cfg.wheelBaseMetres();
-        this.telemetry.wheelRadiusMetres          = cfg.wheelRadiusMetres();
+        this.telemetry.trackWidthMetres = cfg.trackWidthMetres();
+        this.telemetry.wheelBaseMetres = cfg.wheelBaseMetres();
+        this.telemetry.wheelRadiusMetres = cfg.wheelRadiusMetres();
     }
 
     protected final SwerveModulePosition[] getModulePositions() {
@@ -62,10 +62,12 @@ public class CoreSwerveDrive {
     }
 
     protected Pose2d[] getModulePoses(Pose2d robotPose) {
-        return Arrays.stream(modules).map(m -> {
-            Transform2d tx = new Transform2d(m.getLocation(), m.getState().angle);
-            return robotPose.plus(tx);
-        }).toArray(Pose2d[]::new);
+        return Arrays.stream(modules)
+            .map(m -> {
+                Transform2d tx = new Transform2d(m.getLocation(), m.getState().angle);
+                return robotPose.plus(tx);
+            })
+            .toArray(Pose2d[]::new);
     }
 
     protected SwerveModuleState[] getStates() {
@@ -84,7 +86,6 @@ public class CoreSwerveDrive {
         populateTelemetry();
     }
 
-
     public final void drive(ChassisSpeeds rawDesiredRobotOrientedVelocity) {
         this.desiredChassisSpeeds = rawDesiredRobotOrientedVelocity;
         updateModules();
@@ -99,7 +100,6 @@ public class CoreSwerveDrive {
      * Should we spin up a new thread for this?
      */
     private void updateModules() {
-
         /*
          * Correct the robot's trajectory while it is rotating using ChassisSpeeds.discretize()
          *
@@ -111,7 +111,7 @@ public class CoreSwerveDrive {
          * its center. The chassis velocities required to do that follow sinusoids (i.e., they
          * continuously vary). The robot code can only update the velocity commands at discrete
          * intervals, so the actual robot follows an arc away from the desired path.
-         * 
+         *
          * ChassisSpeeds.discretize() compensates for the discretization error by selecting constant
          * translational and rotational velocity commands that make the robot’s arc intersect the
          * desired path at the end of the timestep, where the desired path has decoupled translation
@@ -122,14 +122,20 @@ public class CoreSwerveDrive {
          *
          * Just like with swerve module heading optimization, all swerve code should be using this.
          */
-        ChassisSpeeds       discretized      = ChassisSpeeds.discretize(desiredChassisSpeeds, robotPeriodSeconds);
+        ChassisSpeeds discretized = ChassisSpeeds.discretize(desiredChassisSpeeds, robotPeriodSeconds);
 
         // calculate desired states
-        Translation2d       centerOfRotation = new Translation2d();
-        SwerveModuleState[] states           = kinematics.toSwerveModuleStates(discretized, centerOfRotation);
+        Translation2d centerOfRotation = new Translation2d();
+        SwerveModuleState[] states = kinematics.toSwerveModuleStates(discretized, centerOfRotation);
 
         // ensure that we aren't trying to drive any module faster than it's capable of driving
-        SwerveDriveKinematics.desaturateWheelSpeeds(states, discretized, maxModuleMPS, maxTranslationMPS, maxOmegaRadPerSec);
+        SwerveDriveKinematics.desaturateWheelSpeeds(
+            states,
+            discretized,
+            maxModuleMPS,
+            maxTranslationMPS,
+            maxOmegaRadPerSec
+        );
 
         // set the module states
         for (int i = 0; i < modules.length; i++) {
@@ -138,7 +144,6 @@ public class CoreSwerveDrive {
     }
 
     public final boolean lock() {
-
         boolean moving = false;
 
         // safety code to prevent locking if robot is moving
@@ -169,9 +174,9 @@ public class CoreSwerveDrive {
         telemetry.measuredChassisSpeeds[1] = measuredChassisSpeeds.vyMetersPerSecond;
         telemetry.measuredChassisSpeeds[2] = measuredChassisSpeeds.omegaRadiansPerSecond;
 
-        telemetry.desiredChassisSpeeds[0]  = desiredChassisSpeeds.vxMetersPerSecond;
-        telemetry.desiredChassisSpeeds[1]  = desiredChassisSpeeds.vyMetersPerSecond;
-        telemetry.desiredChassisSpeeds[2]  = desiredChassisSpeeds.omegaRadiansPerSecond;
+        telemetry.desiredChassisSpeeds[0] = desiredChassisSpeeds.vxMetersPerSecond;
+        telemetry.desiredChassisSpeeds[1] = desiredChassisSpeeds.vyMetersPerSecond;
+        telemetry.desiredChassisSpeeds[2] = desiredChassisSpeeds.omegaRadiansPerSecond;
 
         for (int i = 0; i < modules.length; i++) {
             modules[i].populateTelemetry(telemetry, i);

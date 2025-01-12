@@ -1,21 +1,19 @@
 package ca.team1310.swerve.core.hardware.neosparkmax;
 
+import static edu.wpi.first.units.Units.Seconds;
+
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkClosedLoopController;
-
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
-
 import java.util.function.Supplier;
 
-import static edu.wpi.first.units.Units.Seconds;
-
-
 class NSMMotor {
+
     /**
      * The maximum amount of times the swerve motor will attempt to configure a motor if failures
      * occur.

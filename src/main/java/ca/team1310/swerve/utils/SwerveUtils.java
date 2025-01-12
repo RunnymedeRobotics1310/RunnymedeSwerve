@@ -6,20 +6,18 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 
 public final class SwerveUtils {
-    private SwerveUtils() {
-    }
+
+    private SwerveUtils() {}
 
     /**
      * Ensure that rotation error is between -pi and pi radians.
      */
     public static double normalizeRotation(double radians) {
-
         radians = radians % (2 * Math.PI);
 
         if (radians > Math.PI) {
             radians -= (2 * Math.PI);
-        }
-        else if (radians < -Math.PI) {
+        } else if (radians < -Math.PI) {
             radians += (2 * Math.PI);
         }
 
@@ -36,7 +34,7 @@ public final class SwerveUtils {
      */
     public static Transform2d difference(Pose2d target, Pose2d current) {
         Translation2d dx = new Translation2d(target.getX() - current.getX(), target.getY() - current.getY());
-        Rotation2d    dw = target.getRotation().minus(current.getRotation());
+        Rotation2d dw = target.getRotation().minus(current.getRotation());
         return new Transform2d(dx, dw);
     }
 
@@ -52,7 +50,6 @@ public final class SwerveUtils {
      * @throws IllegalArgumentException if no tolerance is specified
      */
     public static boolean isCloseEnough(double measured, double target, double tolerance) {
-
         double delta = target - measured;
         return Math.abs(delta) <= tolerance;
     }
@@ -61,7 +58,11 @@ public final class SwerveUtils {
      * Returns true when the robot is located within <code>toleranceMetres</code>> of the desired
      * location
      */
-    public static boolean isCloseEnough(Translation2d currentLocation, Translation2d desiredLocation, double toleranceMetres) {
+    public static boolean isCloseEnough(
+        Translation2d currentLocation,
+        Translation2d desiredLocation,
+        double toleranceMetres
+    ) {
         Translation2d delta = desiredLocation.minus(currentLocation);
         return Math.abs(delta.getNorm()) <= toleranceMetres;
     }

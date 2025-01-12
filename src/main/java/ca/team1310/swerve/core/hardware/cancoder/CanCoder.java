@@ -1,8 +1,10 @@
 package ca.team1310.swerve.core.hardware.cancoder;
 
+import static edu.wpi.first.units.Units.*;
+
 import ca.team1310.swerve.SwerveTelemetry;
-import ca.team1310.swerve.core.config.EncoderConfig;
 import ca.team1310.swerve.core.AbsoluteAngleEncoder;
+import ca.team1310.swerve.core.config.EncoderConfig;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
@@ -12,8 +14,6 @@ import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.Alert;
-
-import static edu.wpi.first.units.Units.*;
 
 public class CanCoder implements AbsoluteAngleEncoder {
 
@@ -44,17 +44,18 @@ public class CanCoder implements AbsoluteAngleEncoder {
         this.absoluteEncoderOffset = absoluteEncoderOffsetDegrees;
         CANcoderConfiguration configuration = new CANcoderConfiguration();
         configuration.MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(1))
-                .withSensorDirection(
-                        encoderConfig.inverted() ? SensorDirectionValue.Clockwise_Positive
-                                : SensorDirectionValue.CounterClockwise_Positive)
-                .withMagnetOffset(absoluteEncoderOffsetDegrees / 360);
+            .withSensorDirection(
+                encoderConfig.inverted()
+                    ? SensorDirectionValue.Clockwise_Positive
+                    : SensorDirectionValue.CounterClockwise_Positive
+            )
+            .withMagnetOffset(absoluteEncoderOffsetDegrees / 360);
         StatusCode error = encoder.getConfigurator().apply(configuration);
         cannotSetOffset = new Alert(
-                "Encoders",
-                "Failure to set CANCoder "
-                        + encoder.getDeviceID()
-                        + " Absolute Encoder Offset",
-                Alert.AlertType.kWarning);
+            "Encoders",
+            "Failure to set CANCoder " + encoder.getDeviceID() + " Absolute Encoder Offset",
+            Alert.AlertType.kWarning
+        );
         cannotSetOffset.set(error != StatusCode.OK);
 
         // measurements
@@ -64,17 +65,20 @@ public class CanCoder implements AbsoluteAngleEncoder {
         // magnet health
         magnetHealth = encoder.getMagnetHealth();
         magnetFieldLessThanIdeal = new Alert(
-                "Encoders",
-                "CANCoder " + encoder.getDeviceID() + " magnetic field is less than ideal.",
-                Alert.AlertType.kWarning);
+            "Encoders",
+            "CANCoder " + encoder.getDeviceID() + " magnetic field is less than ideal.",
+            Alert.AlertType.kWarning
+        );
         readingFaulty = new Alert(
-                "Encoders",
-                "CANCoder " + encoder.getDeviceID() + " reading was faulty.",
-                Alert.AlertType.kWarning);
+            "Encoders",
+            "CANCoder " + encoder.getDeviceID() + " reading was faulty.",
+            Alert.AlertType.kWarning
+        );
         readingIgnored = new Alert(
-                "Encoders",
-                "CANCoder " + encoder.getDeviceID() + " reading was faulty, ignoring.",
-                Alert.AlertType.kWarning);
+            "Encoders",
+            "CANCoder " + encoder.getDeviceID() + " reading was faulty, ignoring.",
+            Alert.AlertType.kWarning
+        );
     }
 
     @Override
