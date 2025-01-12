@@ -9,6 +9,9 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 
+/**
+ * A simulated gyro that can be used in simulation mode.
+ */
 public class SimulatedGyro implements Gyro {
 
     private final Timer timer = new Timer();
@@ -17,6 +20,9 @@ public class SimulatedGyro implements Gyro {
     private double pitch = 0;
     private double yaw = 0;
 
+    /**
+     * Constructs a new simulated gyro.
+     */
     public SimulatedGyro() {
         this.timer.start();
         this.lastTime = this.timer.get();

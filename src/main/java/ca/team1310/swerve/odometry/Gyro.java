@@ -10,6 +10,9 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import java.util.function.DoubleConsumer;
 
+/**
+ * Represents a gyro that can be used to determine the orientation of the robot.
+ */
 public interface Gyro extends Sendable {
     /**
      * Reset pitch, yaw, and roll to 0 degrees.
@@ -18,26 +21,29 @@ public interface Gyro extends Sendable {
 
     /**
      * Get the roll of the robot, in degrees.
+     * @return the roll of the robot, in degrees
      */
     double getRoll();
 
     /**
      * Get the pitch of the robot, in degrees.
+     * @return the pitch of the robot, in degrees
      */
     double getPitch();
 
     /**
      * Get the yaw of the robot, in degrees.
+     * @return the yaw of the robot, in degrees
      */
     double getYaw();
 
     /**
      * Update the gyro in simulation mode. Not used in normal operation
      *
-     * @param kinematics
-     * @param states
-     * @param modulePoses
-     * @param field
+     * @param kinematics The kinematics of the swerve drive
+     * @param states The states of the swerve modules
+     * @param modulePoses The poses of the swerve modules
+     * @param field The field object
      */
     void updateOdometryForSimulation(
         SwerveDriveKinematics kinematics,
@@ -46,10 +52,16 @@ public interface Gyro extends Sendable {
         Field2d field
     );
 
+    /**
+     * Populate the telemetry object with the gyro's data.
+     *
+     * @param telemetry The telemetry object to populate
+     */
     void populateTelemetry(SwerveTelemetry telemetry);
 
     /**
      * Get the rotation of the robot as a Rotation2d object.
+     * @return the rotation of the robot as a Rotation2d object
      */
     default Rotation2d getRotation2d() {
         return Rotation2d.fromDegrees(getYaw());

@@ -21,7 +21,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class FieldAwareSwerveDrive extends CoreSwerveDrive implements RunnymedeSwerveDrive {
+/**
+ * A field-aware swerve drive that uses a gyro and odometry to estimate the robot's pose on the field.
+ */
+public class FieldAwareSwerveDrive extends CoreSwerveDrive {
 
     private final Gyro gyro;
     private final Field2d field;
@@ -30,6 +33,10 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive implements RunnymedeS
     private final Notifier odometryThread;
     private final Lock odometryLock = new ReentrantLock();
 
+    /**
+     * Create a new field-aware swerve drive
+     * @param cfg the core configuration for the swerve drive
+     */
     public FieldAwareSwerveDrive(CoreSwerveConfig cfg) {
         super(cfg);
         this.gyro = RobotBase.isSimulation() ? new SimulatedGyro() : new MXPNavX();
@@ -51,6 +58,12 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive implements RunnymedeS
         this.telemetry = cfg.telemetry();
     }
 
+    /**
+     * Add a vision measurement to the internal odometry system
+     * @param pose the measured pose of the robot
+     * @param timestampSeconds the timestamp of the measurement
+     * @param deviation the deviation of the measurement
+     */
     protected void addVisionMeasurement(Pose2d pose, double timestampSeconds, Matrix<N3, N1> deviation) {
         try {
             odometryLock.lock();
@@ -60,6 +73,9 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive implements RunnymedeS
         }
     }
 
+    /**
+     * Update the odometry tracking of the robot using module states and odometry measurements.
+     */
     protected void updateOdometry() {
         try {
             odometryLock.lock();

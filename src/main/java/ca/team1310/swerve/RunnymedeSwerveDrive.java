@@ -5,6 +5,16 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
+/**
+ * A Swerve Drive system that can be easily used in a robot's drive subsystem. Configuration is explicitly specified
+ * via code, and this interface describes all of the ways the main robot can interact with the swerve drive.  More
+ * importantly, it describes all the ways the main robot NEEDS to interact with the swerve drive.
+ * <p>
+ * It's recognized that the codebase required to operate a swerve drive can be quite complex, and this interface
+ * and library exist to provide a simple and easy-to-use interface for teams to use.  At the same time, advanced
+ * high school students should be able to fully understand what is going on inside this swerve drive codebase and
+ * enhance it as required.
+ */
 public interface RunnymedeSwerveDrive {
     /**
      * The main internal method for controlling the drivebase. This code does not apply any

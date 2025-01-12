@@ -1,5 +1,6 @@
 package ca.team1310.swerve.core;
 
+import ca.team1310.swerve.RunnymedeSwerveDrive;
 import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -12,9 +13,15 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.RobotBase;
 import java.util.Arrays;
 
-public class CoreSwerveDrive {
+/**
+ * The Core swerve drive object. This implements most core features of a swerve drive
+ */
+public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
     private final SwerveModule[] modules;
+    /**
+     * The kinematics object for the swerve drive. This is used to calculate the desired module states and contributes to odometry calculations.
+     */
     protected final SwerveDriveKinematics kinematics;
     private final double robotPeriodSeconds;
     private final double maxModuleMPS;
@@ -24,7 +31,11 @@ public class CoreSwerveDrive {
     private ChassisSpeeds desiredChassisSpeeds;
     private final SwerveTelemetry telemetry;
 
-    public CoreSwerveDrive(CoreSwerveConfig cfg) {
+    /**
+     * Construct a new CoreSwerveDrive object with the specified configuration.
+     * @param cfg the configuration of the swerve drive
+     */
+    protected CoreSwerveDrive(CoreSwerveConfig cfg) {
         // order matters in case we want to use AdvantageScope
         this.modules = new SwerveModule[4];
         if (RobotBase.isSimulation()) {
@@ -57,10 +68,19 @@ public class CoreSwerveDrive {
         this.telemetry.wheelRadiusMetres = cfg.wheelRadiusMetres();
     }
 
+    /**
+     * Get the position of the swerve modules, which consists of the distance and angle for the module.
+     * @return an array of swerve module positions
+     */
     protected final SwerveModulePosition[] getModulePositions() {
         return Arrays.stream(modules).map(SwerveModule::getPosition).toArray(SwerveModulePosition[]::new);
     }
 
+    /**
+     * Get the pose of the modules on the field given a robot pose. Uses the robot pose and adds the location of each module.
+     * @param robotPose the pose of the robot on the field (referring to the center of the robot).
+     * @return Poses of front left, front right, back left, back right modules.
+     */
     protected Pose2d[] getModulePoses(Pose2d robotPose) {
         return Arrays.stream(modules)
             .map(m -> {
@@ -70,10 +90,15 @@ public class CoreSwerveDrive {
             .toArray(Pose2d[]::new);
     }
 
+    /**
+     * Get the states of the swerve modules, including their speed and angle.
+     * @return an array of swerve module states in the order front left, front right, back left, back right.
+     */
     protected SwerveModuleState[] getStates() {
         return Arrays.stream(modules).map(SwerveModule::getState).toArray(SwerveModuleState[]::new);
     }
 
+    @Override
     public void setModuleState(String moduleName, SwerveModuleState desiredState) {
         // This is for TEST MODE ONLY!!! Not for internal use or drive use.
         for (SwerveModule module : modules) {
@@ -86,6 +111,7 @@ public class CoreSwerveDrive {
         populateTelemetry();
     }
 
+    @Override
     public final void drive(ChassisSpeeds rawDesiredRobotOrientedVelocity) {
         this.desiredChassisSpeeds = rawDesiredRobotOrientedVelocity;
         updateModules();
@@ -143,6 +169,7 @@ public class CoreSwerveDrive {
         }
     }
 
+    @Override
     public final boolean lock() {
         boolean moving = false;
 

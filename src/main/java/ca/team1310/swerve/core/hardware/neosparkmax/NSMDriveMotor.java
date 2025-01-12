@@ -8,8 +8,17 @@ import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+/**
+ * Represents a Neo motor controlled by a SparkMax that serves as a drive motor.
+ */
 public class NSMDriveMotor extends NSMMotor implements DriveMotor {
 
+    /**
+     * Construct a properly configured drive motor.
+     * @param canId The CAN ID of the motor
+     * @param cfg   The configuration of the motor
+     * @param wheelRadiusMetres The radius of the wheel in metres
+     */
     public NSMDriveMotor(int canId, MotorConfig cfg, double wheelRadiusMetres) {
         super(canId);
         SparkMaxConfig config = new SparkMaxConfig();
@@ -61,7 +70,7 @@ public class NSMDriveMotor extends NSMMotor implements DriveMotor {
         // send them to the motor
         doWithRetry(
             () ->
-                motor.configure(
+                sparkMaxMotorController.configure(
                     config,
                     SparkBase.ResetMode.kNoResetSafeParameters,
                     SparkBase.PersistMode.kPersistParameters

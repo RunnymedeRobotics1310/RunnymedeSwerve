@@ -8,8 +8,17 @@ import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+/**
+ * A Neo motor controlled by a SparkMax motor controller that is configured to control the angle of a swerve module.
+ */
 public class NSMAngleMotor extends NSMMotor implements AngleMotor {
 
+    /**
+     * Create a new angle motor with the given CAN ID and configuration.
+     *
+     * @param canId the CAN ID of the motor
+     * @param cfg the configuration of the motor
+     */
     public NSMAngleMotor(int canId, MotorConfig cfg) {
         super(canId);
         SparkMaxConfig config = new SparkMaxConfig();
@@ -62,7 +71,7 @@ public class NSMAngleMotor extends NSMMotor implements AngleMotor {
         // send them to the motor
         doWithRetry(
             () ->
-                motor.configure(
+                sparkMaxMotorController.configure(
                     config,
                     SparkBase.ResetMode.kNoResetSafeParameters,
                     SparkBase.PersistMode.kPersistParameters

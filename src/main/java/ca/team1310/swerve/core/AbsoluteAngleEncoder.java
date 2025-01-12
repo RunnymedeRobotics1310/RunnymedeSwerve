@@ -2,6 +2,9 @@ package ca.team1310.swerve.core;
 
 import ca.team1310.swerve.SwerveTelemetry;
 
+/**
+ * Interface for an absolute angle encoder. It exposes the methods that are necessary for an angle motor.
+ */
 public interface AbsoluteAngleEncoder {
     /**
      * Get the absolute position of the encoder.
@@ -17,5 +20,10 @@ public interface AbsoluteAngleEncoder {
      */
     double getVelocity();
 
+    /**
+     * Populate the telemetry object with the encoder's data for this module.
+     * @param telemetry The SwerveTelemetry object to populate.
+     * @param moduleIndex The index of the module for which the telemetry should be populated.
+     */
     void populateTelemetry(SwerveTelemetry telemetry, int moduleIndex);
 }

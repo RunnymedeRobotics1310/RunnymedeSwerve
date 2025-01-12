@@ -20,6 +20,9 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 
+/**
+ * A field-aware swerve drive that uses a gyro, odometry, and vision to estimate the robot's pose on the field.
+ */
 public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive implements RunnymedeSwerveDrive {
 
     private final NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight-hugh");
@@ -42,6 +45,12 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive implements Run
     private PoseEstimate poseEstimate;
     private VisionPositionInfo visPosInfo;
 
+    /**
+     * Create a new VisionAwareSwerveDrive
+     *
+     * @param coreSwerveConfig the core configuration for the swerve drive
+     * @param visionConfig the vision configuration for the swerve drive
+     */
     public VisionAwareSwerveDrive(CoreSwerveConfig coreSwerveConfig, VisionConfig visionConfig) {
         super(coreSwerveConfig);
         this.fieldExtentMetresX = visionConfig.fieldExtentMetresX();

@@ -15,6 +15,9 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.Alert;
 
+/**
+ * CanCoder implementation of AbsoluteAngleEncoder. Uses WPILib's Alert system to report errors and warnings.
+ */
 public class CanCoder implements AbsoluteAngleEncoder {
 
     /**
@@ -34,6 +37,12 @@ public class CanCoder implements AbsoluteAngleEncoder {
     private final Alert readingIgnored;
     private final Alert cannotSetOffset;
 
+    /**
+     * Construct a new CanCoder with the specified configuration and offsets.
+     * @param canId the canbus id of the CanCoder
+     * @param absoluteEncoderOffsetDegrees the measured offset of the encoder in degrees
+     * @param encoderConfig the configuration of the encoder
+     */
     public CanCoder(int canId, double absoluteEncoderOffsetDegrees, EncoderConfig encoderConfig) {
         CANcoder encoder = new CANcoder(canId);
         encoder.clearStickyFaults();
@@ -117,11 +126,6 @@ public class CanCoder implements AbsoluteAngleEncoder {
         return angle.getValue().in(Degrees);
     }
 
-    /**
-     * Get the velocity in degrees/sec.
-     *
-     * @return velocity in degrees/sec.
-     */
     @Override
     public double getVelocity() {
         return velocity.refresh().getValue().in(DegreesPerSecond);

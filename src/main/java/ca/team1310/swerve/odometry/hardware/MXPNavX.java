@@ -9,6 +9,9 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 
+/**
+ * A gyro that uses the NavX MXP to get the robot's orientation.
+ */
 public class MXPNavX implements Gyro {
 
     private final AHRS navx;
@@ -16,6 +19,9 @@ public class MXPNavX implements Gyro {
     private double pitchOffset;
     private double yawOffset;
 
+    /**
+     * Create a new MXPNavX gyro
+     */
     public MXPNavX() {
         this.navx = new AHRS(NavXComType.kMXP_SPI); // or is it kMXP_UART?
         this.rollOffset = navx.getRoll();
