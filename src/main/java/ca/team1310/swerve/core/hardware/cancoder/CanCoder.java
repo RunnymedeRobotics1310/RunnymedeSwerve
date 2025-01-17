@@ -35,7 +35,7 @@ public class CanCoder implements AbsoluteAngleEncoder {
     private final Alert magnetFieldLessThanIdeal;
     private final Alert readingFaulty;
     private final Alert readingIgnored;
-    private final Alert cannotSetOffset;
+    private final Alert cannotConfigureEncoder;
 
     /**
      * Construct a new CanCoder with the specified configuration and offsets.
@@ -51,21 +51,22 @@ public class CanCoder implements AbsoluteAngleEncoder {
         this.maximumRetries = encoderConfig.retryCount();
         this.retryDelaySeconds = encoderConfig.retrySeconds();
         this.absoluteEncoderOffset = absoluteEncoderOffsetDegrees;
+
         CANcoderConfiguration configuration = new CANcoderConfiguration();
-        configuration.MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(1))
-            .withSensorDirection(
-                encoderConfig.inverted()
-                    ? SensorDirectionValue.Clockwise_Positive
-                    : SensorDirectionValue.CounterClockwise_Positive
-            )
-            .withMagnetOffset(absoluteEncoderOffsetDegrees / 360);
+        configuration.MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(1)).withSensorDirection(
+            encoderConfig.inverted()
+                ? SensorDirectionValue.Clockwise_Positive
+                : SensorDirectionValue.CounterClockwise_Positive
+        );
+
         StatusCode error = encoder.getConfigurator().apply(configuration);
-        cannotSetOffset = new Alert(
+
+        cannotConfigureEncoder = new Alert(
             "Encoders",
-            "Failure to set CANCoder " + encoder.getDeviceID() + " Absolute Encoder Offset",
+            "Failure to apply configuration to CANCoder " + encoder.getDeviceID(),
             Alert.AlertType.kWarning
         );
-        cannotSetOffset.set(error != StatusCode.OK);
+        cannotConfigureEncoder.set(error != StatusCode.OK);
 
         // measurements
         this.angle = encoder.getAbsolutePosition();
@@ -103,7 +104,7 @@ public class CanCoder implements AbsoluteAngleEncoder {
         magnetFieldLessThanIdeal.set(strength != MagnetHealthValue.Magnet_Green);
         if (strength == MagnetHealthValue.Magnet_Invalid || strength == MagnetHealthValue.Magnet_Red) {
             readingFaulty.set(true);
-            return 0;
+            return -1;
         } else {
             readingFaulty.set(false);
         }
@@ -123,7 +124,7 @@ public class CanCoder implements AbsoluteAngleEncoder {
             readingIgnored.set(false);
         }
 
-        return angle.getValue().in(Degrees);
+        return angle.getValue().in(Degrees) - absoluteEncoderOffset;
     }
 
     @Override

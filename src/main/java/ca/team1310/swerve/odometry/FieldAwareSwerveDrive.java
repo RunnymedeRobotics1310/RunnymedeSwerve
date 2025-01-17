@@ -1,11 +1,11 @@
 package ca.team1310.swerve.odometry;
 
-import ca.team1310.swerve.RunnymedeSwerveDrive;
 import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.CoreSwerveDrive;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
 import ca.team1310.swerve.odometry.hardware.MXPNavX;
 import ca.team1310.swerve.odometry.hardware.SimulatedGyro;
+import ca.team1310.swerve.utils.Cache;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class FieldAwareSwerveDrive extends CoreSwerveDrive {
 
     private final Gyro gyro;
+    private final Cache<Rotation3d> gyroRotation3dCache;
     private final Field2d field;
     private final SwerveDrivePoseEstimator estimator;
     private final SwerveTelemetry telemetry;
@@ -40,6 +41,8 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
     public FieldAwareSwerveDrive(CoreSwerveConfig cfg) {
         super(cfg);
         this.gyro = RobotBase.isSimulation() ? new SimulatedGyro() : new MXPNavX();
+        long cacheTTL = (long) (cfg.robotPeriodSeconds() * 1000 * 0.45); // cache for 45% of the robot period
+        this.gyroRotation3dCache = new Cache<>(this::_constructGyroRotation3d, cacheTTL);
         this.field = new Field2d();
         this.estimator = new SwerveDrivePoseEstimator(
             kinematics,
@@ -79,10 +82,11 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
     protected void updateOdometry() {
         try {
             odometryLock.lock();
+            gyroRotation3dCache.invalidate();
             estimator.update(gyro.getRotation2d(), getModulePositions());
             Pose2d robotPose = estimator.getEstimatedPosition();
             field.setRobotPose(robotPose);
-            gyro.updateOdometryForSimulation(kinematics, getStates(), getModulePoses(robotPose), field);
+            gyro.updateOdometryForSimulation(kinematics, getModuleStates(), getModulePoses(robotPose), field);
             populateTelemetry(robotPose);
         } finally {
             odometryLock.unlock();
@@ -93,6 +97,7 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
         try {
             odometryLock.lock();
             estimator.resetPosition(gyro.getRotation2d(), getModulePositions(), pose);
+            gyroRotation3dCache.invalidate();
         } finally {
             odometryLock.unlock();
         }
@@ -108,11 +113,21 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
     }
 
     public Rotation3d getGyroRotation3d() {
+        // Avoid over-fetching from the gyro. Get value from cache.
+        return gyroRotation3dCache.get();
+    }
+
+    /**
+     * Compute the Rotation3d object from the gyro, bypassing the cache.
+     * @return the Rotation3d object representing the gyro's orientation
+     */
+    private Rotation3d _constructGyroRotation3d() {
         return new Rotation3d(gyro.getRoll(), gyro.getPitch(), gyro.getYaw());
     }
 
     public void zeroGyro() {
         gyro.zeroGyro();
+        gyroRotation3dCache.invalidate();
     }
 
     private void populateTelemetry(Pose2d pose) {

@@ -9,6 +9,9 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.Notifier;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 class SwerveModuleImpl implements SwerveModule {
 
@@ -17,9 +20,10 @@ class SwerveModuleImpl implements SwerveModule {
     private final DriveMotor driveMotor;
     private final AngleMotor angleMotor;
     private final AbsoluteAngleEncoder angleEncoder;
-    private final int internalEncoderUpdateFrequency;
-    private int internalEncoderUpdateCount = 0;
     private SwerveModuleState desiredState;
+
+    private final Notifier encoderSynchronizer;
+    private final Lock encoderSyncLock = new ReentrantLock();
 
     SwerveModuleImpl(ModuleConfig cfg) {
         this.name = cfg.name();
@@ -31,7 +35,10 @@ class SwerveModuleImpl implements SwerveModule {
             cfg.angleEncoderAbsoluteOffsetDegrees(),
             cfg.absoluteAngleEncoderConfig()
         );
-        this.internalEncoderUpdateFrequency = cfg.angleMotorEncoderUpdateFrequency();
+        this.encoderSynchronizer = new Notifier(this::updateInternalEncoder);
+        this.encoderSynchronizer.setName("SwerveModule-" + name + "-EncoderSync");
+        // Every 100ms update the motor's internal encoder to match the module's absolute encoder
+        this.encoderSynchronizer.startPeriodic(.1);
     }
 
     public String getName() {
@@ -53,7 +60,6 @@ class SwerveModuleImpl implements SwerveModule {
     public void setDesiredState(SwerveModuleState desiredState) {
         this.desiredState = desiredState;
         updateMotors();
-        updateInternalEncoder();
     }
 
     private void updateMotors() {
@@ -83,12 +89,12 @@ class SwerveModuleImpl implements SwerveModule {
     }
 
     private void updateInternalEncoder() {
-        if (internalEncoderUpdateCount++ >= internalEncoderUpdateFrequency) {
-            internalEncoderUpdateCount = 0;
+        try {
+            encoderSyncLock.lock();
             double angle = angleEncoder.getPosition();
-            if (angle >= 0) {
-                angleMotor.setEncoderPosition(angle);
-            }
+            angleMotor.setEncoderPosition(angle);
+        } finally {
+            encoderSyncLock.unlock();
         }
     }
 

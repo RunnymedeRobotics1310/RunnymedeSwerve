@@ -13,7 +13,6 @@ package ca.team1310.swerve.core.config;
  * @param angleEncoderCanId the CAN ID of the angle encoder
  * @param angleEncoderAbsoluteOffsetDegrees the offset of the absolute encoder in degrees
  * @param absoluteAngleEncoderConfig the configuration for the absolute angle encoder
- * @param angleMotorEncoderUpdateFrequency the frequency at which the angle motor encoder should be updated
  */
 public record ModuleConfig(
     String name,
@@ -26,6 +25,5 @@ public record ModuleConfig(
     MotorConfig angleMotorConfig,
     int angleEncoderCanId,
     double angleEncoderAbsoluteOffsetDegrees,
-    EncoderConfig absoluteAngleEncoderConfig,
-    int angleMotorEncoderUpdateFrequency
+    EncoderConfig absoluteAngleEncoderConfig
 ) {}

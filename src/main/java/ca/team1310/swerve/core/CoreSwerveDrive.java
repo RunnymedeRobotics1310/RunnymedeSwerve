@@ -94,7 +94,7 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
      * Get the states of the swerve modules, including their speed and angle.
      * @return an array of swerve module states in the order front left, front right, back left, back right.
      */
-    protected SwerveModuleState[] getStates() {
+    protected SwerveModuleState[] getModuleStates() {
         return Arrays.stream(modules).map(SwerveModule::getState).toArray(SwerveModuleState[]::new);
     }
 
@@ -107,7 +107,7 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
                 break;
             }
         }
-        this.desiredChassisSpeeds = kinematics.toChassisSpeeds(getStates());
+        this.desiredChassisSpeeds = kinematics.toChassisSpeeds(getModuleStates());
         populateTelemetry();
     }
 
@@ -196,7 +196,7 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
     }
 
     private void populateTelemetry() {
-        ChassisSpeeds measuredChassisSpeeds = kinematics.toChassisSpeeds(getStates());
+        ChassisSpeeds measuredChassisSpeeds = kinematics.toChassisSpeeds(getModuleStates());
         telemetry.measuredChassisSpeeds[0] = measuredChassisSpeeds.vxMetersPerSecond;
         telemetry.measuredChassisSpeeds[1] = measuredChassisSpeeds.vyMetersPerSecond;
         telemetry.measuredChassisSpeeds[2] = measuredChassisSpeeds.omegaRadiansPerSecond;
