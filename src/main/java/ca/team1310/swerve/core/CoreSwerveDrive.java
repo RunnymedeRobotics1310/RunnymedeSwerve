@@ -68,6 +68,13 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
         this.telemetry.wheelRadiusMetres = cfg.wheelRadiusMetres();
     }
 
+    @Override
+    public void periodic() {
+        for (SwerveModule module : modules) {
+            module.periodic();
+        }
+    }
+
     /**
      * Get the position of the swerve modules, which consists of the distance and angle for the module.
      * @return an array of swerve module positions

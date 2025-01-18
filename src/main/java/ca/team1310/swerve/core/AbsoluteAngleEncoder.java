@@ -7,6 +7,11 @@ import ca.team1310.swerve.SwerveTelemetry;
  */
 public interface AbsoluteAngleEncoder {
     /**
+     * Called at the start of each robot period. Used to read sensor values
+     */
+    void periodic();
+
+    /**
      * Get the absolute position of the encoder.
      *
      * @return The absolute position of the encoder in degrees, from 0 to 360. Returns -1 on error.

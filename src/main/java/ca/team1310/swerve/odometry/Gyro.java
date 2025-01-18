@@ -15,6 +15,11 @@ import java.util.function.DoubleConsumer;
  */
 public interface Gyro extends Sendable {
     /**
+     * Called at the start of each robot period. Used to read sensor values
+     */
+    void periodic();
+
+    /**
      * Reset pitch, yaw, and roll to 0 degrees.
      */
     void zeroGyro();

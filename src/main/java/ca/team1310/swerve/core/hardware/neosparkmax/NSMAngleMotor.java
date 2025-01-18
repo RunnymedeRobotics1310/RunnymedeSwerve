@@ -13,6 +13,9 @@ import com.revrobotics.spark.config.SparkMaxConfig;
  */
 public class NSMAngleMotor extends NSMMotor implements AngleMotor {
 
+    private final int canId;
+    private double measuredPosition;
+
     /**
      * Create a new angle motor with the given CAN ID and configuration.
      *
@@ -21,6 +24,7 @@ public class NSMAngleMotor extends NSMMotor implements AngleMotor {
      */
     public NSMAngleMotor(int canId, MotorConfig cfg) {
         super(canId);
+        this.canId = canId;
         SparkMaxConfig config = new SparkMaxConfig();
         config.inverted(cfg.inverted());
         config.idleMode(SparkBaseConfig.IdleMode.kBrake);
@@ -79,9 +83,13 @@ public class NSMAngleMotor extends NSMMotor implements AngleMotor {
         );
     }
 
+    public void periodic() {
+        measuredPosition = (encoder.getPosition() + 360) % 360;
+    }
+
     @Override
     public double getPosition() {
-        return (encoder.getPosition() + 360) % 360;
+        return measuredPosition;
     }
 
     @Override
@@ -91,7 +99,19 @@ public class NSMAngleMotor extends NSMMotor implements AngleMotor {
 
     @Override
     public void setEncoderPosition(double actualAngleDegrees) {
-        if (encoder.getPosition() != actualAngleDegrees) {
+        final double maxDegreesOff = 0.05;
+        if (Math.abs(measuredPosition - actualAngleDegrees) > maxDegreesOff) {
+            System.out.println(
+                "Angle encoder " +
+                canId +
+                " position is off by more than " +
+                maxDegreesOff +
+                " degrees. Resetting encoder position to " +
+                actualAngleDegrees +
+                ". Current position is " +
+                measuredPosition +
+                "."
+            );
             doWithRetry(() -> encoder.setPosition(actualAngleDegrees));
         }
     }

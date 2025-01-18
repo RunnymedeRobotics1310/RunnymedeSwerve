@@ -13,6 +13,9 @@ import com.revrobotics.spark.config.SparkMaxConfig;
  */
 public class NSMDriveMotor extends NSMMotor implements DriveMotor {
 
+    private double measuredVelocity;
+    private double measuredDistance;
+
     /**
      * Construct a properly configured drive motor.
      * @param canId The CAN ID of the motor
@@ -78,9 +81,14 @@ public class NSMDriveMotor extends NSMMotor implements DriveMotor {
         );
     }
 
+    public void periodic() {
+        measuredDistance = encoder.getPosition();
+        measuredVelocity = encoder.getVelocity();
+    }
+
     @Override
     public double getDistance() {
-        return encoder.getPosition();
+        return measuredDistance;
     }
 
     @Override
@@ -90,6 +98,6 @@ public class NSMDriveMotor extends NSMMotor implements DriveMotor {
 
     @Override
     public double getVelocity() {
-        return encoder.getVelocity();
+        return measuredVelocity;
     }
 }

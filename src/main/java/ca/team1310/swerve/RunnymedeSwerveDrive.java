@@ -17,6 +17,14 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
  */
 public interface RunnymedeSwerveDrive {
     /**
+     * The main periodic method for the swerve drive. This should be called at the very top
+     * of the periodic method of any subsystem using this swerve drive.
+     * <p>
+     * This method is responsible reading key sensors and updating the state of the swerve drive.
+     */
+    void periodic();
+
+    /**
      * The main internal method for controlling the drivebase. This code does not apply any
      * limiters or validation, and should be used by implementing swerve drive subsystems
      * only.

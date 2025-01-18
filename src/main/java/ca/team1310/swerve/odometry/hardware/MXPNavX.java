@@ -19,36 +19,62 @@ public class MXPNavX implements Gyro {
     private double pitchOffset;
     private double yawOffset;
 
+    private double rollRaw;
+    private double roll;
+    private double pitchRaw;
+    private double pitch;
+    private double yawRaw;
+    private double yaw;
+
     /**
      * Create a new MXPNavX gyro
      */
     public MXPNavX() {
         this.navx = new AHRS(NavXComType.kMXP_SPI); // or is it kMXP_UART?
-        this.rollOffset = navx.getRoll();
-        this.pitchOffset = navx.getPitch();
-        this.yawOffset = navx.getYaw();
+
+        this.rollRaw = navx.getRoll();
+        this.rollOffset = rollRaw;
+        this.roll = rollRaw;
+
+        this.pitchRaw = navx.getPitch();
+        this.pitchOffset = pitchRaw;
+        this.pitch = pitchRaw;
+
+        this.yawRaw = navx.getYaw();
+        this.yawOffset = yawRaw;
+        this.yaw = yawRaw;
+    }
+
+    public void periodic() {
+        this.rollRaw = navx.getRoll();
+        this.pitchRaw = navx.getPitch();
+        this.yawRaw = navx.getYaw();
+
+        this.roll = rollRaw - rollOffset;
+        this.pitch = pitchRaw - pitchOffset;
+        this.yaw = yawRaw - yawOffset;
     }
 
     @Override
     public void zeroGyro() {
-        rollOffset = navx.getRoll();
-        pitchOffset = navx.getPitch();
-        yawOffset = navx.getYaw();
+        rollOffset = rollRaw;
+        pitchOffset = pitchRaw;
+        yawOffset = yawRaw;
     }
 
     @Override
     public double getRoll() {
-        return navx.getRoll() - rollOffset;
+        return roll;
     }
 
     @Override
     public double getPitch() {
-        return navx.getPitch() - pitchOffset;
+        return pitch;
     }
 
     @Override
     public double getYaw() {
-        return navx.getYaw() - yawOffset;
+        return yaw;
     }
 
     @Override
@@ -61,9 +87,9 @@ public class MXPNavX implements Gyro {
 
     @Override
     public void populateTelemetry(SwerveTelemetry telemetry) {
-        telemetry.gyroRawYawDegrees = navx.getYaw();
-        telemetry.gyroAdjustedYawDegrees = this.getYaw();
-        telemetry.gyroRawPitchDegrees = navx.getPitch();
-        telemetry.gyroRawRollDegrees = navx.getRoll();
+        telemetry.gyroRawYawDegrees = yawRaw;
+        telemetry.gyroAdjustedYawDegrees = yaw;
+        telemetry.gyroRawPitchDegrees = pitchRaw;
+        telemetry.gyroRawRollDegrees = rollRaw;
     }
 }

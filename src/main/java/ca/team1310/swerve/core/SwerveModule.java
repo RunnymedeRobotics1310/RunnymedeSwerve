@@ -10,6 +10,11 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
  */
 public interface SwerveModule {
     /**
+     * Called at the start of each robot period. Used to read sensor values
+     */
+    void periodic();
+
+    /**
      * Get the name of the swerve module
      * @return the name of the swerve module
      */

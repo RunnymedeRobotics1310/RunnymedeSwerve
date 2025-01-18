@@ -36,6 +36,8 @@ public class CanCoder implements AbsoluteAngleEncoder {
     private final Alert readingFaulty;
     private final Alert readingIgnored;
     private final Alert cannotConfigureEncoder;
+    private double measuredPosition;
+    private double measuredVelocity;
 
     /**
      * Construct a new CanCoder with the specified configuration and offsets.
@@ -91,14 +93,23 @@ public class CanCoder implements AbsoluteAngleEncoder {
         );
     }
 
+    public void periodic() {
+        this.measuredPosition = calculatePosition();
+        this.measuredVelocity = velocity.refresh().getValue().in(DegreesPerSecond);
+    }
+
     @Override
     public void populateTelemetry(SwerveTelemetry telemetry, int moduleIndex) {
         telemetry.angleEncoderAbsoluteOffsetDegrees[moduleIndex] = absoluteEncoderOffset;
-        telemetry.moduleAbsoluteEncoderPositionDegrees[moduleIndex] = getPosition();
+        telemetry.moduleAbsoluteEncoderPositionDegrees[moduleIndex] = measuredPosition;
     }
 
     @Override
     public double getPosition() {
+        return measuredPosition;
+    }
+
+    private double calculatePosition() {
         MagnetHealthValue strength = magnetHealth.refresh().getValue();
 
         magnetFieldLessThanIdeal.set(strength != MagnetHealthValue.Magnet_Green);
@@ -129,6 +140,6 @@ public class CanCoder implements AbsoluteAngleEncoder {
 
     @Override
     public double getVelocity() {
-        return velocity.refresh().getValue().in(DegreesPerSecond);
+        return measuredVelocity;
     }
 }

@@ -9,9 +9,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.Notifier;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 class SwerveModuleImpl implements SwerveModule {
 
@@ -21,9 +18,6 @@ class SwerveModuleImpl implements SwerveModule {
     private final AngleMotor angleMotor;
     private final AbsoluteAngleEncoder angleEncoder;
     private SwerveModuleState desiredState;
-
-    private final Notifier encoderSynchronizer;
-    private final Lock encoderSyncLock = new ReentrantLock();
 
     SwerveModuleImpl(ModuleConfig cfg) {
         this.name = cfg.name();
@@ -35,10 +29,13 @@ class SwerveModuleImpl implements SwerveModule {
             cfg.angleEncoderAbsoluteOffsetDegrees(),
             cfg.absoluteAngleEncoderConfig()
         );
-        this.encoderSynchronizer = new Notifier(this::updateInternalEncoder);
-        this.encoderSynchronizer.setName("SwerveModule-" + name + "-EncoderSync");
-        // Every 100ms update the motor's internal encoder to match the module's absolute encoder
-        this.encoderSynchronizer.startPeriodic(.1);
+    }
+
+    public void periodic() {
+        angleEncoder.periodic();
+        driveMotor.periodic();
+        angleMotor.periodic();
+        angleMotor.setEncoderPosition(angleEncoder.getPosition());
     }
 
     public String getName() {
@@ -86,16 +83,6 @@ class SwerveModuleImpl implements SwerveModule {
         driveMotor.setReferenceVelocity(desiredState.speedMetersPerSecond);
 
         angleMotor.setReferenceAngle(desiredState.angle.getDegrees());
-    }
-
-    private void updateInternalEncoder() {
-        try {
-            encoderSyncLock.lock();
-            double angle = angleEncoder.getPosition();
-            angleMotor.setEncoderPosition(angle);
-        } finally {
-            encoderSyncLock.unlock();
-        }
     }
 
     public void populateTelemetry(SwerveTelemetry telemetry, int moduleIndex) {

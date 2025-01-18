@@ -28,6 +28,9 @@ public class SimulatedGyro implements Gyro {
         this.lastTime = this.timer.get();
     }
 
+    @Override
+    public void periodic() {}
+
     public double getYaw() {
         return this.yaw;
     }
