@@ -25,17 +25,17 @@ import edu.wpi.first.wpilibj.RobotBase;
  */
 public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive implements RunnymedeSwerveDrive {
 
-    private final NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight-hugh");
+    private final NetworkTable table;
     // output
-    private final NetworkTableEntry tx = table.getEntry("tx");
-    private final NetworkTableEntry ty = table.getEntry("ty");
-    private final NetworkTableEntry ta = table.getEntry("ta");
-    private final NetworkTableEntry tl = table.getEntry("tl");
-    private final NetworkTableEntry botpose_wpiblue = table.getEntry("botpose_wpiblue");
-    private final NetworkTableEntry tid = table.getEntry("tid");
-    private final NetworkTableEntry priorityId = table.getEntry("priorityid");
-    private final NetworkTable poseTable = NetworkTableInstance.getDefault().getTable("LimelightPose");
-    private final DoubleArrayPublisher limelightPub = poseTable.getDoubleArrayTopic("Robot").publish();
+    private final NetworkTableEntry tx;
+    private final NetworkTableEntry ty;
+    private final NetworkTableEntry ta;
+    private final NetworkTableEntry tl;
+    private final NetworkTableEntry botpose_wpiblue;
+    private final NetworkTableEntry tid;
+    private final NetworkTableEntry priorityId;
+    private final NetworkTable poseTable;
+    private final DoubleArrayPublisher limelightPub;
     private final double fieldExtentMetresX;
     private final double fieldExtentMetresY;
     private final double maxAmbiguity;
@@ -53,16 +53,31 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive implements Run
      */
     public VisionAwareSwerveDrive(CoreSwerveConfig coreSwerveConfig, VisionConfig visionConfig) {
         super(coreSwerveConfig);
+        // initialize swerve variables
         this.fieldExtentMetresX = visionConfig.fieldExtentMetresX();
         this.fieldExtentMetresY = visionConfig.fieldExtentMetresY();
         this.maxAmbiguity = visionConfig.maxAmbiguity();
         this.highQualityAmbiguity = visionConfig.highQualityAmbiguity();
         this.maxVisposDeltaDistanceMetres = visionConfig.maxVisposeDeltaDistanceMetres();
+
+        // initialize vision variables
+        table = NetworkTableInstance.getDefault().getTable("limelight-" + visionConfig.limelightName());
+        tx = table.getEntry("tx");
+        ty = table.getEntry("ty");
+        ta = table.getEntry("ta");
+        tl = table.getEntry("tl");
+        botpose_wpiblue = table.getEntry("botpose_wpiblue");
+        tid = table.getEntry("tid");
+        priorityId = table.getEntry("priorityid");
+        poseTable = NetworkTableInstance.getDefault().getTable("LimelightPose");
+        limelightPub = poseTable.getDoubleArrayTopic("Robot").publish();
         NetworkTableEntry pipeline = table.getEntry("pipeline");
         pipeline.setNumber(visionConfig.pipelineAprilTagDetect());
+
         // inputs/configs
         NetworkTableEntry camMode = table.getEntry("camMode");
         camMode.setNumber(visionConfig.camModeVision());
+
         // bootup values
         poseEstimate = new PoseEstimate(new Pose2d(), 0, 0, 0, 0, 0, 0, null);
         visPosInfo = new VisionPositionInfo(new Pose2d(), 0, VecBuilder.fill(0, 0, 0), NONE, 0);
