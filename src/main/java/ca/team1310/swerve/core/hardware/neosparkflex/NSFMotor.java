@@ -1,5 +1,7 @@
 package ca.team1310.swerve.core.hardware.neosparkflex;
 
+import static edu.wpi.first.units.Units.Seconds;
+
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -8,10 +10,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
-
 import java.util.function.Supplier;
-
-import static edu.wpi.first.units.Units.Seconds;
 
 /**
  * Represents a Neo motor controlled by a SparkFlex.
