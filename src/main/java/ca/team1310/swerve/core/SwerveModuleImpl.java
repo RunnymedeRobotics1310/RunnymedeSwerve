@@ -3,6 +3,8 @@ package ca.team1310.swerve.core;
 import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.config.ModuleConfig;
 import ca.team1310.swerve.core.hardware.cancoder.CanCoder;
+import ca.team1310.swerve.core.hardware.neosparkflex.NSFAngleMotor;
+import ca.team1310.swerve.core.hardware.neosparkflex.NSFDriveMotor;
 import ca.team1310.swerve.core.hardware.neosparkmax.NSMAngleMotor;
 import ca.team1310.swerve.core.hardware.neosparkmax.NSMDriveMotor;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -22,8 +24,32 @@ class SwerveModuleImpl implements SwerveModule {
     SwerveModuleImpl(ModuleConfig cfg) {
         this.name = cfg.name();
         this.location = new Translation2d(cfg.xPositionMetres(), cfg.yPositionMetres());
-        this.driveMotor = new NSMDriveMotor(cfg.driveMotorCanId(), cfg.driveMotorConfig(), cfg.wheelRadiusMetres());
-        this.angleMotor = new NSMAngleMotor(cfg.angleMotorCanId(), cfg.angleMotorConfig());
+        switch (cfg.driveMotorConfig().type()) {
+            case NEO_SPARK_FLEX:
+                this.driveMotor = new NSFDriveMotor(
+                    cfg.driveMotorCanId(),
+                    cfg.driveMotorConfig(),
+                    cfg.wheelRadiusMetres()
+                );
+                break;
+            case NEO_SPARK_MAX:
+            default:
+                this.driveMotor = new NSMDriveMotor(
+                    cfg.driveMotorCanId(),
+                    cfg.driveMotorConfig(),
+                    cfg.wheelRadiusMetres()
+                );
+                break;
+        }
+        switch (cfg.angleMotorConfig().type()) {
+            case NEO_SPARK_FLEX:
+                this.angleMotor = new NSFAngleMotor(cfg.angleMotorCanId(), cfg.angleMotorConfig());
+                break;
+            case NEO_SPARK_MAX:
+            default:
+                this.angleMotor = new NSMAngleMotor(cfg.angleMotorCanId(), cfg.angleMotorConfig());
+                break;
+        }
         this.angleEncoder = new CanCoder(
             cfg.angleEncoderCanId(),
             cfg.angleEncoderAbsoluteOffsetDegrees(),
