@@ -14,6 +14,7 @@ package ca.team1310.swerve.core.config;
  * @param izone The integral zone of the motor
  */
 public record MotorConfig(
+    MotorType type,
     boolean inverted,
     int currentLimitAmps,
     double nominalVoltage,
