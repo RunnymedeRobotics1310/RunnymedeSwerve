@@ -87,8 +87,8 @@ If you are actively developing this library, or require a local build for some r
 locally.
 
 ```bash
-./gradlew clean
-./gradlew build
+./gradlew clean && \
+./gradlew build && \
 ./gradlew publishToMavenLocal
 ```
 
@@ -118,14 +118,16 @@ To obtain a private access token, go to [Tokens Classic](https://github.com/sett
 We don't really know exactly what is required here yet but this seems to work
 
 ```bash
-./gradlew clean publish
-./gradlew jreleaserInit
+./gradlew clean && \
+./gradlew publish && \
+./gradlew jreleaserInit && \
 ./gradlew jreleaserDeploy
 ```
 
 ## To Publish the Second or Later Time:
 
 ```bash
-./gradlew clean publish
+./gradlew clean && \
+./gradlew publish && \
 ./gradlew jreleaserDeploy
 ```
