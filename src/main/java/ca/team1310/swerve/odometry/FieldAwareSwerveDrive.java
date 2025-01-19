@@ -9,7 +9,6 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
@@ -26,7 +25,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class FieldAwareSwerveDrive extends CoreSwerveDrive {
 
     private final Gyro gyro;
-    private Rotation3d measuredRotation3d;
     private final Field2d field;
     private final SwerveDrivePoseEstimator estimator;
     private final SwerveTelemetry telemetry;
@@ -40,7 +38,6 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
     public FieldAwareSwerveDrive(CoreSwerveConfig cfg) {
         super(cfg);
         this.gyro = RobotBase.isSimulation() ? new SimulatedGyro() : new MXPNavX();
-        long cacheTTL = (long) (cfg.robotPeriodSeconds() * 1000 * 0.45); // cache for 45% of the robot period
         this.field = new Field2d();
         this.estimator = new SwerveDrivePoseEstimator(
             kinematics,
@@ -62,7 +59,6 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
     public void periodic() {
         super.periodic();
         this.gyro.periodic();
-        this.measuredRotation3d = new Rotation3d(gyro.getRoll(), gyro.getPitch(), gyro.getYaw());
     }
 
     /**
@@ -114,13 +110,20 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
         }
     }
 
-    public Rotation3d getGyroRotation3d() {
-        return measuredRotation3d;
-    }
-
     public void zeroGyro() {
         gyro.zeroGyro();
-        this.measuredRotation3d = new Rotation3d(gyro.getRoll(), gyro.getPitch(), gyro.getYaw());
+    }
+
+    public double getGyroRoll() {
+        return gyro.getRoll();
+    }
+
+    public double getGyroPitch() {
+        return gyro.getPitch();
+    }
+
+    public double getGyroYaw() {
+        return gyro.getYaw();
     }
 
     private void populateTelemetry(Pose2d pose) {

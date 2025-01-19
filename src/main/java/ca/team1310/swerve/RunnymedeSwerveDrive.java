@@ -81,9 +81,22 @@ public interface RunnymedeSwerveDrive {
     void zeroGyro();
 
     /**
-     * Return the gyro rotation for the robot, with yaw adjusted for the configured offset
-     *
-     * @return adjusted Rotation3d from the gyro
+     * Get the current roll of the robot, in degrees, directly from the gyro.
+     * @return the roll of the robot, in degrees
      */
-    Rotation3d getGyroRotation3d();
+    double getGyroRoll();
+
+    /**
+     * Get the current pitch of the robot, in degrees, directly from the gyro.
+     * @return the pitch of the robot, in degrees
+     */
+    double getGyroPitch();
+
+    /**
+     * Get the current yaw of the robot, in degrees, directly from the gyro.
+     * This may, possibly, differ from the rotation returned from <code>getPose()</code>
+     * via odometry. Most of the time they will align.
+     * @return the yaw of the robot, in degrees
+     */
+    double getGyroYaw();
 }
