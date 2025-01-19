@@ -67,23 +67,25 @@ class SwerveModuleSimulation implements SwerveModule {
 
     @Override
     public void populateTelemetry(SwerveTelemetry telemetry, int moduleIndex) {
-        // identify the module
-        telemetry.moduleNames[moduleIndex] = name;
-        telemetry.moduleWheelLocations[moduleIndex * 2] = location.getX();
-        telemetry.moduleWheelLocations[moduleIndex * 2 + 1] = location.getY();
+        if (telemetry.enabled) {
+            // identify the module
+            telemetry.moduleNames[moduleIndex] = name;
+            telemetry.moduleWheelLocations[moduleIndex * 2] = location.getX();
+            telemetry.moduleWheelLocations[moduleIndex * 2 + 1] = location.getY();
 
-        // desired states
-        telemetry.moduleDesiredStates[moduleIndex * 2] = desiredState.angle.getDegrees();
-        telemetry.moduleDesiredStates[moduleIndex * 2 + 1] = desiredState.speedMetersPerSecond;
+            // desired states
+            telemetry.moduleDesiredStates[moduleIndex * 2] = desiredState.angle.getDegrees();
+            telemetry.moduleDesiredStates[moduleIndex * 2 + 1] = desiredState.speedMetersPerSecond;
 
-        // measured states
-        double fakeAngle = desiredState.angle.getDegrees();
-        telemetry.moduleMeasuredStates[moduleIndex * 2] = fakeAngle;
-        telemetry.moduleMeasuredStates[moduleIndex * 2 + 1] = fakeSpeed;
+            // measured states
+            double fakeAngle = desiredState.angle.getDegrees();
+            telemetry.moduleMeasuredStates[moduleIndex * 2] = fakeAngle;
+            telemetry.moduleMeasuredStates[moduleIndex * 2 + 1] = fakeSpeed;
 
-        // position information
-        telemetry.moduleAbsoluteEncoderPositionDegrees[moduleIndex] = fakeAngle;
-        telemetry.moduleAngleMotorPositionDegrees[moduleIndex] = fakeAngle;
-        telemetry.moduleDriveMotorPositionMetres[moduleIndex] = fakePos;
+            // position information
+            telemetry.moduleAbsoluteEncoderPositionDegrees[moduleIndex] = fakeAngle;
+            telemetry.moduleAngleMotorPositionDegrees[moduleIndex] = fakeAngle;
+            telemetry.moduleDriveMotorPositionMetres[moduleIndex] = fakePos;
+        }
     }
 }

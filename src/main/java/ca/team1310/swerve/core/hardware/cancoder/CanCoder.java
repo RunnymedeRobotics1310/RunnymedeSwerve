@@ -100,8 +100,10 @@ public class CanCoder implements AbsoluteAngleEncoder {
 
     @Override
     public void populateTelemetry(SwerveTelemetry telemetry, int moduleIndex) {
-        telemetry.angleEncoderAbsoluteOffsetDegrees[moduleIndex] = absoluteEncoderOffset;
-        telemetry.moduleAbsoluteEncoderPositionDegrees[moduleIndex] = measuredPosition;
+        if (telemetry.enabled) {
+            telemetry.angleEncoderAbsoluteOffsetDegrees[moduleIndex] = absoluteEncoderOffset;
+            telemetry.moduleAbsoluteEncoderPositionDegrees[moduleIndex] = measuredPosition;
+        }
     }
 
     @Override

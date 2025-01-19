@@ -114,22 +114,24 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive implements Run
 
         // todo: do we still need this?
         publishToField(poseEstimate.pose);
-        telemetry.visionPoseUpdate = confidence != PoseConfidence.NONE;
-        telemetry.visionPoseConfidence = confidence;
-        telemetry.visionPriorityId = priorityId.getDouble(-1);
-        telemetry.visionTid = tid.getDouble(-1.0);
-        telemetry.visionTx = tx.getDouble(-1.0);
-        telemetry.visionTy = ty.getDouble(-1.0);
-        telemetry.visionTa = ta.getDouble(-1.0);
-        telemetry.visionTl = tl.getDouble(-1.0);
-        telemetry.visionPoseX = poseEstimate.pose.getX();
-        telemetry.visionPoseY = poseEstimate.pose.getY();
-        telemetry.visionPoseHeading = poseEstimate.pose.getRotation().getDegrees();
-        telemetry.visionTargetAvgDist = poseEstimate.avgTagDist;
-        telemetry.visionNumTags = poseEstimate.tagCount;
-        // todo: is this data required?
-        telemetry.visionAprilTagInfo = aprilTagInfoArrayToString(poseEstimate.rawFiducials);
-        telemetry.visionPoseSwerveDiff = visPosInfo == null ? Double.MIN_VALUE : visPosInfo.odometryDistDelta();
+        if (telemetry.enabled) {
+            telemetry.visionPoseUpdate = confidence != PoseConfidence.NONE;
+            telemetry.visionPoseConfidence = confidence;
+            telemetry.visionPriorityId = priorityId.getDouble(-1);
+            telemetry.visionTid = tid.getDouble(-1.0);
+            telemetry.visionTx = tx.getDouble(-1.0);
+            telemetry.visionTy = ty.getDouble(-1.0);
+            telemetry.visionTa = ta.getDouble(-1.0);
+            telemetry.visionTl = tl.getDouble(-1.0);
+            telemetry.visionPoseX = poseEstimate.pose.getX();
+            telemetry.visionPoseY = poseEstimate.pose.getY();
+            telemetry.visionPoseHeading = poseEstimate.pose.getRotation().getDegrees();
+            telemetry.visionTargetAvgDist = poseEstimate.avgTagDist;
+            telemetry.visionNumTags = poseEstimate.tagCount;
+            // todo: is this data required?
+            telemetry.visionAprilTagInfo = aprilTagInfoArrayToString(poseEstimate.rawFiducials);
+            telemetry.visionPoseSwerveDiff = visPosInfo == null ? Double.MIN_VALUE : visPosInfo.odometryDistDelta();
+        }
     }
 
     /**

@@ -9,6 +9,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public final class SwerveTelemetry {
 
     /**
+     * Flag to enable / disable telemetry. If disabled, telemetry will be neither
+     * collected nor reported. If enabled, telemetry will be collected and
+     * reported.
+     */
+    public boolean enabled = false;
+
+    /**
      * The prefix to use for all SmartDashboard keys
      */
     public static final String PREFIX = "1310/";
@@ -228,10 +235,12 @@ public final class SwerveTelemetry {
      * Post all telemetry data to SmartDashboard
      */
     public void post() {
-        postSwerveAdvantageScopeConstants();
-        postSwerveAdvantageScope();
-        postRunnymedeSwerveTelemetry();
-        postYagslExtensions();
+        if (enabled) {
+            postSwerveAdvantageScopeConstants();
+            postSwerveAdvantageScope();
+            postRunnymedeSwerveTelemetry();
+            postYagslExtensions();
+        }
     }
 
     private void postSwerveAdvantageScopeConstants() {

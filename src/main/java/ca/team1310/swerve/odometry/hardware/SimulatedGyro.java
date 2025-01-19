@@ -62,9 +62,11 @@ public class SimulatedGyro implements Gyro {
 
     @Override
     public void populateTelemetry(SwerveTelemetry telemetry) {
-        telemetry.gyroRawYawDegrees = this.getYaw();
-        telemetry.gyroAdjustedYawDegrees = this.getYaw();
-        telemetry.gyroRawPitchDegrees = this.getPitch();
-        telemetry.gyroRawRollDegrees = this.getRoll();
+        if (telemetry.enabled) {
+            telemetry.gyroRawYawDegrees = this.getYaw();
+            telemetry.gyroAdjustedYawDegrees = this.getYaw();
+            telemetry.gyroRawPitchDegrees = this.getPitch();
+            telemetry.gyroRawRollDegrees = this.getRoll();
+        }
     }
 }

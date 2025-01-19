@@ -127,9 +127,11 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
     }
 
     private void populateTelemetry(Pose2d pose) {
-        gyro.populateTelemetry(telemetry);
-        telemetry.poseMetresX = pose.getX();
-        telemetry.poseMetresY = pose.getY();
-        telemetry.poseHeadingDegrees = pose.getRotation().getDegrees();
+        if (telemetry.enabled) {
+            gyro.populateTelemetry(telemetry);
+            telemetry.poseMetresX = pose.getX();
+            telemetry.poseMetresY = pose.getY();
+            telemetry.poseHeadingDegrees = pose.getRotation().getDegrees();
+        }
     }
 }

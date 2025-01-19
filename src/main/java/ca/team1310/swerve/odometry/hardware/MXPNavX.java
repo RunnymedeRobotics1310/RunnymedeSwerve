@@ -109,9 +109,11 @@ public class MXPNavX implements Gyro {
 
     @Override
     public void populateTelemetry(SwerveTelemetry telemetry) {
-        telemetry.gyroRawYawDegrees = yawRaw;
-        telemetry.gyroAdjustedYawDegrees = yaw;
-        telemetry.gyroRawPitchDegrees = pitchRaw;
-        telemetry.gyroRawRollDegrees = rollRaw;
+        if (telemetry.enabled) {
+            telemetry.gyroRawYawDegrees = yawRaw;
+            telemetry.gyroAdjustedYawDegrees = yaw;
+            telemetry.gyroRawPitchDegrees = pitchRaw;
+            telemetry.gyroRawRollDegrees = rollRaw;
+        }
     }
 }

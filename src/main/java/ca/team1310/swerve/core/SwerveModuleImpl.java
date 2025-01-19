@@ -112,23 +112,25 @@ class SwerveModuleImpl implements SwerveModule {
     }
 
     public void populateTelemetry(SwerveTelemetry telemetry, int moduleIndex) {
-        // identify the module
-        telemetry.moduleNames[moduleIndex] = name;
-        telemetry.moduleWheelLocations[moduleIndex * 2] = location.getX();
-        telemetry.moduleWheelLocations[moduleIndex * 2 + 1] = location.getY();
+        if (telemetry.enabled) {
+            // identify the module
+            telemetry.moduleNames[moduleIndex] = name;
+            telemetry.moduleWheelLocations[moduleIndex * 2] = location.getX();
+            telemetry.moduleWheelLocations[moduleIndex * 2 + 1] = location.getY();
 
-        // desired states
-        telemetry.moduleDesiredStates[moduleIndex * 2] = desiredState.angle.getDegrees();
-        telemetry.moduleDesiredStates[moduleIndex * 2 + 1] = desiredState.speedMetersPerSecond;
+            // desired states
+            telemetry.moduleDesiredStates[moduleIndex * 2] = desiredState.angle.getDegrees();
+            telemetry.moduleDesiredStates[moduleIndex * 2 + 1] = desiredState.speedMetersPerSecond;
 
-        // measured states
-        telemetry.moduleMeasuredStates[moduleIndex * 2] = angleMotor.getPosition();
-        telemetry.moduleMeasuredStates[moduleIndex * 2 + 1] = driveMotor.getVelocity();
+            // measured states
+            telemetry.moduleMeasuredStates[moduleIndex * 2] = angleMotor.getPosition();
+            telemetry.moduleMeasuredStates[moduleIndex * 2 + 1] = driveMotor.getVelocity();
 
-        // position information
-        telemetry.moduleAngleMotorPositionDegrees[moduleIndex] = angleMotor.getPosition();
-        telemetry.moduleDriveMotorPositionMetres[moduleIndex] = driveMotor.getDistance();
+            // position information
+            telemetry.moduleAngleMotorPositionDegrees[moduleIndex] = angleMotor.getPosition();
+            telemetry.moduleDriveMotorPositionMetres[moduleIndex] = driveMotor.getDistance();
 
-        angleEncoder.populateTelemetry(telemetry, moduleIndex);
+            angleEncoder.populateTelemetry(telemetry, moduleIndex);
+        }
     }
 }
