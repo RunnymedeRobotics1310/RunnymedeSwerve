@@ -58,8 +58,8 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
         this.telemetry = cfg.telemetry();
     }
 
-    protected void periodicStart() {
-        super.periodicStart();
+    public void periodic() {
+        super.periodic();
         this.gyro.periodic();
         updateOdometry();
     }

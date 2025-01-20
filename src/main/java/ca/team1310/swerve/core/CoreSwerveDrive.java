@@ -69,18 +69,10 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
     }
 
     @Override
-    public final void periodic() {
-        periodicStart();
-        periodicEnd();
-    }
-
-    protected void periodicStart() {
+    public void periodic() {
         for (SwerveModule module : modules) {
             module.periodic();
         }
-    }
-
-    protected void periodicEnd() {
         populateTelemetry();
     }
 
