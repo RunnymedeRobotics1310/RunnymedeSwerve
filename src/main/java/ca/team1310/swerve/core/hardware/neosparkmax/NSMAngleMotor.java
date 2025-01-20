@@ -13,8 +13,12 @@ import com.revrobotics.spark.config.SparkMaxConfig;
  */
 public class NSMAngleMotor extends NSMMotor implements AngleMotor {
 
+    private static final double ANGLE_ENCODER_MAX_ERROR_DEGREES = 0.5;
+    private static final int UPDATE_ENCODER_EVERY_N_CYCLES = 50 * 5; // approx every 5s
+    private static final double MAX_ANGULAR_VELOCITY_FOR_ENCODER_UPDATE = 10; // degrees per second
     private final int canId;
     private double measuredPosition;
+    private int cyclesSinceLastEncoderUpdate = 0;
 
     /**
      * Create a new angle motor with the given CAN ID and configuration.
@@ -99,17 +103,34 @@ public class NSMAngleMotor extends NSMMotor implements AngleMotor {
 
     @Override
     public void setEncoderPosition(double actualAngleDegrees) {
-        final double maxDegreesOff = 0.5;
-        if (Math.abs(measuredPosition - actualAngleDegrees) > maxDegreesOff) {
-            String log = String.format(
-                "Angle encoder %d position is off by more than %.2f degrees. Resetting encoder position to %.2f. Measured position is %.2f.",
-                canId,
-                maxDegreesOff,
-                actualAngleDegrees,
-                measuredPosition
-            );
-            System.out.println(log);
-            doWithRetry(() -> encoder.setPosition(actualAngleDegrees));
+        if (cyclesSinceLastEncoderUpdate++ < UPDATE_ENCODER_EVERY_N_CYCLES) {
+            // only update the encoder position every so often to avoid spamming the CAN bus
+            return;
         }
+
+        double omega = Math.abs(encoder.getVelocity());
+        if (omega > MAX_ANGULAR_VELOCITY_FOR_ENCODER_UPDATE) {
+            // angle motor is moving too fast to update.
+            return;
+        }
+
+        // update the encoder position
+        cyclesSinceLastEncoderUpdate = 0;
+
+        double error = Math.abs(measuredPosition - actualAngleDegrees);
+        if (error < ANGLE_ENCODER_MAX_ERROR_DEGREES) {
+            // no need to update the encoder position
+            return;
+        }
+
+        String log = String.format(
+            "Angle encoder %d position is off by more than %.2f degrees. Resetting encoder position to %.2f. Measured position is %.2f.",
+            canId,
+            ANGLE_ENCODER_MAX_ERROR_DEGREES,
+            actualAngleDegrees,
+            measuredPosition
+        );
+        System.out.println(log);
+        doWithRetry(() -> encoder.setPosition(actualAngleDegrees));
     }
 }
