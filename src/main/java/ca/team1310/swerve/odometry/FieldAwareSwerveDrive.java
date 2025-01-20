@@ -13,13 +13,10 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import java.util.Arrays;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A field-aware swerve drive that uses a gyro and odometry to estimate the robot's pose on the field.
@@ -30,8 +27,6 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
     private final Field2d field;
     private final SwerveDrivePoseEstimator estimator;
     private final SwerveTelemetry telemetry;
-    private final Notifier odometryThread;
-    private final Lock odometryLock = new ReentrantLock();
 
     /**
      * Create a new field-aware swerve drive
@@ -57,22 +52,16 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
         System.out.println("Initial pose: " + initialPose);
         this.estimator = new SwerveDrivePoseEstimator(kinematics, initialRotation, initialModulePositions, initialPose);
 
-        // Set up odometry thread
-        odometryThread = new Notifier(this::updateOdometry);
-        odometryThread.stop();
-        // todo: move to its own config once tested
-        final double odometryPeriodSeconds = cfg.robotPeriodSeconds();
-        odometryThread.startPeriodic(odometryPeriodSeconds);
-
         // Set up telemetry
         SmartDashboard.putData(this.field);
         SmartDashboard.putData(this.gyro);
         this.telemetry = cfg.telemetry();
     }
 
-    public void periodic() {
-        super.periodic();
+    protected void periodicStart() {
+        super.periodicStart();
         this.gyro.periodic();
+        updateOdometry();
     }
 
     /**
@@ -82,46 +71,26 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
      * @param deviation the deviation of the measurement
      */
     protected void addVisionMeasurement(Pose2d pose, double timestampSeconds, Matrix<N3, N1> deviation) {
-        try {
-            odometryLock.lock();
-            estimator.addVisionMeasurement(pose, timestampSeconds, deviation);
-        } finally {
-            odometryLock.unlock();
-        }
+        estimator.addVisionMeasurement(pose, timestampSeconds, deviation);
     }
 
     /**
      * Update the odometry tracking of the robot using module states and odometry measurements.
      */
     protected void updateOdometry() {
-        try {
-            odometryLock.lock();
-            estimator.update(gyro.getRotation2d(), getModulePositions());
-            Pose2d robotPose = estimator.getEstimatedPosition();
-            field.setRobotPose(robotPose);
-            gyro.updateOdometryForSimulation(kinematics, getModuleStates(), getModulePoses(robotPose), field);
-            populateTelemetry(robotPose);
-        } finally {
-            odometryLock.unlock();
-        }
+        estimator.update(gyro.getRotation2d(), getModulePositions());
+        Pose2d robotPose = estimator.getEstimatedPosition();
+        field.setRobotPose(robotPose);
+        gyro.updateOdometryForSimulation(kinematics, getModuleStates(), getModulePoses(robotPose), field);
+        populateTelemetry(robotPose);
     }
 
     public void resetOdometry(Pose2d pose) {
-        try {
-            odometryLock.lock();
-            estimator.resetPosition(gyro.getRotation2d(), getModulePositions(), pose);
-        } finally {
-            odometryLock.unlock();
-        }
+        estimator.resetPosition(gyro.getRotation2d(), getModulePositions(), pose);
     }
 
     public Pose2d getPose() {
-        try {
-            odometryLock.lock();
-            return estimator.getEstimatedPosition();
-        } finally {
-            odometryLock.unlock();
-        }
+        return estimator.getEstimatedPosition();
     }
 
     public void zeroGyro() {
