@@ -206,9 +206,11 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
             telemetry.measuredChassisSpeeds[1] = measuredChassisSpeeds.vyMetersPerSecond;
             telemetry.measuredChassisSpeeds[2] = measuredChassisSpeeds.omegaRadiansPerSecond;
 
-            telemetry.desiredChassisSpeeds[0] = desiredChassisSpeeds.vxMetersPerSecond;
-            telemetry.desiredChassisSpeeds[1] = desiredChassisSpeeds.vyMetersPerSecond;
-            telemetry.desiredChassisSpeeds[2] = desiredChassisSpeeds.omegaRadiansPerSecond;
+            if (desiredChassisSpeeds != null) {
+                telemetry.desiredChassisSpeeds[0] = desiredChassisSpeeds.vxMetersPerSecond;
+                telemetry.desiredChassisSpeeds[1] = desiredChassisSpeeds.vyMetersPerSecond;
+                telemetry.desiredChassisSpeeds[2] = desiredChassisSpeeds.omegaRadiansPerSecond;
+            }
 
             for (int i = 0; i < modules.length; i++) {
                 modules[i].populateTelemetry(telemetry, i);

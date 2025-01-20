@@ -10,12 +10,14 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -39,18 +41,30 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
         super(cfg);
         this.gyro = RobotBase.isSimulation() ? new SimulatedGyro() : new MXPNavX();
         this.field = new Field2d();
-        this.estimator = new SwerveDrivePoseEstimator(
-            kinematics,
-            gyro.getRotation2d(),
-            getModulePositions(),
-            new Pose2d(new Translation2d(0, 0), new Rotation2d(0))
+
+        // Set up pose estimator
+        Rotation2d initialRotation = gyro.getRotation2d();
+        if (initialRotation == null) {
+            initialRotation = new Rotation2d();
+            System.out.println("Gyro not connected, using default rotation");
+        }
+        SwerveModulePosition[] initialModulePositions = getModulePositions();
+        System.out.println(
+            "Initial module positions: " +
+            Arrays.stream(initialModulePositions).map(SwerveModulePosition::toString).reduce("", (a, b) -> a + b)
         );
+        Pose2d initialPose = new Pose2d(new Translation2d(0, 0), Rotation2d.fromDegrees(gyro.getYaw()));
+        System.out.println("Initial pose: " + initialPose);
+        this.estimator = new SwerveDrivePoseEstimator(kinematics, initialRotation, initialModulePositions, initialPose);
+
+        // Set up odometry thread
         odometryThread = new Notifier(this::updateOdometry);
         odometryThread.stop();
         // todo: move to its own config once tested
         final double odometryPeriodSeconds = cfg.robotPeriodSeconds();
         odometryThread.startPeriodic(odometryPeriodSeconds);
 
+        // Set up telemetry
         SmartDashboard.putData(this.field);
         SmartDashboard.putData(this.gyro);
         this.telemetry = cfg.telemetry();

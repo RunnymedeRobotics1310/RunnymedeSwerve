@@ -119,8 +119,10 @@ class SwerveModuleImpl implements SwerveModule {
             telemetry.moduleWheelLocations[moduleIndex * 2 + 1] = location.getY();
 
             // desired states
-            telemetry.moduleDesiredStates[moduleIndex * 2] = desiredState.angle.getDegrees();
-            telemetry.moduleDesiredStates[moduleIndex * 2 + 1] = desiredState.speedMetersPerSecond;
+            if (desiredState != null) {
+                telemetry.moduleDesiredStates[moduleIndex * 2] = desiredState.angle.getDegrees();
+                telemetry.moduleDesiredStates[moduleIndex * 2 + 1] = desiredState.speedMetersPerSecond;
+            }
 
             // measured states
             telemetry.moduleMeasuredStates[moduleIndex * 2] = angleMotor.getPosition();

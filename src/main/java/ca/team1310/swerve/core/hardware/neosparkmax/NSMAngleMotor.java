@@ -99,19 +99,16 @@ public class NSMAngleMotor extends NSMMotor implements AngleMotor {
 
     @Override
     public void setEncoderPosition(double actualAngleDegrees) {
-        final double maxDegreesOff = 0.05;
+        final double maxDegreesOff = 0.5;
         if (Math.abs(measuredPosition - actualAngleDegrees) > maxDegreesOff) {
-            System.out.println(
-                "Angle encoder " +
-                canId +
-                " position is off by more than " +
-                maxDegreesOff +
-                " degrees. Resetting encoder position to " +
-                actualAngleDegrees +
-                ". Current position is " +
-                measuredPosition +
-                "."
+            String log = String.format(
+                "Angle encoder %d position is off by more than %.2f degrees. Resetting encoder position to %.2f. Measured position is %.2f.",
+                canId,
+                maxDegreesOff,
+                actualAngleDegrees,
+                measuredPosition
             );
+            System.out.println(log);
             doWithRetry(() -> encoder.setPosition(actualAngleDegrees));
         }
     }

@@ -137,7 +137,7 @@ public class CanCoder implements AbsoluteAngleEncoder {
             readingIgnored.set(false);
         }
 
-        return angle.getValue().in(Degrees) - absoluteEncoderOffset;
+        return ((angle.getValue().in(Degrees) - absoluteEncoderOffset) + 360) % 360;
     }
 
     @Override
