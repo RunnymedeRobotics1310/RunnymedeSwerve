@@ -114,7 +114,24 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive {
 
     public void periodic() {
         super.periodic();
-        
+        updateLimelight();
+        updateOdometryFromVision();
+        updateTelemetry();
+    }
+
+    /**
+     * Reset gyro to 0 and switch back to MegaTag1 for orientation setting.
+     */
+    @Override
+    public void zeroGyro() {
+        super.zeroGyro();
+        state = State.INITALIZE;
+    }
+
+    /**
+     * Pull the latest data from the Limelight NetworkTables, while updating robot orientation from odometry to Limelight.
+     */
+    private void updateLimelight() {
         // Set Limelight Orientation
         Pose2d currentPose = getPose();
         setLimelightOrientation(currentPose.getRotation().getDegrees());
@@ -132,15 +149,10 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive {
         botPoseBlueMegaTag2 = botPoseBlueMegaTag2Sub.getAtomic();
     }
 
-    @Override
-    public void zeroGyro() {
-        super.zeroGyro();
-        state = State.INITALIZE;
-    }
-
-    protected void updateOdometry() {
-        super.updateOdometry();
-
+    /**
+     * Update the odometry tracking of the robot using vision data obtained from Limelight, if available.
+     */
+    protected void updateOdometryFromVision() {
         final String NOT_AVAILABLE = "hugh-free";
         if (table.getEntry("pipeline").getString(NOT_AVAILABLE).equals(NOT_AVAILABLE)) {
             // Vision system not available
@@ -165,12 +177,17 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive {
         if (confidence != NONE) {
             super.addVisionMeasurement(visPosInfo.pose(), visPosInfo.timestampSeconds(), visPosInfo.deviation());
         }
+    }
 
+    /** 
+     * Update the telemetry data for the VisionAwareSwerveDrive.
+     */
+    protected void updateTelemetry() {
         // todo: do we still need this?
         publishToField(poseEstimate.pose);
         if (telemetry.enabled) {
-            telemetry.visionPoseUpdate = confidence != PoseConfidence.NONE;
-            telemetry.visionPoseConfidence = confidence;
+            telemetry.visionPoseUpdate = visPosInfo.confidence() != PoseConfidence.NONE;
+            telemetry.visionPoseConfidence = visPosInfo.confidence();
             telemetry.visionPriorityId = priorityId;
             telemetry.visionTid = tid;
             telemetry.visionTx = tx;

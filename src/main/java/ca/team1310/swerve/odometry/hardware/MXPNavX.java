@@ -46,8 +46,9 @@ public class MXPNavX implements Gyro {
         this.yawRaw = navx.getYaw();
         this.yawOffset = yawRaw;
         this.yaw = yawRaw;
-
         this.yawRate = navx.getRate();
+
+        this.rotation = Rotation2d.fromDegrees(yaw);
     }
 
     public void periodic() {
