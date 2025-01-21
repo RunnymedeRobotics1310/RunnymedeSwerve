@@ -19,6 +19,7 @@ public class SimulatedGyro implements Gyro {
     private double roll = 0;
     private double pitch = 0;
     private double yaw = 0;
+    private double yawRate = 0;
 
     /**
      * Constructs a new simulated gyro.
@@ -30,6 +31,10 @@ public class SimulatedGyro implements Gyro {
 
     @Override
     public void periodic() {}
+
+    public double getYawRate() {
+        return this.yawRate;
+    }
 
     public double getYaw() {
         return this.yaw;

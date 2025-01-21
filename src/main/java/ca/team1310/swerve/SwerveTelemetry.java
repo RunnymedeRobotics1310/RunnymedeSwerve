@@ -134,11 +134,11 @@ public final class SwerveTelemetry {
     /**
      * The priority id from the vision system
      */
-    public double visionPriorityId = Double.MIN_VALUE;
+    public long visionPriorityId = Long.MIN_VALUE;
     /**
      * The tid value from the vision system
      */
-    public double visionTid = Double.MIN_VALUE;
+    public long visionTid = Long.MIN_VALUE;
     /**
      * The tx value from the vision system
      */

@@ -26,6 +26,7 @@ public class MXPNavX implements Gyro {
     private double pitch;
     private double yawRaw;
     private double yaw;
+    private double yawRate;
     private Rotation2d rotation;
 
     /**
@@ -45,6 +46,8 @@ public class MXPNavX implements Gyro {
         this.yawRaw = navx.getYaw();
         this.yawOffset = yawRaw;
         this.yaw = yawRaw;
+
+        this.yawRate = navx.getRate();
     }
 
     public void periodic() {
@@ -59,6 +62,7 @@ public class MXPNavX implements Gyro {
         this.rollRaw = navx.getRoll();
         this.pitchRaw = navx.getPitch();
         this.yawRaw = navx.getYaw();
+        this.yawRate = navx.getRate();
     }
 
     /**
@@ -92,6 +96,11 @@ public class MXPNavX implements Gyro {
     @Override
     public double getYaw() {
         return yaw;
+    }
+
+    @Override
+    public double getYawRate() {
+        return yawRate;
     }
 
     @Override
