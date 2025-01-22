@@ -109,7 +109,7 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
         return gyro.getYaw();
     }
 
-    public double getGyroYawRate() {
+    protected double getGyroYawRate() {
         return gyro.getYawRate();
     }
 
