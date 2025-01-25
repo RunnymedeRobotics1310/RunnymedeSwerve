@@ -13,6 +13,7 @@ import com.revrobotics.spark.config.SparkFlexConfig;
  */
 public class NSFAngleMotor extends NSFMotor implements AngleMotor {
 
+    // TODO: NOTE THIS CODE HAS NOT BEEN UPDATED AS MUCH AS NSMANGLEMOTOR
     private final int canId;
     private double measuredPosition;
 
