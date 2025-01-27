@@ -44,10 +44,10 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
             this.modules[2] = new SwerveModuleSimulation(cfg.backLeftModuleConfig());
             this.modules[3] = new SwerveModuleSimulation(cfg.backRightModuleConfig());
         } else {
-            this.modules[0] = new SwerveModuleImpl(cfg.frontLeftModuleConfig());
-            this.modules[1] = new SwerveModuleImpl(cfg.frontRightModuleConfig());
-            this.modules[2] = new SwerveModuleImpl(cfg.backLeftModuleConfig());
-            this.modules[3] = new SwerveModuleImpl(cfg.backRightModuleConfig());
+            this.modules[0] = new SwerveModuleImpl(cfg.frontLeftModuleConfig(), (int)(cfg.robotPeriodSeconds()*1000));
+            this.modules[1] = new SwerveModuleImpl(cfg.frontRightModuleConfig(), (int)(cfg.robotPeriodSeconds()*1000));
+            this.modules[2] = new SwerveModuleImpl(cfg.backLeftModuleConfig(),  (int)(cfg.robotPeriodSeconds()*1000));
+            this.modules[3] = new SwerveModuleImpl(cfg.backRightModuleConfig(),  (int)(cfg.robotPeriodSeconds()*1000));
         }
 
         this.kinematics = new SwerveDriveKinematics(

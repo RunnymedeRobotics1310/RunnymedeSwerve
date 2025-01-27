@@ -1,34 +1,34 @@
-package ca.team1310.swerve.core.hardware.neosparkmax;
+/*
+ * Copyright 2025 The Kingsway Digital Company Limited. All rights reserved.
+ */
+package ca.team1310.swerve.core.hardware.rev.neospark;
 
 import ca.team1310.swerve.core.AngleMotor;
 import ca.team1310.swerve.core.config.MotorConfig;
 import com.revrobotics.spark.SparkBase;
-import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 /**
- * A Neo motor controlled by a SparkMax motor controller that is configured to control the angle of a swerve module.
+ * @author Tony Field
+ * @since 2025-01-26 07:00
  */
-public class NSMAngleMotor extends NSMMotor implements AngleMotor {
+public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implements AngleMotor {
 
     private static final double ANGLE_ENCODER_MAX_ERROR_DEGREES = 0.5;
-    private static final int UPDATE_ENCODER_EVERY_N_CYCLES = 50 * 5; // approx every 5s
-    private static final double MAX_ANGULAR_VELOCITY_FOR_ENCODER_UPDATE = 10; // degrees per second
-    private final int canId;
+    private static final int UPDATE_ENCODER_EVERY_N_CYCLES = 50 * 1; // approx every 1s
+    private static final double MAX_ANGULAR_VELOCITY_FOR_ENCODER_UPDATE = 2; // degrees per second
     private double measuredPosition;
     private int cyclesSinceLastEncoderUpdate = 0;
 
     /**
-     * Create a new angle motor with the given CAN ID and configuration.
-     *
-     * @param canId the CAN ID of the motor
-     * @param cfg the configuration of the motor
+     * Construct a properly configured angle motor.
+     * @param spark The spark motor controller
+     * @param cfg   The configuration of the motor
      */
-    public NSMAngleMotor(int canId, MotorConfig cfg) {
-        super(canId);
-        this.canId = canId;
+    public NSAngleMotor(T spark, MotorConfig cfg, int robotPeriodMillis) {
+        super(spark);
         SparkMaxConfig config = new SparkMaxConfig();
         config.inverted(cfg.inverted());
         config.idleMode(SparkBaseConfig.IdleMode.kBrake);
@@ -37,7 +37,7 @@ public class NSMAngleMotor extends NSMMotor implements AngleMotor {
         config.closedLoopRampRate(cfg.rampRateSecondsZeroToFull());
         config.openLoopRampRate(cfg.rampRateSecondsZeroToFull());
 
-        // default signals
+        // Configure what the spark sends over CAN. Keep usage low.
         config.signals
             .absoluteEncoderPositionAlwaysOn(false)
             .absoluteEncoderVelocityAlwaysOn(false)
@@ -48,15 +48,15 @@ public class NSMAngleMotor extends NSMMotor implements AngleMotor {
             .externalOrAltEncoderVelocityAlwaysOn(false)
             .primaryEncoderPositionAlwaysOn(false)
             .primaryEncoderVelocityAlwaysOn(false)
-            .iAccumulationAlwaysOn(false)
-            .appliedOutputPeriodMs(10)
-            .faultsPeriodMs(20);
+            .iAccumulationAlwaysOn(false);
 
         // angle motor signals
         config.signals
+            .appliedOutputPeriodMs(robotPeriodMillis / 2) // todo: for debugging only????????
+            .faultsPeriodMs(robotPeriodMillis) // report faults as they happen
             .primaryEncoderVelocityAlwaysOn(false)
             .primaryEncoderPositionAlwaysOn(true)
-            .primaryEncoderPositionPeriodMs(20);
+            .primaryEncoderPositionPeriodMs(robotPeriodMillis / 2);
 
         // Angle motor
         final double angleConversionFactor = 360 / cfg.gearRatio();
@@ -64,8 +64,6 @@ public class NSMAngleMotor extends NSMMotor implements AngleMotor {
         config.encoder.positionConversionFactor(angleConversionFactor);
         // report in degrees per second not rotations per minute
         config.encoder.velocityConversionFactor(angleConversionFactor / 60);
-        // reduce measurement lag
-        config.encoder.quadratureMeasurementPeriod(10).quadratureAverageDepth(2);
 
         // configure PID controller
         config.closedLoop
@@ -79,7 +77,7 @@ public class NSMAngleMotor extends NSMMotor implements AngleMotor {
         // send them to the motor
         doWithRetry(
             () ->
-                sparkMaxMotorController.configure(
+                spark.configure(
                     config,
                     SparkBase.ResetMode.kNoResetSafeParameters,
                     SparkBase.PersistMode.kPersistParameters
@@ -98,7 +96,7 @@ public class NSMAngleMotor extends NSMMotor implements AngleMotor {
 
     @Override
     public void setReferenceAngle(double degrees) {
-        doWithRetry(() -> controller.setReference(degrees, ControlType.kPosition));
+        doWithRetry(() -> controller.setReference(degrees, SparkBase.ControlType.kPosition));
     }
 
     @Override
@@ -124,11 +122,12 @@ public class NSMAngleMotor extends NSMMotor implements AngleMotor {
         }
 
         String log = String.format(
-            "Angle encoder %d position is off by more than %.2f degrees. Resetting encoder position to %.2f. Measured position is %.2f.",
-            canId,
+            "Angle encoder %d position is off by more than %.2f degrees. Resetting to %.2f. Measured %.2f, error %.2f.",
+            spark.getDeviceId(),
             ANGLE_ENCODER_MAX_ERROR_DEGREES,
             actualAngleDegrees,
-            measuredPosition
+            measuredPosition,
+            error
         );
         System.out.println(log);
         doWithRetry(() -> encoder.setPosition(actualAngleDegrees));
