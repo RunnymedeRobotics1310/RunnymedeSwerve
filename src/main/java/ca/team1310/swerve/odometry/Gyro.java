@@ -43,6 +43,12 @@ public interface Gyro extends Sendable {
     double getYaw();
 
     /**
+     * Get the rate of yaw change of the robot, in degrees.
+     * @return the rate of rotation of the yaw of the robot, in degrees per second
+     */
+    double getYawRate();
+
+    /**
      * Update the gyro in simulation mode. Not used in normal operation
      *
      * @param kinematics The kinematics of the swerve drive

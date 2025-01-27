@@ -109,6 +109,10 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
         return gyro.getYaw();
     }
 
+    protected double getGyroYawRate() {
+        return gyro.getYawRate();
+    }
+
     private void populateTelemetry(Pose2d pose) {
         if (telemetry.enabled) {
             gyro.populateTelemetry(telemetry);
