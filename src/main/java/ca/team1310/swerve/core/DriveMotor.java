@@ -27,4 +27,10 @@ public interface DriveMotor {
      * @return the velocity of the motor in metres per second
      */
     double getVelocity();
+
+    /**
+     * Get the output power of the motor
+     * @return the output power of the motor
+     */
+    double getMeasuredVoltage();
 }

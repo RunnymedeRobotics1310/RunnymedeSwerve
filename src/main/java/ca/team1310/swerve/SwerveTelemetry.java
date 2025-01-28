@@ -89,7 +89,7 @@ public final class SwerveTelemetry {
      * The drive motor positions of the swerve modules in metres
      */
     public double[] moduleDriveMotorPositionMetres;
-
+    public double[] driveMotorOutputPower;
     // Gyro
     /**
      * The raw yaw of the gyro in degrees
@@ -229,6 +229,7 @@ public final class SwerveTelemetry {
         moduleAbsoluteEncoderPositionDegrees = new double[moduleCount];
         moduleAngleMotorPositionDegrees = new double[moduleCount];
         moduleDriveMotorPositionMetres = new double[moduleCount];
+        driveMotorOutputPower = new double[moduleCount];
     }
 
     /**
@@ -300,6 +301,7 @@ public final class SwerveTelemetry {
             SmartDashboard.putNumber(pfx + "]/ Raw Angle Encoder", moduleAngleMotorPositionDegrees[i]);
             SmartDashboard.putNumber(pfx + "]/ Raw Drive Encoder", moduleDriveMotorPositionMetres[i]);
             SmartDashboard.putNumber(pfx + "]/ Adjusted Absolute Encoder", moduleAbsoluteEncoderPositionDegrees[i]);
+            SmartDashboard.putNumber(pfx + "]/ Drive Motor Power", driveMotorOutputPower[i]);
             //            SmartDashboard.putNumber(pfx + "]/ absoluteEncoderIssueName", "" );
         }
     }

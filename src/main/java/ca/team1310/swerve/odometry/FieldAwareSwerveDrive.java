@@ -60,6 +60,7 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
 
     public void periodic() {
         super.periodic();
+        populateTelemetry();
         this.gyro.periodic();
         updateOdometry();
     }
@@ -77,12 +78,16 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
     /**
      * Update the odometry tracking of the robot using module states and odometry measurements.
      */
-    protected void updateOdometry() {
+    private void updateOdometry() {
         estimator.update(gyro.getRotation2d(), getModulePositions());
-        Pose2d robotPose = estimator.getEstimatedPosition();
-        field.setRobotPose(robotPose);
-        gyro.updateOdometryForSimulation(kinematics, getModuleStates(), getModulePoses(robotPose), field);
-        populateTelemetry(robotPose);
+        if (super.isSimulation) {
+            gyro.updateOdometryForSimulation(
+                kinematics,
+                getModuleStates(),
+                getModulePoses(estimator.getEstimatedPosition()),
+                field
+            );
+        }
     }
 
     public void resetOdometry(Pose2d pose) {
@@ -113,8 +118,10 @@ public class FieldAwareSwerveDrive extends CoreSwerveDrive {
         return gyro.getYawRate();
     }
 
-    private void populateTelemetry(Pose2d pose) {
+    private void populateTelemetry() {
         if (telemetry.enabled) {
+            Pose2d pose = estimator.getEstimatedPosition();
+            field.setRobotPose(pose);
             gyro.populateTelemetry(telemetry);
             telemetry.poseMetresX = pose.getX();
             telemetry.poseMetresY = pose.getY();

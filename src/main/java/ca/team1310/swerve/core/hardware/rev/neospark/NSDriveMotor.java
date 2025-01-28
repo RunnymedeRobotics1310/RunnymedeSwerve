@@ -18,6 +18,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
 
     private double measuredVelocity;
     private double measuredDistance;
+    private double measuredVoltage;
 
     /**
      * Construct a properly configured drive motor.
@@ -88,6 +89,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
     public void periodic() {
         measuredDistance = encoder.getPosition();
         measuredVelocity = encoder.getVelocity();
+        measuredVoltage = spark.getAppliedOutput();
     }
 
     @Override
@@ -103,5 +105,9 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
     @Override
     public double getVelocity() {
         return measuredVelocity;
+    }
+
+    public double getMeasuredVoltage() {
+        return measuredVoltage;
     }
 }

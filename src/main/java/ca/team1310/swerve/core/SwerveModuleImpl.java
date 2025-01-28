@@ -135,6 +135,7 @@ class SwerveModuleImpl implements SwerveModule {
             // position information
             telemetry.moduleAngleMotorPositionDegrees[moduleIndex] = angleMotor.getPosition();
             telemetry.moduleDriveMotorPositionMetres[moduleIndex] = driveMotor.getDistance();
+            telemetry.driveMotorOutputPower[moduleIndex] = driveMotor.getMeasuredVoltage();
 
             angleEncoder.populateTelemetry(telemetry, moduleIndex);
         }

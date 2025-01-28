@@ -30,6 +30,7 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
     private ChassisSpeeds desiredChassisSpeeds;
     private final SwerveTelemetry telemetry;
+    protected final boolean isSimulation;
 
     /**
      * Construct a new CoreSwerveDrive object with the specified configuration.
@@ -38,16 +39,26 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
     protected CoreSwerveDrive(CoreSwerveConfig cfg) {
         // order matters in case we want to use AdvantageScope
         this.modules = new SwerveModule[4];
-        if (RobotBase.isSimulation()) {
+        this.isSimulation = RobotBase.isSimulation();
+        if (isSimulation) {
             this.modules[0] = new SwerveModuleSimulation(cfg.frontLeftModuleConfig());
             this.modules[1] = new SwerveModuleSimulation(cfg.frontRightModuleConfig());
             this.modules[2] = new SwerveModuleSimulation(cfg.backLeftModuleConfig());
             this.modules[3] = new SwerveModuleSimulation(cfg.backRightModuleConfig());
         } else {
-            this.modules[0] = new SwerveModuleImpl(cfg.frontLeftModuleConfig(), (int)(cfg.robotPeriodSeconds()*1000));
-            this.modules[1] = new SwerveModuleImpl(cfg.frontRightModuleConfig(), (int)(cfg.robotPeriodSeconds()*1000));
-            this.modules[2] = new SwerveModuleImpl(cfg.backLeftModuleConfig(),  (int)(cfg.robotPeriodSeconds()*1000));
-            this.modules[3] = new SwerveModuleImpl(cfg.backRightModuleConfig(),  (int)(cfg.robotPeriodSeconds()*1000));
+            this.modules[0] = new SwerveModuleImpl(
+                cfg.frontLeftModuleConfig(),
+                (int) (cfg.robotPeriodSeconds() * 1000)
+            );
+            this.modules[1] = new SwerveModuleImpl(
+                cfg.frontRightModuleConfig(),
+                (int) (cfg.robotPeriodSeconds() * 1000)
+            );
+            this.modules[2] = new SwerveModuleImpl(cfg.backLeftModuleConfig(), (int) (cfg.robotPeriodSeconds() * 1000));
+            this.modules[3] = new SwerveModuleImpl(
+                cfg.backRightModuleConfig(),
+                (int) (cfg.robotPeriodSeconds() * 1000)
+            );
         }
 
         this.kinematics = new SwerveDriveKinematics(

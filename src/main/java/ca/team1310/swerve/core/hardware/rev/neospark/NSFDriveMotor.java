@@ -12,7 +12,8 @@ import com.revrobotics.spark.SparkLowLevel;
  * @since 2025-01-26 07:15
  */
 public class NSFDriveMotor extends NSDriveMotor<SparkFlex> {
-    public NSFDriveMotor(int canId, MotorConfig cfg, double wheelRadiusMetres,  int robotPeriodMillis) {
+
+    public NSFDriveMotor(int canId, MotorConfig cfg, double wheelRadiusMetres, int robotPeriodMillis) {
         super(new SparkFlex(canId, SparkLowLevel.MotorType.kBrushless), cfg, wheelRadiusMetres, robotPeriodMillis);
     }
 }

@@ -12,7 +12,8 @@ import com.revrobotics.spark.SparkMax;
  * @since 2025-01-26 07:18
  */
 public class NSMDriveMotor extends NSDriveMotor<SparkMax> {
-    public NSMDriveMotor(int canId, MotorConfig cfg, double wheelRadiusMetres,  int robotPeriodMillis) {
+
+    public NSMDriveMotor(int canId, MotorConfig cfg, double wheelRadiusMetres, int robotPeriodMillis) {
         super(new SparkMax(canId, SparkLowLevel.MotorType.kBrushless), cfg, wheelRadiusMetres, robotPeriodMillis);
     }
 }
