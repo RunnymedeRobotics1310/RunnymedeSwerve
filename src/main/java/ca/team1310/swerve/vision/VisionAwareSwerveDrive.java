@@ -30,8 +30,10 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive {
 
     // Internal State for handling if we're using MegaTag1 or MegaTag2
     private enum State {
-        INITALIZE, READY
-    };
+        INITALIZE,
+        READY,
+    }
+
     private State state = State.INITALIZE;
 
     // Internal Limelight/NetworkTable Accessors
@@ -99,7 +101,7 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive {
         // Initialize the NetworkTable for publihsing the LimeLightPose
         poseTable = NetworkTableInstance.getDefault().getTable("LimelightPose");
         limelightPub = poseTable.getDoubleArrayTopic("Robot").publish();
-        
+
         // Set the Pipeline & Camera Mode based on config
         NetworkTableEntry pipeline = table.getEntry("pipeline");
         pipeline.setNumber(visionConfig.pipelineAprilTagDetect());
@@ -135,7 +137,7 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive {
         // Set Limelight Orientation
         Pose2d currentPose = getPose();
         setLimelightOrientation(currentPose.getRotation().getDegrees());
-        
+
         // Get all info from Limelight NT
         botPoseBlueMegaTag1 = botPoseBlueMegaTag1Sub.getAtomic();
         tx = txSub.get();
@@ -179,7 +181,7 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive {
         }
     }
 
-    /** 
+    /**
      * Update the telemetry data for the VisionAwareSwerveDrive.
      */
     protected void updateTelemetry() {
@@ -221,8 +223,7 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive {
                 state = State.READY;
             }
             return visPosInfo;
-        }
-        else {
+        } else {
             this.poseEstimate = getBotPoseEstimate(botPoseBlueMegaTag2);
             this.visPosInfo = calcVisionPositionInfo(poseEstimate, currentOdometryPose, true);
             return visPosInfo;
@@ -273,8 +274,7 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive {
         return inData[position];
     }
 
-    private static PoseEstimate getBotPoseEstimate(TimestampedDoubleArray botpose)
-        throws InvalidVisionDataException {
+    private static PoseEstimate getBotPoseEstimate(TimestampedDoubleArray botpose) throws InvalidVisionDataException {
         var poseArray = botpose.value;
         var pose = toPose2D(poseArray);
         double latency = extractBotPoseEntry(poseArray, 6);
@@ -321,7 +321,11 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive {
      * @return position info or null
      * @since 2024-02-10
      */
-    private VisionPositionInfo calcVisionPositionInfo(PoseEstimate poseEstimate, Pose2d odometryPose, boolean isMegaTag2) {
+    private VisionPositionInfo calcVisionPositionInfo(
+        PoseEstimate poseEstimate,
+        Pose2d odometryPose,
+        boolean isMegaTag2
+    ) {
         double stdDevRatio = 1310;
         double stdDevRatio2 = 5 * stdDevRatio;
         PoseConfidence poseConfidence = PoseConfidence.NONE;
@@ -340,7 +344,7 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive {
             if (isMegaTag2) {
                 poseConfidence = PoseConfidence.HIGH;
                 stdDevRatio = 0.6;
-                stdDevRatio2 = 9999999;    
+                stdDevRatio2 = 9999999;
             }
             // MegaTag1 needs some calculation based on tags and distance
             else {

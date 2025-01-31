@@ -5,15 +5,12 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import java.util.function.DoubleConsumer;
 
 /**
  * Represents a gyro that can be used to determine the orientation of the robot.
  */
-public interface Gyro extends Sendable {
+public interface Gyro {
     /**
      * Called at the start of each robot period. Used to read sensor values
      */
@@ -76,10 +73,5 @@ public interface Gyro extends Sendable {
      */
     default Rotation2d getRotation2d() {
         return Rotation2d.fromDegrees(getYaw());
-    }
-
-    default void initSendable(SendableBuilder builder) {
-        builder.setSmartDashboardType("Gyro");
-        builder.addDoubleProperty("Value", this::getYaw, (DoubleConsumer) null);
     }
 }
