@@ -16,9 +16,9 @@ import com.revrobotics.spark.config.SparkMaxConfig;
  */
 public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implements AngleMotor {
 
-    private static final double ANGLE_ENCODER_MAX_ERROR_DEGREES = 0.5;
+    private static final double ANGLE_ENCODER_MAX_ERROR_DEGREES = 1;
     private static final int UPDATE_ENCODER_EVERY_N_CYCLES = 50 * 1; // approx every 1s
-    private static final double MAX_ANGULAR_VELOCITY_FOR_ENCODER_UPDATE = 2; // degrees per second
+    private static final double MAX_ANGULAR_VELOCITY_FOR_ENCODER_UPDATE = 1; // degrees per second
     private double measuredPosition;
     private int cyclesSinceLastEncoderUpdate = 0;
 

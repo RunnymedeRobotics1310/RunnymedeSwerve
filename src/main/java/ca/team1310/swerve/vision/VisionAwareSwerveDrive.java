@@ -185,9 +185,8 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive {
      * Update the telemetry data for the VisionAwareSwerveDrive.
      */
     protected void updateTelemetry() {
-        // todo: do we still need this?
-        publishToField(poseEstimate.pose);
         if (telemetry.enabled) {
+            publishToField(poseEstimate.pose);
             telemetry.visionPoseUpdate = visPosInfo.confidence() != PoseConfidence.NONE;
             telemetry.visionPoseConfidence = visPosInfo.confidence();
             telemetry.visionPriorityId = priorityId;
