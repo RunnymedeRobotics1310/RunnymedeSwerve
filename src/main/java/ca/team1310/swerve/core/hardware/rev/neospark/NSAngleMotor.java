@@ -110,9 +110,10 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
         }
 
         String log = String.format(
-            "Angle encoder %d position is off by more than %.2f degrees. Resetting to %.2f. Measured %.2f, error %.2f.",
+            "Angle encoder %d position is off by more than %.2f degrees. Module omega is %.2f Resetting to %.2f. Measured %.2f, error %.2f.",
             spark.getDeviceId(),
             ANGLE_ENCODER_MAX_ERROR_DEGREES,
+            omega,
             actualAngleDegrees,
             measuredPosition,
             error

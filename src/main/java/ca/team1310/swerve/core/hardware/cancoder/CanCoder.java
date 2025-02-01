@@ -2,7 +2,6 @@ package ca.team1310.swerve.core.hardware.cancoder;
 
 import static edu.wpi.first.units.Units.*;
 
-import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.AbsoluteAngleEncoder;
 import ca.team1310.swerve.core.config.EncoderConfig;
 import com.ctre.phoenix6.StatusCode;
@@ -87,18 +86,6 @@ public class CanCoder implements AbsoluteAngleEncoder {
             "CANCoder " + encoder.getDeviceID() + " reading was faulty, ignoring.",
             Alert.AlertType.kWarning
         );
-    }
-
-    public void periodic() {
-        //            this.measuredPosition = calculatePosition();
-    }
-
-    @Override
-    public void populateTelemetry(SwerveTelemetry telemetry, int moduleIndex) {
-        if (telemetry.enabled) {
-            telemetry.angleEncoderAbsoluteOffsetDegrees[moduleIndex] = absoluteEncoderOffset;
-            telemetry.moduleAbsoluteEncoderPositionDegrees[moduleIndex] = measuredPosition;
-        }
     }
 
     @Override
