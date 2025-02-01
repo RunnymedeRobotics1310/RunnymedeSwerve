@@ -8,6 +8,7 @@ import ca.team1310.swerve.core.config.CoreSwerveConfig;
 import ca.team1310.swerve.gyro.hardware.MXPNavX;
 import ca.team1310.swerve.gyro.hardware.SimulatedGyro;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.RobotBase;
 
 /**
@@ -54,12 +55,10 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
     }
 
     @Override
-    public void resetOdometry(Pose2d pose) {
-        throw new UnsupportedOperationException("Not supported in GyroAwareSwerveDrive");
-    }
+    public void resetOdometry(Pose2d pose) {}
 
     @Override
     public Pose2d getPose() {
-        throw new UnsupportedOperationException("Not supported in GyroAwareSwerveDrive");
+        return new Pose2d(0, 0, Rotation2d.fromDegrees(getGyroYaw()));
     }
 }
