@@ -1,7 +1,7 @@
-package ca.team1310.swerve.odometry.hardware;
+package ca.team1310.swerve.gyro.hardware;
 
 import ca.team1310.swerve.SwerveTelemetry;
-import ca.team1310.swerve.odometry.Gyro;
+import ca.team1310.swerve.gyro.Gyro;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;

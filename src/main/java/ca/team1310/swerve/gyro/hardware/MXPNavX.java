@@ -1,7 +1,7 @@
-package ca.team1310.swerve.odometry.hardware;
+package ca.team1310.swerve.gyro.hardware;
 
 import ca.team1310.swerve.SwerveTelemetry;
-import ca.team1310.swerve.odometry.Gyro;
+import ca.team1310.swerve.gyro.Gyro;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -102,11 +102,6 @@ public class MXPNavX implements Gyro {
     @Override
     public double getYawRate() {
         return yawRate;
-    }
-
-    @Override
-    public Rotation2d getRotation2d() {
-        return rotation;
     }
 
     @Override

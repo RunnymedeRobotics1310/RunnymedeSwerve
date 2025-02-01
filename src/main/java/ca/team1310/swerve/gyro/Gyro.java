@@ -1,8 +1,7 @@
-package ca.team1310.swerve.odometry;
+package ca.team1310.swerve.gyro;
 
 import ca.team1310.swerve.SwerveTelemetry;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -66,12 +65,4 @@ public interface Gyro {
      * @param telemetry The telemetry object to populate
      */
     void populateTelemetry(SwerveTelemetry telemetry);
-
-    /**
-     * Get the rotation of the robot as a Rotation2d object.
-     * @return the rotation of the robot as a Rotation2d object
-     */
-    default Rotation2d getRotation2d() {
-        return Rotation2d.fromDegrees(getYaw());
-    }
 }
