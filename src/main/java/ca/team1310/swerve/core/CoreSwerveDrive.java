@@ -11,6 +11,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import java.util.Arrays;
 
 /**
@@ -80,10 +81,17 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
     }
 
     @Override
-    public void periodic() {
-        for (SwerveModule module : modules) {
-            module.periodic();
+    public final void periodic() {
+        long start = RobotController.getFPGATime();
+        periodicInternal();
+        long deltaMicros = RobotController.getFPGATime() - start;
+        long deltaMillis = deltaMicros / 1000;
+        if (deltaMillis > 15) {
+            System.out.println("RunnymedeSwerve periodic exceeded 15ms: " + deltaMillis + "ms");
         }
+    }
+
+    protected void periodicInternal() {
         populateTelemetry();
     }
 

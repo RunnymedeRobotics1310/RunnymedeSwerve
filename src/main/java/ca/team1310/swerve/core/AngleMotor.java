@@ -6,11 +6,6 @@ package ca.team1310.swerve.core;
  */
 public interface AngleMotor {
     /**
-     * Called at the start of each robot period. Used to read sensor values
-     */
-    void periodic();
-
-    /**
      * Get the current position of the angle motor in degrees
      * @return the current position of the motor in degrees
      */

@@ -5,11 +5,6 @@ package ca.team1310.swerve.core;
  */
 public interface DriveMotor {
     /**
-     * Called at the start of each robot period. Used to read sensor values
-     */
-    void periodic();
-
-    /**
      * Get the distance the motor has traveled since the last reset in metres
      * @return the distance the motor has traveled since the last reset in metres
      */

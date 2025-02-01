@@ -12,7 +12,6 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.MagnetHealthValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.Alert;
 
 /**
@@ -30,14 +29,12 @@ public class CanCoder implements AbsoluteAngleEncoder {
 
     private final StatusSignal<MagnetHealthValue> magnetHealth;
     private final StatusSignal<Angle> angle;
-    private final StatusSignal<AngularVelocity> velocity;
 
     private final Alert magnetFieldLessThanIdeal;
     private final Alert readingFaulty;
     private final Alert readingIgnored;
     private final Alert cannotConfigureEncoder;
     private double measuredPosition;
-    private double measuredVelocity;
 
     /**
      * Construct a new CanCoder with the specified configuration and offsets.
@@ -72,7 +69,6 @@ public class CanCoder implements AbsoluteAngleEncoder {
 
         // measurements
         this.angle = encoder.getAbsolutePosition();
-        this.velocity = encoder.getVelocity();
 
         // magnet health
         magnetHealth = encoder.getMagnetHealth();
@@ -94,8 +90,7 @@ public class CanCoder implements AbsoluteAngleEncoder {
     }
 
     public void periodic() {
-        this.measuredPosition = calculatePosition();
-        this.measuredVelocity = velocity.refresh().getValue().in(DegreesPerSecond);
+        //            this.measuredPosition = calculatePosition();
     }
 
     @Override
@@ -108,6 +103,7 @@ public class CanCoder implements AbsoluteAngleEncoder {
 
     @Override
     public double getPosition() {
+        this.measuredPosition = calculatePosition();
         return measuredPosition;
     }
 
@@ -138,10 +134,5 @@ public class CanCoder implements AbsoluteAngleEncoder {
         }
 
         return ((angle.getValue().in(Degrees) - absoluteEncoderOffset) + 360) % 360;
-    }
-
-    @Override
-    public double getVelocity() {
-        return measuredVelocity;
     }
 }

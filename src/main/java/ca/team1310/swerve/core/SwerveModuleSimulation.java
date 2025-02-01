@@ -33,9 +33,6 @@ class SwerveModuleSimulation implements SwerveModule {
     }
 
     @Override
-    public void periodic() {}
-
-    @Override
     public String getName() {
         return this.name;
     }

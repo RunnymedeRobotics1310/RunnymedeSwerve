@@ -55,10 +55,11 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
 
         this.estimator = new SwerveDrivePoseEstimator(kinematics, initialRotation, initialModulePositions, initialPose);
         this.notifier.startPeriodic(ODOMETRY_UPDATE_PERIOD_SECONDS);
+        this.notifier.setName("RunnymedeSwerve Odometry");
     }
 
-    public void periodic() {
-        super.periodic();
+    public void periodicInternal() {
+        super.periodicInternal();
         populateTelemetry();
     }
 

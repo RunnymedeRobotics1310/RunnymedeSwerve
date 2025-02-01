@@ -3,6 +3,8 @@
  */
 package ca.team1310.swerve.core.hardware.rev.neospark;
 
+import static ca.team1310.swerve.utils.SwerveUtils.normalizeDegreesZeroTo360;
+
 import ca.team1310.swerve.core.AngleMotor;
 import ca.team1310.swerve.core.config.MotorConfig;
 import com.revrobotics.spark.SparkBase;
@@ -17,10 +19,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implements AngleMotor {
 
     private static final double ANGLE_ENCODER_MAX_ERROR_DEGREES = 1;
-    private static final int UPDATE_ENCODER_EVERY_N_CYCLES = 50 * 1; // approx every 1s
     private static final double MAX_ANGULAR_VELOCITY_FOR_ENCODER_UPDATE = 1; // degrees per second
-    private double measuredPosition;
-    private int cyclesSinceLastEncoderUpdate = 0;
 
     /**
      * Construct a properly configured angle motor.
@@ -85,13 +84,9 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
         );
     }
 
-    public void periodic() {
-        measuredPosition = (encoder.getPosition() + 360) % 360;
-    }
-
     @Override
     public double getPosition() {
-        return measuredPosition;
+        return normalizeDegreesZeroTo360(encoder.getPosition());
     }
 
     @Override
@@ -101,21 +96,14 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
 
     @Override
     public void setEncoderPosition(double actualAngleDegrees) {
-        if (cyclesSinceLastEncoderUpdate++ < UPDATE_ENCODER_EVERY_N_CYCLES) {
-            // only update the encoder position every so often to avoid spamming the CAN bus
-            return;
-        }
-
         double omega = Math.abs(encoder.getVelocity());
         if (omega > MAX_ANGULAR_VELOCITY_FOR_ENCODER_UPDATE) {
             // angle motor is moving too fast to update.
             return;
         }
 
-        // update the encoder position
-        cyclesSinceLastEncoderUpdate = 0;
-
-        double error = Math.abs(measuredPosition - actualAngleDegrees);
+        double measuredPosition = getPosition();
+        double error = normalizeDegreesZeroTo360(measuredPosition - actualAngleDegrees);
         if (error < ANGLE_ENCODER_MAX_ERROR_DEGREES) {
             // no need to update the encoder position
             return;

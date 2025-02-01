@@ -29,8 +29,8 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
         this.gyro = RobotBase.isSimulation() ? new SimulatedGyro() : new MXPNavX();
     }
 
-    public void periodic() {
-        super.periodic();
+    public void periodicInternal() {
+        super.periodicInternal();
         this.gyro.periodic();
     }
 

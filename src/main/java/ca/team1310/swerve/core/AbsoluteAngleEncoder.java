@@ -19,13 +19,6 @@ public interface AbsoluteAngleEncoder {
     double getPosition();
 
     /**
-     * Get the velocity of the encoder.
-     *
-     * @return The velocity of the encoder in degrees per second. Returns -1 on error.
-     */
-    double getVelocity();
-
-    /**
      * Populate the telemetry object with the encoder's data for this module.
      * @param telemetry The SwerveTelemetry object to populate.
      * @param moduleIndex The index of the module for which the telemetry should be populated.

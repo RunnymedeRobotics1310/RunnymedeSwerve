@@ -11,8 +11,13 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.Notifier;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 class SwerveModuleImpl implements SwerveModule {
+
+    private static final double ANGLEENCODERPERIODSECONDS = 1.0;
 
     private final String name;
     private final Translation2d location;
@@ -20,6 +25,8 @@ class SwerveModuleImpl implements SwerveModule {
     private final AngleMotor angleMotor;
     private final AbsoluteAngleEncoder angleEncoder;
     private SwerveModuleState desiredState;
+    private Notifier encoderSynchronizer = new Notifier(this::syncAngleEncoder);
+    private final Lock encoderLock = new ReentrantLock();
 
     SwerveModuleImpl(ModuleConfig cfg, int robotPeriodMillis) {
         this.name = cfg.name();
@@ -27,6 +34,8 @@ class SwerveModuleImpl implements SwerveModule {
         this.driveMotor = getDriveMotor(cfg, robotPeriodMillis);
         this.angleMotor = getAngleMotor(cfg, robotPeriodMillis);
         this.angleEncoder = getAbsoluteAngleEncoder(cfg);
+        this.encoderSynchronizer.startPeriodic(ANGLEENCODERPERIODSECONDS);
+        this.encoderSynchronizer.setName("RunnymedeSwerve Angle Encoder Sync " + name);
     }
 
     private DriveMotor getDriveMotor(ModuleConfig cfg, int robotPeriodMillis) {
@@ -61,11 +70,13 @@ class SwerveModuleImpl implements SwerveModule {
         );
     }
 
-    public void periodic() {
-        angleEncoder.periodic();
-        driveMotor.periodic();
-        angleMotor.periodic();
-        angleMotor.setEncoderPosition(angleEncoder.getPosition());
+    private void syncAngleEncoder() {
+        encoderLock.lock();
+        try {
+            angleMotor.setEncoderPosition(angleMotor.getPosition());
+        } finally {
+            encoderLock.unlock();
+        }
     }
 
     public String getName() {

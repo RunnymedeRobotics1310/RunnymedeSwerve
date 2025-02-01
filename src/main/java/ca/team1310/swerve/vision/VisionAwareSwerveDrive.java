@@ -114,8 +114,8 @@ public class VisionAwareSwerveDrive extends FieldAwareSwerveDrive {
         this.telemetry = coreSwerveConfig.telemetry();
     }
 
-    public void periodic() {
-        super.periodic();
+    public void periodicInternal() {
+        super.periodicInternal();
         updateLimelight();
         updateOdometryFromVision();
         updateTelemetry();

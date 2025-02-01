@@ -16,10 +16,6 @@ import com.revrobotics.spark.config.SparkFlexConfig;
  */
 public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implements DriveMotor {
 
-    private double measuredVelocity;
-    private double measuredDistance;
-    private double measuredVoltage;
-
     /**
      * Construct a properly configured drive motor.
      * @param spark The spark motor controller
@@ -86,15 +82,9 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
         );
     }
 
-    public void periodic() {
-        measuredDistance = encoder.getPosition();
-        measuredVelocity = encoder.getVelocity();
-        measuredVoltage = spark.getAppliedOutput();
-    }
-
     @Override
     public double getDistance() {
-        return measuredDistance;
+        return encoder.getPosition();
     }
 
     @Override
@@ -104,10 +94,10 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
 
     @Override
     public double getVelocity() {
-        return measuredVelocity;
+        return encoder.getVelocity();
     }
 
     public double getMeasuredVoltage() {
-        return measuredVoltage;
+        return spark.getAppliedOutput();
     }
 }
