@@ -5,7 +5,6 @@ import ca.team1310.swerve.gyro.Gyro;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -16,18 +15,10 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 public class MXPNavX implements Gyro {
 
     private final AHRS navx;
+
     private double rollOffset;
     private double pitchOffset;
     private double yawOffset;
-
-    private double rollRaw;
-    private double roll;
-    private double pitchRaw;
-    private double pitch;
-    private double yawRaw;
-    private double yaw;
-    private double yawRate;
-    private Rotation2d rotation;
 
     /**
      * Create a new MXPNavX gyro
@@ -35,73 +26,40 @@ public class MXPNavX implements Gyro {
     public MXPNavX() {
         this.navx = new AHRS(NavXComType.kMXP_SPI);
 
-        this.rollRaw = navx.getRoll();
-        this.rollOffset = rollRaw;
-        this.roll = rollRaw;
+        this.rollOffset = navx.getRoll();
 
-        this.pitchRaw = navx.getPitch();
-        this.pitchOffset = pitchRaw;
-        this.pitch = pitchRaw;
+        this.pitchOffset = navx.getPitch();
 
-        this.yawRaw = navx.getYaw();
-        this.yawOffset = yawRaw;
-        this.yaw = yawRaw;
-        this.yawRate = navx.getRate();
-
-        this.rotation = Rotation2d.fromDegrees(yaw);
+        this.yawOffset = navx.getYaw();
     }
 
-    public void periodic() {
-        readValues();
-        computeValues();
-    }
-
-    /**
-     * Read the values from the gyro
-     */
-    private void readValues() {
-        this.rollRaw = navx.getRoll();
-        this.pitchRaw = navx.getPitch();
-        this.yawRaw = navx.getYaw();
-        this.yawRate = navx.getRate();
-    }
-
-    /**
-     * Compute derived values from the gyro
-     */
-    private void computeValues() {
-        this.roll = rollRaw - rollOffset;
-        this.pitch = pitchRaw - pitchOffset;
-        this.yaw = yawRaw - yawOffset;
-        this.rotation = Rotation2d.fromDegrees(yaw);
-    }
+    public void periodic() {}
 
     @Override
     public void zeroGyro() {
-        rollOffset = rollRaw;
-        pitchOffset = pitchRaw;
-        yawOffset = yawRaw;
-        computeValues();
+        rollOffset = navx.getRoll();
+        pitchOffset = navx.getPitch();
+        yawOffset = navx.getYaw();
     }
 
     @Override
     public double getRoll() {
-        return roll;
+        return navx.getRoll() - rollOffset;
     }
 
     @Override
     public double getPitch() {
-        return pitch;
+        return navx.getPitch() - pitchOffset;
     }
 
     @Override
     public double getYaw() {
-        return yaw;
+        return navx.getYaw() - yawOffset;
     }
 
     @Override
     public double getYawRate() {
-        return yawRate;
+        return navx.getRate();
     }
 
     @Override
@@ -115,10 +73,10 @@ public class MXPNavX implements Gyro {
     @Override
     public void populateTelemetry(SwerveTelemetry telemetry) {
         if (telemetry.enabled) {
-            telemetry.gyroRawYawDegrees = yawRaw;
-            telemetry.gyroAdjustedYawDegrees = yaw;
-            telemetry.gyroRawPitchDegrees = pitchRaw;
-            telemetry.gyroRawRollDegrees = rollRaw;
+            telemetry.gyroRawYawDegrees = navx.getYaw();
+            telemetry.gyroAdjustedYawDegrees = getYaw();
+            telemetry.gyroRawPitchDegrees = navx.getPitch();
+            telemetry.gyroRawRollDegrees = navx.getRoll();
         }
     }
 }
