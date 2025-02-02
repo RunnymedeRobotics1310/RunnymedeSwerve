@@ -3,12 +3,10 @@ package ca.team1310.swerve.core;
 import ca.team1310.swerve.RunnymedeSwerveDrive;
 import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
+import ca.team1310.swerve.utils.FieldPose;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
@@ -20,16 +18,13 @@ import java.util.Arrays;
 public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
     private final SwerveModule[] modules;
-    /**
-     * The kinematics object for the swerve drive. This is used to calculate the desired module states and contributes to odometry calculations.
-     */
-    protected final SwerveDriveKinematics kinematics;
-    private final double robotPeriodSeconds;
-    private final double maxModuleMPS;
-    private final double maxTranslationMPS;
-    private final double maxOmegaRadPerSec;
 
-    private ChassisSpeeds desiredChassisSpeeds;
+    private final SwerveMath math;
+
+    private double desiredVx;
+    private double desiredVy;
+    private double desiredOmega;
+
     private final SwerveTelemetry telemetry;
     protected final boolean isSimulation;
 
@@ -62,14 +57,12 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
             );
         }
 
-        this.kinematics = new SwerveDriveKinematics(
-            Arrays.stream(modules).map(SwerveModule::getLocation).toArray(Translation2d[]::new)
+        this.math = new SwerveMath(
+            cfg.wheelBaseMetres(),
+            cfg.trackWidthMetres(),
+            cfg.maxAttainableModuleSpeedMetresPerSecond(),
+            cfg.maxAchievableRotationalVelocityRadiansPerSecond()
         );
-
-        this.robotPeriodSeconds = cfg.robotPeriodSeconds();
-        this.maxModuleMPS = cfg.maxAttainableModuleSpeedMetresPerSecond();
-        this.maxTranslationMPS = cfg.maxAttainableTranslationSpeedMetresPerSecond();
-        this.maxOmegaRadPerSec = cfg.maxAchievableRotationalVelocityRadiansPerSecond();
 
         this.telemetry = cfg.telemetry();
         this.telemetry.maxModuleSpeedMPS = cfg.maxAttainableModuleSpeedMetresPerSecond();
@@ -80,75 +73,20 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
         this.telemetry.wheelRadiusMetres = cfg.wheelRadiusMetres();
     }
 
-    @Override
-    public final void periodic() {
-        long start = RobotController.getFPGATime();
-        periodicInternal();
-        long deltaMicros = RobotController.getFPGATime() - start;
-        long deltaMillis = deltaMicros / 1000;
-        if (deltaMillis > 15) {
-            System.out.println("RunnymedeSwerve periodic exceeded 15ms: " + deltaMillis + "ms");
-        }
-    }
-
-    protected void periodicInternal() {
-        populateTelemetry();
-    }
-
-    /**
-     * Get the position of the swerve modules, which consists of the distance and angle for the module.
-     * @return an array of swerve module positions
-     */
-    protected final SwerveModulePosition[] getModulePositions() {
-        return Arrays.stream(modules).map(SwerveModule::getPosition).toArray(SwerveModulePosition[]::new);
-    }
-
-    /**
-     * Get the pose of the modules on the field given a robot pose. Uses the robot pose and adds the location of each module.
-     * @param robotPose the pose of the robot on the field (referring to the center of the robot).
-     * @return Poses of front left, front right, back left, back right modules.
-     */
-    protected Pose2d[] getModulePoses(Pose2d robotPose) {
-        return Arrays.stream(modules)
-            .map(m -> {
-                Transform2d tx = new Transform2d(m.getLocation(), m.getState().angle);
-                return robotPose.plus(tx);
-            })
-            .toArray(Pose2d[]::new);
-    }
-
-    /**
-     * Get the states of the swerve modules, including their speed and angle.
-     * @return an array of swerve module states in the order front left, front right, back left, back right.
-     */
-    protected SwerveModuleState[] getModuleStates() {
-        return Arrays.stream(modules).map(SwerveModule::getState).toArray(SwerveModuleState[]::new);
-    }
-
-    @Override
-    public void setModuleState(String moduleName, SwerveModuleState desiredState) {
-        // This is for TEST MODE ONLY!!! Not for internal use or drive use.
-        for (SwerveModule module : modules) {
-            if (module.getName().equals(moduleName)) {
-                module.setDesiredState(desiredState);
-                break;
-            }
-        }
-        this.desiredChassisSpeeds = kinematics.toChassisSpeeds(getModuleStates());
-    }
-
-    @Override
-    public final void drive(ChassisSpeeds rawDesiredRobotOrientedVelocity) {
-        this.desiredChassisSpeeds = rawDesiredRobotOrientedVelocity;
+    public final void drive(double x, double y, double w) {
+        desiredVx = x;
+        desiredVy = y;
+        desiredOmega = w;
         updateModules();
     }
 
     /*
-     * TODO: Important: This needs to be done on a regular basis. We could delegate it to
-     * a calling subsystem, but it would be more robust to do this internally.
-     * The same applies to updateOdometry(). Possibly telemetry too.
+     * Set the module states based on the desired speed and angle.
+     * Note that if discretize() is used, this will need to be called
+     * on a very regular periodic basis - the period needs to match
+     * the period used in the discretize() call.
      *
-     * Should we spin up a new thread for this?
+     * TODO: consider moving this to a separate thread, or else periodic?
      */
     private void updateModules() {
         /*
@@ -173,25 +111,65 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
          *
          * Just like with swerve module heading optimization, all swerve code should be using this.
          */
-        ChassisSpeeds discretized = ChassisSpeeds.discretize(desiredChassisSpeeds, robotPeriodSeconds);
+        // todo: implement discretize
 
         // calculate desired states
-        Translation2d centerOfRotation = new Translation2d();
-        SwerveModuleState[] states = kinematics.toSwerveModuleStates(discretized, centerOfRotation);
-
-        // ensure that we aren't trying to drive any module faster than it's capable of driving
-        SwerveDriveKinematics.desaturateWheelSpeeds(
-            states,
-            discretized,
-            maxModuleMPS,
-            maxTranslationMPS,
-            maxOmegaRadPerSec
-        );
+        math.calculateModuleSetpoints(desiredVx, desiredVy, desiredOmega);
 
         // set the module states
-        for (int i = 0; i < modules.length; i++) {
-            modules[i].setDesiredState(states[i]);
+        this.modules[0].setDesiredState(math.getFrontLeft());
+        this.modules[1].setDesiredState(math.getFrontRight());
+        this.modules[2].setDesiredState(math.getBackLeft());
+        this.modules[3].setDesiredState(math.getBackRight());
+    }
+
+    @Override
+    public final void periodic() {
+        long start = RobotController.getFPGATime();
+        periodicInternal();
+        long deltaMicros = RobotController.getFPGATime() - start;
+        long deltaMillis = deltaMicros / 1000;
+        if (deltaMillis > 15) {
+            System.out.println("RunnymedeSwerve periodic exceeded 15ms: " + deltaMillis + "ms");
         }
+    }
+
+    protected void periodicInternal() {
+        populateTelemetry();
+    }
+
+    /**
+     * Get the pose of the modules on the field given a robot pose. Uses the robot pose and adds the location of each module.
+     * @param robotPose the pose of the robot on the field (referring to the center of the robot).
+     * @return Poses of front left, front right, back left, back right modules.
+     */
+    protected FieldPose[] getModulePoses(FieldPose robotPose) {
+        return Arrays.stream(modules)
+            .map(m -> {
+                Transform2d tx = new Transform2d(m.getLocation(), m.getState().angle);
+                return robotPose.plus(tx);
+            })
+            .toArray(Pose2d[]::new);
+    }
+
+    /**
+     * Get the states of the swerve modules, including their speed and angle.
+     * @return an array of swerve module states in the order front left, front right, back left, back right.
+     */
+    protected SwerveModuleState[] getModuleStates() {
+        return Arrays.stream(modules).map(SwerveModule::getState).toArray(SwerveModuleState[]::new);
+    }
+
+    @Override
+    public void setModuleState(String moduleName, ModuleState desiredState) {
+        // This is for TEST MODE ONLY!!! Not for internal use or drive use.
+        for (SwerveModule module : modules) {
+            if (module.getName().equals(moduleName)) {
+                module.setDesiredState(desiredState);
+                break;
+            }
+        }
+        this.desiredChassisSpeeds = kinematics.toChassisSpeeds(getModuleStates());
     }
 
     @Override
@@ -201,17 +179,21 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
         // safety code to prevent locking if robot is moving
         for (SwerveModule swerveModule : modules) {
             // do not lock if moving more than 4cm/s
-            if (Math.abs(swerveModule.getState().speedMetersPerSecond) > 0.04) {
+            if (Math.abs(swerveModule.getState().getSpeed()) > 0.04) {
                 moving = true;
             }
         }
 
         if (!moving) {
-            desiredChassisSpeeds = new ChassisSpeeds(0, 0, 0);
+            desiredVx = 0;
+            desiredVy = 0;
+            desiredOmega = 0;
 
             // set speed to 0 and angle wheels to center
             for (SwerveModule module : modules) {
-                module.setDesiredState(new SwerveModuleState(0.0, module.getPosition().angle));
+                ModuleState lockState = new ModuleState();
+                lockState.set(0, /* TODO: module position --> as angle */0);
+                module.setDesiredState(lockState);
             }
         }
 
@@ -225,11 +207,9 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
             telemetry.measuredChassisSpeeds[1] = measuredChassisSpeeds.vyMetersPerSecond;
             telemetry.measuredChassisSpeeds[2] = measuredChassisSpeeds.omegaRadiansPerSecond;
 
-            if (desiredChassisSpeeds != null) {
-                telemetry.desiredChassisSpeeds[0] = desiredChassisSpeeds.vxMetersPerSecond;
-                telemetry.desiredChassisSpeeds[1] = desiredChassisSpeeds.vyMetersPerSecond;
-                telemetry.desiredChassisSpeeds[2] = desiredChassisSpeeds.omegaRadiansPerSecond;
-            }
+            telemetry.desiredChassisSpeeds[0] = this.desiredVx;
+            telemetry.desiredChassisSpeeds[1] = this.desiredVy;
+            telemetry.desiredChassisSpeeds[2] = this.desiredOmega;
 
             for (int i = 0; i < modules.length; i++) {
                 modules[i].populateTelemetry(telemetry, i);

@@ -7,10 +7,6 @@ import ca.team1310.swerve.core.hardware.rev.neospark.NSFAngleMotor;
 import ca.team1310.swerve.core.hardware.rev.neospark.NSFDriveMotor;
 import ca.team1310.swerve.core.hardware.rev.neospark.NSMAngleMotor;
 import ca.team1310.swerve.core.hardware.rev.neospark.NSMDriveMotor;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.Notifier;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -20,22 +16,26 @@ class SwerveModuleImpl implements SwerveModule {
     private static final double ANGLEENCODERPERIODSECONDS = 1.0;
 
     private final String name;
-    private final Translation2d location;
+    private final double locationOnRobotX;
+    private final double locationOnRobotY;
     private final DriveMotor driveMotor;
     private final AngleMotor angleMotor;
     private final AbsoluteAngleEncoder angleEncoder;
-    private SwerveModuleState desiredState;
-    private Notifier encoderSynchronizer = new Notifier(this::syncAngleEncoder);
+    private ModuleState desiredState = new ModuleState();
+    private ModuleState measuredState = new ModuleState();
+    private ModulePosition modulePosition = new ModulePosition();
     private final Lock encoderLock = new ReentrantLock();
 
     SwerveModuleImpl(ModuleConfig cfg, int robotPeriodMillis) {
         this.name = cfg.name();
-        this.location = new Translation2d(cfg.xPositionMetres(), cfg.yPositionMetres());
+        this.locationOnRobotX = cfg.xPositionMetres();
+        this.locationOnRobotY = cfg.yPositionMetres();
         this.driveMotor = getDriveMotor(cfg, robotPeriodMillis);
         this.angleMotor = getAngleMotor(cfg, robotPeriodMillis);
         this.angleEncoder = getAbsoluteAngleEncoder(cfg);
-        this.encoderSynchronizer.startPeriodic(ANGLEENCODERPERIODSECONDS);
-        this.encoderSynchronizer.setName("RunnymedeSwerve Angle Encoder Sync " + name);
+        Notifier encoderSynchronizer = new Notifier(this::syncAngleEncoder);
+        encoderSynchronizer.startPeriodic(ANGLEENCODERPERIODSECONDS);
+        encoderSynchronizer.setName("RunnymedeSwerve Angle Encoder Sync " + name);
     }
 
     private DriveMotor getDriveMotor(ModuleConfig cfg, int robotPeriodMillis) {
@@ -83,28 +83,38 @@ class SwerveModuleImpl implements SwerveModule {
         return name;
     }
 
-    public Translation2d getLocation() {
-        return location;
+    public ModulePosition getPosition() {
+        modulePosition.setDistance(driveMotor.getDistance());
+        modulePosition.setAngle(angleMotor.getPosition());
+        return modulePosition;
     }
 
-    public SwerveModulePosition getPosition() {
-        return new SwerveModulePosition(driveMotor.getDistance(), Rotation2d.fromDegrees(angleMotor.getPosition()));
+    public ModuleState getState() {
+        measuredState.set(driveMotor.getVelocity(), angleMotor.getPosition());
+        return measuredState;
     }
 
-    public SwerveModuleState getState() {
-        return new SwerveModuleState(driveMotor.getVelocity(), Rotation2d.fromDegrees(angleMotor.getPosition()));
-    }
-
-    public void setDesiredState(SwerveModuleState desiredState) {
+    public void setDesiredState(ModuleState desiredState) {
         this.desiredState = desiredState;
         updateMotors();
     }
 
     private void updateMotors() {
-        Rotation2d currentHeading = Rotation2d.fromDegrees(angleMotor.getPosition());
-
-        // Optimize the reference state to avoid spinning further than 90 degrees
-        desiredState.optimize(currentHeading);
+        /*
+         * Optimize the reference state to avoid spinning further than 90 degrees
+         *
+         * Start by figuring out if the module is currently within 90 degrees of the desired angle.
+         * THen if it is, flip the heading and reverse the motor
+         */
+        double currentHeading = angleMotor.getPosition();
+        double angleError = Math.abs(desiredState.getAngle() - currentHeading);
+        if (angleError > 90 && angleError < 270) {
+            if (currentHeading < 0) {
+                desiredState.set(-desiredState.getSpeed(), desiredState.getAngle() + 180);
+            } else {
+                desiredState.set(-desiredState.getSpeed(), desiredState.getAngle() - 180);
+            }
+        }
 
         /*
          * Scale down speed when wheels aren't facing the right direction
@@ -117,26 +127,28 @@ class SwerveModuleImpl implements SwerveModule {
          * desired direction of travel that can occur when modules change directions. This results
          * in smoother driving.
          */
-        Rotation2d steerError = desiredState.angle.minus(currentHeading);
-        double cosineScalar = steerError.getCos();
-        desiredState.speedMetersPerSecond *= (cosineScalar < 0 ? 0 : cosineScalar);
+        angleError = desiredState.getAngle() - currentHeading;
+        double cosineScalar = Math.cos(Math.toRadians(angleError));
+        desiredState.set(desiredState.getSpeed() * (cosineScalar < 0 ? 0 : cosineScalar), desiredState.getAngle());
 
-        driveMotor.setReferenceVelocity(desiredState.speedMetersPerSecond);
-
-        angleMotor.setReferenceAngle(desiredState.angle.getDegrees());
+        /*
+         * Set the reference velocity and angle for the motors
+         */
+        driveMotor.setReferenceVelocity(desiredState.getSpeed());
+        angleMotor.setReferenceAngle(desiredState.getAngle());
     }
 
     public void populateTelemetry(SwerveTelemetry telemetry, int moduleIndex) {
         if (telemetry.enabled) {
             // identify the module
             telemetry.moduleNames[moduleIndex] = name;
-            telemetry.moduleWheelLocations[moduleIndex * 2] = location.getX();
-            telemetry.moduleWheelLocations[moduleIndex * 2 + 1] = location.getY();
+            telemetry.moduleWheelLocations[moduleIndex * 2] = locationOnRobotX;
+            telemetry.moduleWheelLocations[moduleIndex * 2 + 1] = locationOnRobotY;
 
             // desired states
             if (desiredState != null) {
-                telemetry.moduleDesiredStates[moduleIndex * 2] = desiredState.angle.getDegrees();
-                telemetry.moduleDesiredStates[moduleIndex * 2 + 1] = desiredState.speedMetersPerSecond;
+                telemetry.moduleDesiredStates[moduleIndex * 2] = desiredState.getAngle();
+                telemetry.moduleDesiredStates[moduleIndex * 2 + 1] = desiredState.getSpeed();
             }
 
             // measured states

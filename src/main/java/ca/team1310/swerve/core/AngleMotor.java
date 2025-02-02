@@ -14,7 +14,7 @@ public interface AngleMotor {
     /**
      * Set the target angle of the motor
      *
-     * @param degrees the desired reference angle in degrees
+     * @param degrees the desired reference angle in degrees, preferably between -180 and 180
      */
     void setReferenceAngle(double degrees);
 

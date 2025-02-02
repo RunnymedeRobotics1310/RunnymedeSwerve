@@ -11,22 +11,26 @@ import edu.wpi.first.wpilibj.Timer;
 class SwerveModuleSimulation implements SwerveModule {
 
     private final String name;
-    private final Translation2d location;
+    private final double locationOnRobotX;
+    private final double locationOnRobotY;
     private final Timer timer = new Timer();
     private double dt;
     private double fakePos;
     private double fakeSpeed;
     private double lastTime;
-    private SwerveModuleState currentState;
-    private SwerveModuleState desiredState;
+    private ModuleState currentState;
+    private ModuleState desiredState;
+    private ModulePosition modulePosition;
 
     public SwerveModuleSimulation(ModuleConfig cfg) {
         this.name = cfg.name();
-        this.location = new Translation2d(cfg.xPositionMetres(), cfg.yPositionMetres());
+        this.locationOnRobotX = cfg.xPositionMetres();
+        this.locationOnRobotY = cfg.yPositionMetres();
         this.timer.start();
         this.lastTime = this.timer.get();
-        this.currentState = new SwerveModuleState(0.0, Rotation2d.fromDegrees(0.0));
-        this.desiredState = new SwerveModuleState(0.0, Rotation2d.fromDegrees(0.0));
+        this.currentState = new ModuleState();
+        this.desiredState = new ModuleState();
+        this.modulePosition = new ModulePosition();
         this.fakeSpeed = 0.0;
         this.fakePos = 0.0;
         this.dt = 0.0;
@@ -38,27 +42,24 @@ class SwerveModuleSimulation implements SwerveModule {
     }
 
     @Override
-    public Translation2d getLocation() {
-        return location;
+    public ModulePosition getPosition() {
+        modulePosition.setDistance(this.fakePos);
+        modulePosition.setAngle(this.currentState.getAngle());
+        return modulePosition;
     }
 
     @Override
-    public SwerveModulePosition getPosition() {
-        return new SwerveModulePosition(this.fakePos, this.currentState.angle);
-    }
-
-    @Override
-    public SwerveModuleState getState() {
+    public ModuleState getState() {
         return this.currentState;
     }
 
     @Override
-    public void setDesiredState(SwerveModuleState desiredState) {
+    public void setDesiredState(ModuleState desiredState) {
         this.desiredState = desiredState;
         this.dt = this.timer.get() - this.lastTime;
         this.lastTime = this.timer.get();
         this.currentState = desiredState;
-        this.fakeSpeed = desiredState.speedMetersPerSecond;
+        this.fakeSpeed = desiredState.getSpeed();
         this.fakePos += this.fakeSpeed * this.dt;
     }
 
@@ -67,15 +68,15 @@ class SwerveModuleSimulation implements SwerveModule {
         if (telemetry.enabled) {
             // identify the module
             telemetry.moduleNames[moduleIndex] = name;
-            telemetry.moduleWheelLocations[moduleIndex * 2] = location.getX();
-            telemetry.moduleWheelLocations[moduleIndex * 2 + 1] = location.getY();
+            telemetry.moduleWheelLocations[moduleIndex * 2] = locationOnRobotX;
+            telemetry.moduleWheelLocations[moduleIndex * 2 + 1] = locationOnRobotY;
 
             // desired states
-            telemetry.moduleDesiredStates[moduleIndex * 2] = desiredState.angle.getDegrees();
-            telemetry.moduleDesiredStates[moduleIndex * 2 + 1] = desiredState.speedMetersPerSecond;
+            telemetry.moduleDesiredStates[moduleIndex * 2] = desiredState.getAngle();
+            telemetry.moduleDesiredStates[moduleIndex * 2 + 1] = desiredState.getSpeed();
 
             // measured states
-            double fakeAngle = desiredState.angle.getDegrees();
+            double fakeAngle = desiredState.getAngle();
             telemetry.moduleMeasuredStates[moduleIndex * 2] = fakeAngle;
             telemetry.moduleMeasuredStates[moduleIndex * 2 + 1] = fakeSpeed;
 
