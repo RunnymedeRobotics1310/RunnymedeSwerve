@@ -95,6 +95,12 @@ class SwerveMath {
             brs /= max;
         }
 
+        // hack part 1
+        fra += Math.PI;
+        fla += Math.PI;
+        bla += Math.PI;
+        bra += Math.PI;
+
         // convert angle from -PI to PI into -.5 to +.5
         fra /= (2 * Math.PI); // 90 deg left
         fla /= (2 * Math.PI); // ok

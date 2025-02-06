@@ -245,7 +245,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
             // set speed to 0 and angle wheels to center
             for (SwerveModule module : modules) {
                 ModuleDirective lockState = new ModuleDirective();
-                lockState.set(0, 45);
+                lockState.set(0, 0);
                 module.setDesiredState(lockState);
             }
         }
