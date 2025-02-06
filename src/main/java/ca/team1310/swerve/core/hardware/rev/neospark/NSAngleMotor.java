@@ -21,6 +21,8 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
     private static final double ANGLE_ENCODER_MAX_ERROR_DEGREES = 1;
     private static final double MAX_ANGULAR_VELOCITY_FOR_ENCODER_UPDATE = 1; // degrees per second
 
+    private double prevTargetDegrees = 0;
+
     /**
      * Construct a properly configured angle motor.
      * @param spark The spark motor controller
@@ -96,6 +98,11 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
 
     @Override
     public void setReferenceAngle(double degrees) {
+        // don't set if already set
+        if (Math.abs(degrees - prevTargetDegrees) > 0.001) {
+            return;
+        }
+        prevTargetDegrees = degrees;
         doWithRetry(() -> controller.setReference(degrees, SparkBase.ControlType.kPosition));
     }
 

@@ -16,6 +16,8 @@ import com.revrobotics.spark.config.SparkFlexConfig;
  */
 public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implements DriveMotor {
 
+    private double prevTargetVelocityMPS = 0;
+
     /**
      * Construct a properly configured drive motor.
      * @param spark The spark motor controller
@@ -89,6 +91,11 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
 
     @Override
     public void setReferenceVelocity(double targetVelocityMPS) {
+        // don't set if already set
+        if (Math.abs(targetVelocityMPS = prevTargetVelocityMPS) > 0.001) {
+            return;
+        }
+        prevTargetVelocityMPS = targetVelocityMPS;
         doWithRetry(() -> controller.setReference(targetVelocityMPS, SparkBase.ControlType.kVelocity));
     }
 
