@@ -99,7 +99,7 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
     @Override
     public void setReferenceAngle(double degrees) {
         // don't set if already set
-        if (Math.abs(degrees - prevTargetDegrees) > 0.001) {
+        if (Math.abs(degrees - prevTargetDegrees) < 1E-9) {
             return;
         }
         prevTargetDegrees = degrees;

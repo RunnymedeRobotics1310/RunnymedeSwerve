@@ -92,7 +92,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
     @Override
     public void setReferenceVelocity(double targetVelocityMPS) {
         // don't set if already set
-        if (Math.abs(targetVelocityMPS = prevTargetVelocityMPS) > 0.001) {
+        if (Math.abs(targetVelocityMPS - prevTargetVelocityMPS) < 1E-9) {
             return;
         }
         prevTargetVelocityMPS = targetVelocityMPS;
