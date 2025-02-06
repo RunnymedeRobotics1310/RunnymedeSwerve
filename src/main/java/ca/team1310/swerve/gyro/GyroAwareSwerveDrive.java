@@ -3,13 +3,12 @@
  */
 package ca.team1310.swerve.gyro;
 
+import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.CoreSwerveDrive;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
 import ca.team1310.swerve.gyro.hardware.MXPNavX;
 import ca.team1310.swerve.gyro.hardware.SimulatedGyro;
 import ca.team1310.swerve.odometry.FieldPose;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.RobotBase;
 
 /**
@@ -56,4 +55,11 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
 
     @Override
     public void resetOdometry(FieldPose pose) {}
+
+    public void updateTelemetry(SwerveTelemetry telemetry) {
+        telemetry.gyroAdjustedYawDegrees = gyro.getYaw();
+        telemetry.gyroRawPitchDegrees = gyro.getPitch();
+        telemetry.gyroRawRollDegrees = gyro.getYaw();
+        super.updateTelemetry(telemetry);
+    }
 }
