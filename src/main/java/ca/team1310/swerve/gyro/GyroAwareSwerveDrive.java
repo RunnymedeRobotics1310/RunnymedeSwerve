@@ -7,6 +7,7 @@ import ca.team1310.swerve.core.CoreSwerveDrive;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
 import ca.team1310.swerve.gyro.hardware.MXPNavX;
 import ca.team1310.swerve.gyro.hardware.SimulatedGyro;
+import ca.team1310.swerve.odometry.FieldPose;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -29,36 +30,30 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
         this.gyro = RobotBase.isSimulation() ? new SimulatedGyro() : new MXPNavX();
     }
 
-    public void periodicInternal() {
-        super.periodicInternal();
-        this.gyro.periodic();
-    }
-
+    @Override
     public void zeroGyro() {
         gyro.zeroGyro();
     }
 
-    public double getGyroRoll() {
+    @Override
+    public double getRoll() {
         return gyro.getRoll();
     }
 
-    public double getGyroPitch() {
+    @Override
+    public double getPitch() {
         return gyro.getPitch();
     }
 
-    public double getGyroYaw() {
+    @Override
+    public double getYaw() {
         return gyro.getYaw();
     }
 
-    protected double getGyroYawRate() {
+    protected double getYawRate() {
         return gyro.getYawRate();
     }
 
     @Override
-    public void resetOdometry(Pose2d pose) {}
-
-    @Override
-    public Pose2d getPose() {
-        return new Pose2d(0, 0, Rotation2d.fromDegrees(getGyroYaw()));
-    }
+    public void resetOdometry(FieldPose pose) {}
 }

@@ -90,6 +90,11 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
     }
 
     @Override
+    public double getVelocity() {
+        return encoder.getVelocity();
+    }
+
+    @Override
     public void setReferenceAngle(double degrees) {
         doWithRetry(() -> controller.setReference(degrees, SparkBase.ControlType.kPosition));
     }

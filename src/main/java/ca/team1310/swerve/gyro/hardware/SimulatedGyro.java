@@ -29,9 +29,6 @@ public class SimulatedGyro implements Gyro {
         this.lastTime = this.timer.get();
     }
 
-    @Override
-    public void periodic() {}
-
     public double getYawRate() {
         return this.yawRate;
     }
@@ -52,26 +49,25 @@ public class SimulatedGyro implements Gyro {
     public double getRoll() {
         return this.roll;
     }
-
-    public void updateOdometryForSimulation(
-        SwerveDriveKinematics kinematics,
-        SwerveModuleState[] states,
-        Pose2d[] modulePoses,
-        Field2d field
-    ) {
-        double change = kinematics.toChassisSpeeds(states).omegaRadiansPerSecond * (this.timer.get() - this.lastTime);
-        this.yaw += Units.radiansToDegrees(change);
-        this.lastTime = this.timer.get();
-        field.getObject("XModules").setPoses(modulePoses);
-    }
-
-    @Override
-    public void populateTelemetry(SwerveTelemetry telemetry) {
-        if (telemetry.enabled) {
-            telemetry.gyroRawYawDegrees = this.getYaw();
-            telemetry.gyroAdjustedYawDegrees = this.getYaw();
-            telemetry.gyroRawPitchDegrees = this.getPitch();
-            telemetry.gyroRawRollDegrees = this.getRoll();
-        }
-    }
+    //    public void updateOdometryForSimulation(
+    //        SwerveDriveKinematics kinematics,
+    //        SwerveModuleState[] states,
+    //        Pose2d[] modulePoses,
+    //        Field2d field
+    //    ) {
+    //        double change = kinematics.toChassisSpeeds(states).omegaRadiansPerSecond * (this.timer.get() - this.lastTime);
+    //        this.yaw += Units.radiansToDegrees(change);
+    //        this.lastTime = this.timer.get();
+    //        field.getObject("XModules").setPoses(modulePoses);
+    //    }
+    //
+    //    @Override
+    //    public void populateTelemetry(SwerveTelemetry telemetry) {
+    //        if (telemetry.enabled) {
+    //            telemetry.gyroRawYawDegrees = this.getYaw();
+    //            telemetry.gyroAdjustedYawDegrees = this.getYaw();
+    //            telemetry.gyroRawPitchDegrees = this.getPitch();
+    //            telemetry.gyroRawRollDegrees = this.getRoll();
+    //        }
+    //    }
 }

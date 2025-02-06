@@ -1,7 +1,10 @@
 package ca.team1310.swerve.core;
 
 /**
- * Calculates swerve module setpoints to drive in a specified direction.
+ * Calculates swerve module states to drive in a specified direction.
+ *
+ * The x axis is forward (positive) and backward (negative).
+ * The y axis is left (positive) and right (negative).
  *
  * This class was inspired by the work of FRC team 4048 - Redshift. Their original implementation can be found here:
  * https://github.com/FRC4048/Swerve-Drive-Library-Java/blob/master/src/main/java/org/usfirst/frc4048/swerve/math/SwerveMath.java
@@ -15,11 +18,12 @@ class SwerveMath {
     private final double trackwidthOverDiagonal;
     private final double maxSpeedMps;
     private final double maxOmegaRadPerSec;
+    private final double maxOmegaDegPerSec;
 
-    private final ModuleState fr;
-    private final ModuleState fl;
-    private final ModuleState bl;
-    private final ModuleState br;
+    private final ModuleDirective fr;
+    private final ModuleDirective fl;
+    private final ModuleDirective bl;
+    private final ModuleDirective br;
 
     SwerveMath(double wheelBase, double trackWidth, double maxSpeedMps, double maxOmegaRadPerSec) {
         double hypot = Math.hypot(wheelBase, trackWidth);
@@ -27,10 +31,11 @@ class SwerveMath {
         this.trackwidthOverDiagonal = trackWidth / hypot;
         this.maxSpeedMps = maxSpeedMps;
         this.maxOmegaRadPerSec = maxOmegaRadPerSec;
-        this.fr = new ModuleState();
-        this.fl = new ModuleState();
-        this.bl = new ModuleState();
-        this.br = new ModuleState();
+        this.maxOmegaDegPerSec = Math.toDegrees(maxOmegaRadPerSec);
+        this.fr = new ModuleDirective();
+        this.fl = new ModuleDirective();
+        this.bl = new ModuleDirective();
+        this.br = new ModuleDirective();
     }
 
     /**
@@ -40,43 +45,45 @@ class SwerveMath {
      * @param w desired angular velocity from in rad/s, (counter-clockwise is positive)
      */
     void calculateModuleSetpoints(double x, double y, double w) {
+        // convert from m/s to a scale of -1.0 to 1.0
+        x /= maxSpeedMps;
+        y /= maxSpeedMps;
+
+        // convert from rad/s to a scale of -1.0 to 1.0
+        w /= maxOmegaRadPerSec;
+
         calculateModuleSetpointsCWP(x, -y, -w);
     }
 
     /**
      * Calculate the module setpoints for the swerve drive when operating in robot-oriented mode
-     * @param x desired forward velocity, in m/s (forward is positive)
-     * @param y desired sideways velocity in m/s (right is positive)
-     * @param w desired angular velocity in rad/s, (clockwise positive)
+     * @param x desired forward velocity, -1.0 to 1.0 (forward is positive)
+     * @param y desired sideways velocity from -1.0 to 1.0 (right is positive)
+     * @param w desired angular velocity from -1.0 to 1.0, (clockwise positive)
      */
     private void calculateModuleSetpointsCWP(double x, double y, double w) {
-        // convert from mps to a scale of -1.0 to 1.0
-        x /= maxSpeedMps;
-        y /= maxSpeedMps;
-        w /= maxOmegaRadPerSec;
-
         //
         // perform the main calculations
         //
-        double a = x - w * wheelbaseOverDiagonal;
-        double b = x + w * wheelbaseOverDiagonal;
-        double c = y - w * trackwidthOverDiagonal;
-        double d = y + w * trackwidthOverDiagonal;
+        double a = y - w * wheelbaseOverDiagonal;
+        double b = y + w * wheelbaseOverDiagonal;
+        double c = x - w * trackwidthOverDiagonal;
+        double d = x + w * trackwidthOverDiagonal;
 
-        // calculate wheel speeds
+        // calculate wheel speeds (TODO - confirm: speeds are from -1.0 to 1.0)
         double frs = Math.hypot(b, c);
         double fls = Math.hypot(b, d);
         double bls = Math.hypot(a, d);
         double brs = Math.hypot(a, c);
 
-        // calculate wheel angles
-        double fra = (Math.atan2(b, c) * 180) / Math.PI;
-        double fla = (Math.atan2(b, d) * 180) / Math.PI;
-        double bla = (Math.atan2(a, d) * 180) / Math.PI;
-        double bra = (Math.atan2(a, c) * 180) / Math.PI;
+        // calculate wheel angles (in radians from -PI to PI)
+        double fra = Math.atan2(b, c);
+        double fla = Math.atan2(b, d);
+        double bla = Math.atan2(a, d);
+        double bra = Math.atan2(a, c);
 
         //
-        // update the final units
+        // normalize results
         //
 
         // normalize wheel speeds (cannot go faster than 1.0)
@@ -88,42 +95,50 @@ class SwerveMath {
             brs /= max;
         }
 
-        // convert angle from -180 to -180 into -.5 to +.5
-        fra /= 360;
-        fla /= 360;
-        bla /= 360;
-        bra /= 360;
+        // convert angle from -PI to PI into -.5 to +.5
+        fra /= (2 * Math.PI); // 90 deg left
+        fla /= (2 * Math.PI); // ok
+        bla /= (2 * Math.PI); // 90 deg right
+        bra /= (2 * Math.PI); // ok
 
-        // scale back to m/s and rad/s
+        // hacks for now...
+        fra /= 2;
+        fla /= 2;
+        bla /= 2;
+        bra /= 2;
+
+        //
+        // convert to m/s and deg/s
+        //
         frs *= maxSpeedMps;
         fls *= maxSpeedMps;
         bls *= maxSpeedMps;
         brs *= maxSpeedMps;
-        fra *= maxOmegaRadPerSec;
-        fla *= maxOmegaRadPerSec;
-        bla *= maxOmegaRadPerSec;
-        bra *= maxOmegaRadPerSec;
+        fra *= maxOmegaDegPerSec;
+        fla *= maxOmegaDegPerSec;
+        bla *= maxOmegaDegPerSec;
+        bra *= maxOmegaDegPerSec;
 
         // set module setpoints
-        fr.set(frs, fra);
-        fl.set(fls, fla);
-        bl.set(bls, bla);
-        br.set(brs, bra);
+        fr.set(frs, -fra);
+        fl.set(fls, -fla);
+        bl.set(bls, -bla);
+        br.set(brs, -bra);
     }
 
-    ModuleState getFrontRight() {
+    ModuleDirective getFrontRight() {
         return fr;
     }
 
-    ModuleState getFrontLeft() {
+    ModuleDirective getFrontLeft() {
         return fl;
     }
 
-    ModuleState getBackLeft() {
+    ModuleDirective getBackLeft() {
         return bl;
     }
 
-    ModuleState getBackRight() {
+    ModuleDirective getBackRight() {
         return br;
     }
 }

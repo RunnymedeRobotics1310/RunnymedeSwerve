@@ -3,21 +3,17 @@ package ca.team1310.swerve.core;
 import ca.team1310.swerve.RunnymedeSwerveDrive;
 import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
-import ca.team1310.swerve.utils.FieldPose;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
+import ca.team1310.swerve.odometry.FieldPose;
+import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.RobotController;
-import java.util.Arrays;
 
 /**
  * The Core swerve drive object. This implements most core features of a swerve drive
  */
-public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
+public class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
     private final SwerveModule[] modules;
+    private final ModuleState[] moduleStates;
 
     private final SwerveMath math;
 
@@ -28,8 +24,25 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
     private final SwerveTelemetry telemetry;
     protected final boolean isSimulation;
 
+    //
+    // Thread controls
+    //
+    // module update thread
+    private final Notifier notifier = new Notifier(this::updateModules);
+    private static final double UPDATE_MODULE_PERIOD = 0.005;
+
+    // module state refresher thread
+    private final Notifier updateModuleStates = new Notifier(this::updateModuleStates);
+    private static final double UPDATE_MODULE_STATE_PERIOD = 0.005;
+    private short moduleStateUpdateCount = 0;
+    // cycles for updating module state. Maximum 10000
+    private final short ODOMETRY_UPDATE_CYCLES = 4;
+    private final short VISION_UPDATE_CYCLES = 4 * 10;
+    private final short TELEMETRY_UPDATE_CYCLES = 4 * 100;
+
     /**
      * Construct a new CoreSwerveDrive object with the specified configuration.
+     *
      * @param cfg the configuration of the swerve drive
      */
     protected CoreSwerveDrive(CoreSwerveConfig cfg) {
@@ -57,12 +70,24 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
             );
         }
 
+        this.moduleStates = new ModuleState[4];
+        this.moduleStates[0] = modules[0].getState();
+        this.moduleStates[1] = modules[1].getState();
+        this.moduleStates[2] = modules[2].getState();
+        this.moduleStates[3] = modules[3].getState();
+
         this.math = new SwerveMath(
             cfg.wheelBaseMetres(),
             cfg.trackWidthMetres(),
             cfg.maxAttainableModuleSpeedMetresPerSecond(),
             cfg.maxAchievableRotationalVelocityRadiansPerSecond()
         );
+
+        notifier.setName("RunnymedeSwerve moduleUpdater");
+        notifier.startPeriodic(UPDATE_MODULE_PERIOD);
+
+        updateModuleStates.setName("RunnymedeSwerve updateModuleStates");
+        updateModuleStates.startPeriodic(UPDATE_MODULE_STATE_PERIOD);
 
         this.telemetry = cfg.telemetry();
         this.telemetry.maxModuleSpeedMPS = cfg.maxAttainableModuleSpeedMetresPerSecond();
@@ -71,13 +96,24 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
         this.telemetry.trackWidthMetres = cfg.trackWidthMetres();
         this.telemetry.wheelBaseMetres = cfg.wheelBaseMetres();
         this.telemetry.wheelRadiusMetres = cfg.wheelRadiusMetres();
+        this.telemetry.moduleNames[0] = cfg.frontLeftModuleConfig().name();
+        this.telemetry.moduleNames[1] = cfg.frontRightModuleConfig().name();
+        this.telemetry.moduleNames[2] = cfg.backLeftModuleConfig().name();
+        this.telemetry.moduleNames[3] = cfg.backRightModuleConfig().name();
+        this.telemetry.moduleWheelLocations[0] = cfg.frontLeftModuleConfig().xPositionMetres();
+        this.telemetry.moduleWheelLocations[1] = cfg.frontLeftModuleConfig().yPositionMetres();
+        this.telemetry.moduleWheelLocations[2] = cfg.frontRightModuleConfig().xPositionMetres();
+        this.telemetry.moduleWheelLocations[3] = cfg.frontRightModuleConfig().yPositionMetres();
+        this.telemetry.moduleWheelLocations[4] = cfg.backLeftModuleConfig().xPositionMetres();
+        this.telemetry.moduleWheelLocations[5] = cfg.backLeftModuleConfig().yPositionMetres();
+        this.telemetry.moduleWheelLocations[6] = cfg.backRightModuleConfig().xPositionMetres();
+        this.telemetry.moduleWheelLocations[7] = cfg.backRightModuleConfig().yPositionMetres();
     }
 
     public final void drive(double x, double y, double w) {
         desiredVx = x;
         desiredVy = y;
         desiredOmega = w;
-        updateModules();
     }
 
     /*
@@ -85,8 +121,6 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
      * Note that if discretize() is used, this will need to be called
      * on a very regular periodic basis - the period needs to match
      * the period used in the discretize() call.
-     *
-     * TODO: consider moving this to a separate thread, or else periodic?
      */
     private void updateModules() {
         /*
@@ -123,53 +157,72 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
         this.modules[3].setDesiredState(math.getBackRight());
     }
 
-    @Override
-    public final void periodic() {
-        long start = RobotController.getFPGATime();
-        periodicInternal();
-        long deltaMicros = RobotController.getFPGATime() - start;
-        long deltaMillis = deltaMicros / 1000;
-        if (deltaMillis > 15) {
-            System.out.println("RunnymedeSwerve periodic exceeded 15ms: " + deltaMillis + "ms");
+    private void updateModuleStates() {
+        boolean odometry = moduleStateUpdateCount % ODOMETRY_UPDATE_CYCLES == 0;
+        boolean vision = moduleStateUpdateCount % VISION_UPDATE_CYCLES == 0;
+        boolean telemetry = moduleStateUpdateCount % TELEMETRY_UPDATE_CYCLES == 0;
+        if (moduleStateUpdateCount > 10000) {
+            moduleStateUpdateCount = 0;
+        } else {
+            moduleStateUpdateCount++;
         }
-    }
-
-    protected void periodicInternal() {
-        populateTelemetry();
+        this.modules[0].updateState(odometry, vision, telemetry);
+        this.modules[1].updateState(odometry, vision, telemetry);
+        this.modules[2].updateState(odometry, vision, telemetry);
+        this.modules[3].updateState(odometry, vision, telemetry);
     }
 
     /**
      * Get the pose of the modules on the field given a robot pose. Uses the robot pose and adds the location of each module.
+     *
      * @param robotPose the pose of the robot on the field (referring to the center of the robot).
      * @return Poses of front left, front right, back left, back right modules.
      */
     protected FieldPose[] getModulePoses(FieldPose robotPose) {
-        return Arrays.stream(modules)
-            .map(m -> {
-                Transform2d tx = new Transform2d(m.getLocation(), m.getState().angle);
-                return robotPose.plus(tx);
-            })
-            .toArray(Pose2d[]::new);
+        var poses = new FieldPose[4];
+        for (int i = 0; i < modules.length; i++) {
+            double robotX = robotPose.getX();
+            double robotY = robotPose.getY();
+            double robotTheta = robotPose.getTheta();
+            double moduleX = modules[i].getLocation().getX();
+            double moduleY = modules[i].getLocation().getY();
+
+            double c = moduleY / moduleX;
+            double moduleTheta = (Math.atan2(moduleY, moduleX) * 180) / Math.PI;
+            double fieldTheta = (moduleTheta + robotTheta);
+            double robotRelativeCoordFieldRelativeThetaModuleX = c * Math.cos(fieldTheta);
+            double robotRelativeCoordFieldRelativeThetaModuleY = c * Math.sin(fieldTheta);
+            double fieldRelativeModuleX = robotX + robotRelativeCoordFieldRelativeThetaModuleX;
+            double fieldRelativeModuleY = robotY + robotRelativeCoordFieldRelativeThetaModuleY;
+
+            poses[i] = new FieldPose(fieldRelativeModuleX, fieldRelativeModuleY, fieldTheta);
+        }
+        return poses;
     }
 
     /**
      * Get the states of the swerve modules, including their speed and angle.
+     *
      * @return an array of swerve module states in the order front left, front right, back left, back right.
      */
-    protected SwerveModuleState[] getModuleStates() {
-        return Arrays.stream(modules).map(SwerveModule::getState).toArray(SwerveModuleState[]::new);
+    protected ModuleState[] getModuleStates() {
+        return moduleStates;
     }
 
     @Override
-    public void setModuleState(String moduleName, ModuleState desiredState) {
+    public void setModuleState(String moduleName, double speed, double angle) {
         // This is for TEST MODE ONLY!!! Not for internal use or drive use.
         for (SwerveModule module : modules) {
             if (module.getName().equals(moduleName)) {
+                ModuleDirective desiredState = new ModuleDirective();
+                desiredState.set(speed, angle);
                 module.setDesiredState(desiredState);
                 break;
             }
         }
-        this.desiredChassisSpeeds = kinematics.toChassisSpeeds(getModuleStates());
+        this.desiredVx = 0;
+        this.desiredVy = 0;
+        this.desiredOmega = 0;
     }
 
     @Override
@@ -191,8 +244,8 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
             // set speed to 0 and angle wheels to center
             for (SwerveModule module : modules) {
-                ModuleState lockState = new ModuleState();
-                lockState.set(0, /* TODO: module position --> as angle */0);
+                ModuleDirective lockState = new ModuleDirective();
+                lockState.set(0, 45);
                 module.setDesiredState(lockState);
             }
         }
@@ -200,20 +253,62 @@ public abstract class CoreSwerveDrive implements RunnymedeSwerveDrive {
         return !moving;
     }
 
-    private void populateTelemetry() {
+    public void updateTelemetry(SwerveTelemetry telemetry) {
         if (telemetry.enabled) {
-            ChassisSpeeds measuredChassisSpeeds = kinematics.toChassisSpeeds(getModuleStates());
-            telemetry.measuredChassisSpeeds[0] = measuredChassisSpeeds.vxMetersPerSecond;
-            telemetry.measuredChassisSpeeds[1] = measuredChassisSpeeds.vyMetersPerSecond;
-            telemetry.measuredChassisSpeeds[2] = measuredChassisSpeeds.omegaRadiansPerSecond;
+            // todo: these need to move to odometrySwerveDrive
+            //            ChassisSpeeds measuredChassisSpeeds = kinematics.toChassisSpeeds(getModuleStates());
+            //            telemetry.measuredChassisSpeeds[0] = measuredChassisSpeeds.vxMetersPerSecond;
+            //            telemetry.measuredChassisSpeeds[1] = measuredChassisSpeeds.vyMetersPerSecond;
+            //            telemetry.measuredChassisSpeeds[2] = measuredChassisSpeeds.omegaRadiansPerSecond;
 
             telemetry.desiredChassisSpeeds[0] = this.desiredVx;
             telemetry.desiredChassisSpeeds[1] = this.desiredVy;
             telemetry.desiredChassisSpeeds[2] = this.desiredOmega;
 
             for (int i = 0; i < modules.length; i++) {
-                modules[i].populateTelemetry(telemetry, i);
+                ModuleState state = modules[i].getState();
+                // desired states
+                telemetry.moduleDesiredStates[i * 2] = state.getDesiredAngle();
+                telemetry.moduleDesiredStates[i * 2 + 1] = state.getDesiredSpeed();
+
+                // measured states
+                telemetry.moduleMeasuredStates[i * 2] = state.getPosition();
+                telemetry.moduleMeasuredStates[i * 2 + 1] = state.getSpeed();
+
+                // position information
+                telemetry.moduleAngleMotorPositionDegrees[i] = state.getAngle();
+                telemetry.moduleDriveMotorPositionMetres[i] = state.getPosition();
+                telemetry.driveMotorOutputPower[i] = state.getDriveOutputPower();
+
+                // angle encoder
+                telemetry.moduleAbsoluteEncoderPositionDegrees[i] = state.getAbsoluteEncoderAngle();
             }
         }
+    }
+
+    @Override
+    public void resetOdometry(FieldPose pose) {}
+
+    @Override
+    public FieldPose getPose() {
+        return new FieldPose();
+    }
+
+    @Override
+    public void zeroGyro() {}
+
+    @Override
+    public double getRoll() {
+        return 0;
+    }
+
+    @Override
+    public double getPitch() {
+        return 0;
+    }
+
+    @Override
+    public double getYaw() {
+        return 0;
     }
 }

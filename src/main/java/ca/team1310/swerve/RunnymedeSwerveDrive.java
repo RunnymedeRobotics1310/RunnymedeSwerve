@@ -1,9 +1,7 @@
 package ca.team1310.swerve;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
+import ca.team1310.swerve.core.ModuleState;
+import ca.team1310.swerve.odometry.FieldPose;
 
 /**
  * A Swerve Drive system that can be easily used in a robot's drive subsystem. Configuration is explicitly specified
@@ -17,24 +15,20 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
  */
 public interface RunnymedeSwerveDrive {
     /**
-     * The main periodic method for the swerve drive. This should be called at the very top
-     * of the periodic method of any subsystem using this swerve drive.
-     * <p>
-     * This method is responsible reading key sensors and updating the state of the swerve drive.
-     */
-    void periodic();
-
-    /**
      * The main internal method for controlling the drivebase. This code does not apply any
      * limiters or validation, and should be used by implementing swerve drive subsystems
      * only.
      * <p>
      * Takes the desired chassis speeds of the robot - in a robot-oriented configuration.
      *
-     * @param rawDesiredRobotOrientedVelocity The intended velocity of the robot chassis relative to
-     *                                        itself.
+     * @param vx The desired velocity of the robot in the x direction in meters per second.
+     *           Positive is forward.
+     * @param vy The desired velocity of the robot in the y direction in meters per second.
+     *           Positive is to the left.
+     * @param omega The desired angular velocity of the robot in radians per second.
+     *              Positive is counter-clockwise.
      */
-    void drive(ChassisSpeeds rawDesiredRobotOrientedVelocity);
+    void drive(double vx, double vy, double omega);
 
     /**
      * Lock the swerve drive to prevent it from moving. This can only be called when the robot is
@@ -46,16 +40,17 @@ public interface RunnymedeSwerveDrive {
 
     /**
      * Set the desired module state for the named module WHEN IN TEST MODE ONLY.
-     *
+     * <p>
      * <strong>This is a backdoor function. Use with caution.</strong>
      * <p>
      * This SHOULD NOT be called during normal operation - it is designed for TEST MODE ONLY
      * when testing parts of the drivebase in a controlled environment.
      *
      * @param moduleName   the module to activate
-     * @param desiredState the state of the specified module.
+     * @param speed - the speed of the drive motor in m/s
+     *             @param angle - the angle of the wheel in degrees
      */
-    void setModuleState(String moduleName, SwerveModuleState desiredState);
+    void setModuleState(String moduleName, double speed, double angle);
 
     /**
      * Change the robot's internal understanding of its position and rotation. This
@@ -64,7 +59,7 @@ public interface RunnymedeSwerveDrive {
      *
      * @param pose the new location and heading of the robot.
      */
-    void resetOdometry(Pose2d pose);
+    void resetOdometry(FieldPose pose);
 
     /**
      * Gets the current pose (position and rotation) of the robot, as reported by
@@ -72,7 +67,7 @@ public interface RunnymedeSwerveDrive {
      *
      * @return The robot's pose
      */
-    Pose2d getPose();
+    FieldPose getPose();
 
     /**
      * Resets the gyro angle to zero and resets odometry to the same position, but
@@ -84,13 +79,13 @@ public interface RunnymedeSwerveDrive {
      * Get the current roll of the robot, in degrees, directly from the gyro.
      * @return the roll of the robot, in degrees
      */
-    double getGyroRoll();
+    double getRoll();
 
     /**
      * Get the current pitch of the robot, in degrees, directly from the gyro.
      * @return the pitch of the robot, in degrees
      */
-    double getGyroPitch();
+    double getPitch();
 
     /**
      * Get the current yaw of the robot, in degrees, directly from the gyro.
@@ -98,5 +93,17 @@ public interface RunnymedeSwerveDrive {
      * via odometry. Most of the time they will align.
      * @return the yaw of the robot, in degrees
      */
-    double getGyroYaw();
+    double getYaw();
+
+    /**
+     * Update the telemetry of the swerve drive, using data from the drivebase.
+     * <p>
+     * This function can be called at whatever period is desired. Data returned
+     * is not guaranteed to be all set at the exact same time - some values
+     * may be updated more frequently than others. The data update frequencies
+     * are controlled via configuration.
+     *
+     * @param telemetry the telemetry object to update
+     */
+    void updateTelemetry(SwerveTelemetry telemetry);
 }

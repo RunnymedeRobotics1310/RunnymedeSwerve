@@ -1,20 +1,9 @@
 package ca.team1310.swerve.gyro;
 
-import ca.team1310.swerve.SwerveTelemetry;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-
 /**
  * Represents a gyro that can be used to determine the orientation of the robot.
  */
 public interface Gyro {
-    /**
-     * Called at the start of each robot period. Used to read sensor values
-     */
-    void periodic();
-
     /**
      * Reset pitch, yaw, and roll to 0 degrees.
      */
@@ -43,26 +32,4 @@ public interface Gyro {
      * @return the rate of rotation of the yaw of the robot, in degrees per second
      */
     double getYawRate();
-
-    /**
-     * Update the gyro in simulation mode. Not used in normal operation
-     *
-     * @param kinematics The kinematics of the swerve drive
-     * @param states The states of the swerve modules
-     * @param modulePoses The poses of the swerve modules
-     * @param field The field object
-     */
-    void updateOdometryForSimulation(
-        SwerveDriveKinematics kinematics,
-        SwerveModuleState[] states,
-        Pose2d[] modulePoses,
-        Field2d field
-    );
-
-    /**
-     * Populate the telemetry object with the gyro's data.
-     *
-     * @param telemetry The telemetry object to populate
-     */
-    void populateTelemetry(SwerveTelemetry telemetry);
 }

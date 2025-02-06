@@ -4,34 +4,82 @@ package ca.team1310.swerve.core;
  * @author Tony Field
  * @since 2025-02-01 19:19
  */
-class ModuleState {
+public class ModuleState {
 
-    private double speed = 0;
-    private double angle = 0;
+    double drivePosition, driveVelocity, driveOutputPower, anglePosition, angleVelocity, absoluteEncoderAngle, desiredSpeed, desiredAngle =
+        0;
 
-    /**
-     * Set the angle and speed of the module
-     * @param speed in m/s
-     * @param angle in rad
-     */
-    void set(double speed, double angle) {
-        this.speed = speed;
-        this.angle = angle;
+    ModuleState() {}
+
+    public double getPosition() {
+        return drivePosition;
+    }
+
+    void setPosition(double drivePosition) {
+        this.drivePosition = drivePosition;
+    }
+
+    void setVelocity(double driveVelocity) {
+        this.driveVelocity = driveVelocity;
+    }
+
+    public double getDriveOutputPower() {
+        return driveOutputPower;
+    }
+
+    void setDriveOutputPower(double driveOutputPower) {
+        this.driveOutputPower = driveOutputPower;
+    }
+
+    void setAngle(double anglePosition) {
+        this.anglePosition = anglePosition;
+    }
+
+    public double getAngleVelocity() {
+        return angleVelocity;
+    }
+
+    void setAngleVelocity(double angleVelocity) {
+        this.angleVelocity = angleVelocity;
+    }
+
+    public double getAbsoluteEncoderAngle() {
+        return absoluteEncoderAngle;
+    }
+
+    void setAbsoluteEncoderAngle(double absoluteEncoderAngle) {
+        this.absoluteEncoderAngle = absoluteEncoderAngle;
     }
 
     /**
      * Get the angle of the module
-     * @return the angle of the module in radians
+     * @return the angle of the module in degrees from -180 to 180 (ccw positive)
      */
-    double getAngle() {
-        return angle;
+    public double getAngle() {
+        return anglePosition;
     }
 
     /**
      * Get the speed of the module
-     * @return the speed of the module in m/s
+     * @return the speed of the degrees in m/s
      */
-    double getSpeed() {
-        return speed;
+    public double getSpeed() {
+        return driveVelocity;
+    }
+
+    public double getDesiredSpeed() {
+        return desiredSpeed;
+    }
+
+    void setDesiredSpeed(double desiredSpeed) {
+        this.desiredSpeed = desiredSpeed;
+    }
+
+    public double getDesiredAngle() {
+        return desiredAngle;
+    }
+
+    void setDesiredAngle(double desiredAngle) {
+        this.desiredAngle = desiredAngle;
     }
 }

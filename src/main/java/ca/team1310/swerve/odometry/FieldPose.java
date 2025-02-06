@@ -1,4 +1,4 @@
-package ca.team1310.swerve.utils;
+package ca.team1310.swerve.odometry;
 
 /**
  * Get the pose of an object on the field. Units are Metres and Degrees
