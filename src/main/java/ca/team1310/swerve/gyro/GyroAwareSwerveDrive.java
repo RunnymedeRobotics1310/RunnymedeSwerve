@@ -57,9 +57,9 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
     public void resetOdometry(FieldPose pose) {}
 
     public void updateTelemetry(SwerveTelemetry telemetry) {
+        super.updateTelemetry(telemetry);
         telemetry.gyroAdjustedYawDegrees = gyro.getYaw();
         telemetry.gyroRawPitchDegrees = gyro.getPitch();
         telemetry.gyroRawRollDegrees = gyro.getYaw();
-        super.updateTelemetry(telemetry);
     }
 }

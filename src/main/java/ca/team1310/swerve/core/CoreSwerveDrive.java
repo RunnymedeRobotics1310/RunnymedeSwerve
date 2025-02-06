@@ -255,12 +255,6 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
     public void updateTelemetry(SwerveTelemetry telemetry) {
         if (telemetry.enabled) {
-            // todo: these need to move to odometrySwerveDrive
-            //            ChassisSpeeds measuredChassisSpeeds = kinematics.toChassisSpeeds(getModuleStates());
-            //            telemetry.measuredChassisSpeeds[0] = measuredChassisSpeeds.vxMetersPerSecond;
-            //            telemetry.measuredChassisSpeeds[1] = measuredChassisSpeeds.vyMetersPerSecond;
-            //            telemetry.measuredChassisSpeeds[2] = measuredChassisSpeeds.omegaRadiansPerSecond;
-
             telemetry.desiredChassisSpeeds[0] = this.desiredVx;
             telemetry.desiredChassisSpeeds[1] = this.desiredVy;
             telemetry.desiredChassisSpeeds[2] = this.desiredOmega;
