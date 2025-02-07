@@ -1,5 +1,7 @@
 package ca.team1310.swerve.gyro.hardware;
 
+import static ca.team1310.swerve.utils.SwerveUtils.normalizeDegrees;
+
 import ca.team1310.swerve.gyro.Gyro;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
@@ -47,7 +49,7 @@ public class MXPNavX implements Gyro {
 
     @Override
     public double getYaw() {
-        return navx.getYaw() - yawOffset;
+        return normalizeDegrees(navx.getYaw() - yawOffset);
     }
 
     @Override

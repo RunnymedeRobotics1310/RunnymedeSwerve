@@ -63,28 +63,22 @@ class SwerveMath {
      */
     private void calculateModuleSetpointsCWP(double x, double y, double w) {
         //
-        // perform the main calculations
+        // Get the magic numbers. TODO: Understand this wizardry
         //
         double a = y - w * wheelbaseOverDiagonal;
         double b = y + w * wheelbaseOverDiagonal;
         double c = x - w * trackwidthOverDiagonal;
         double d = x + w * trackwidthOverDiagonal;
 
-        // calculate wheel speeds (TODO - confirm: speeds are from -1.0 to 1.0)
+        //
+        // WHEEL SPEEDS
+        //
+
+        // calculate wheel speeds
         double frs = Math.hypot(b, c);
         double fls = Math.hypot(b, d);
         double bls = Math.hypot(a, d);
         double brs = Math.hypot(a, c);
-
-        // calculate wheel angles (in radians from -PI to PI)
-        double fra = Math.atan2(b, c);
-        double fla = Math.atan2(b, d);
-        double bla = Math.atan2(a, d);
-        double bra = Math.atan2(a, c);
-
-        //
-        // normalize results
-        //
 
         // normalize wheel speeds (cannot go faster than 1.0)
         double max = Math.max(frs, Math.max(fls, Math.max(bls, brs)));
@@ -95,37 +89,34 @@ class SwerveMath {
             brs /= max;
         }
 
-        // hack part 1
-        fra += Math.PI;
-        fla += Math.PI;
-        bla += Math.PI;
-        bra += Math.PI;
-
-        // convert angle from -PI to PI into -.5 to +.5
-        fra /= (2 * Math.PI); // 90 deg left
-        fla /= (2 * Math.PI); // ok
-        bla /= (2 * Math.PI); // 90 deg right
-        bra /= (2 * Math.PI); // ok
-
-        // hacks for now...
-        fra /= 2;
-        fla /= 2;
-        bla /= 2;
-        bra /= 2;
-
-        //
-        // convert to m/s and deg/s
-        //
+        // convert back to m/s
         frs *= maxSpeedMps;
         fls *= maxSpeedMps;
         bls *= maxSpeedMps;
         brs *= maxSpeedMps;
-        fra *= maxOmegaDegPerSec;
-        fla *= maxOmegaDegPerSec;
-        bla *= maxOmegaDegPerSec;
-        bra *= maxOmegaDegPerSec;
 
-        // set module setpoints
+
+        //
+        // WHEEL ANGLES
+        //
+
+        // calculate wheel angles (in radians from -PI to PI)
+        double fra = Math.atan2(b, c);
+        double fla = Math.atan2(b, d);
+        double bla = Math.atan2(a, d);
+        double bra = Math.atan2(a, c);
+
+        // convert from -0.5 to 0.5 to -180 to 180
+        fra *= 180 / Math.PI;
+        fla *= 180 / Math.PI;
+        bla *= 180 / Math.PI;
+        bra *= 180 / Math.PI;
+
+
+        //
+        // save module directives
+        //
+
         fr.set(frs, -fra);
         fl.set(fls, -fla);
         bl.set(bls, -bla);

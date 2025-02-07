@@ -27,7 +27,8 @@ class SwerveModuleImpl implements SwerveModule {
 
     SwerveModuleImpl(ModuleConfig cfg, int robotPeriodMillis) {
         this.name = cfg.name();
-        this.location = new Coordinates(cfg.xPositionMetres(), cfg.yPositionMetres());
+        this.location = cfg.location();
+        measuredState.setLocation(cfg.location());
         this.driveMotor = getDriveMotor(cfg, robotPeriodMillis);
         this.angleMotor = getAngleMotor(cfg, robotPeriodMillis);
         this.angleEncoder = getAbsoluteAngleEncoder(cfg);
@@ -90,7 +91,6 @@ class SwerveModuleImpl implements SwerveModule {
         measuredState.setDesiredAngle(desiredState.getAngle());
 
         if (odometry || vision || telemetry) {
-            measuredState.setVelocity(driveMotor.getVelocity());
             measuredState.setAngle(angleMotor.getPosition());
             measuredState.setPosition(driveMotor.getDistance());
         }
@@ -100,6 +100,7 @@ class SwerveModuleImpl implements SwerveModule {
         }
 
         if (telemetry) {
+            measuredState.setVelocity(driveMotor.getVelocity());
             measuredState.setDriveOutputPower(driveMotor.getMeasuredVoltage());
             measuredState.setAbsoluteEncoderAngle(angleEncoder.getPosition());
         }

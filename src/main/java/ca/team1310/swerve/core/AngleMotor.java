@@ -6,8 +6,8 @@ package ca.team1310.swerve.core;
  */
 public interface AngleMotor {
     /**
-     * Get the current position of the angle motor in degrees
-     * @return the current position of the motor in degrees (from -180 to +180, CCW positive)
+     * Get the current location of the angle motor in degrees
+     * @return the current location of the motor in degrees (from -180 to +180, CCW positive)
      */
     double getPosition();
 
@@ -25,8 +25,8 @@ public interface AngleMotor {
     void setReferenceAngle(double degrees);
 
     /**
-     * Reset the internal encoder of this motor to the current position
-     * @param actualAngleDegrees the current position of the motor in degrees (from -180 to +180, CCW positive)
+     * Reset the internal encoder of this motor to the current location
+     * @param actualAngleDegrees the current location of the motor in degrees (from -180 to +180, CCW positive)
      */
     void setEncoderPosition(double actualAngleDegrees);
 }

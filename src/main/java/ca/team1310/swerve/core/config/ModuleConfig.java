@@ -1,10 +1,11 @@
 package ca.team1310.swerve.core.config;
 
+import ca.team1310.swerve.utils.Coordinates;
+
 /**
  * Configuration for a single swerve module.
  * @param name the name of the module for internal reference and telemetry
- * @param xPositionMetres the x position of the module in metres with respect to the center of the robot
- * @param yPositionMetres the y position of the module in metres with respect to the center of the robot
+ * @param location the location of the module on the robot. Forward is positive x, left is positive y.
  * @param wheelRadiusMetres the radius of the wheel in metres
  * @param driveMotorCanId the CAN ID of the drive motor
  * @param driveMotorConfig the configuration for the drive motor
@@ -16,8 +17,7 @@ package ca.team1310.swerve.core.config;
  */
 public record ModuleConfig(
     String name,
-    double xPositionMetres,
-    double yPositionMetres,
+    Coordinates location,
     double wheelRadiusMetres,
     int driveMotorCanId,
     MotorConfig driveMotorConfig,

@@ -29,6 +29,23 @@ public final class SwerveUtils {
         return radians;
     }
 
+    /**
+     * Normalize the degrees measurement to between -180 and 180
+     * @param degrees input degrees any size
+     * @return a value between -180 and 180
+     */
+    public static double normalizeDegrees(double degrees) {
+        // reduce the angle
+        degrees = degrees % 360;
+
+        // force it to be the positive remainder, so that 0 <= angle < 360
+        degrees = (degrees + 360) % 360;
+
+        // force into the minimum absolute value residue class, so that -180 < angle <= 180
+        if (degrees > 180) degrees -= 360;
+        return degrees;
+    }
+
     public static double normalizeDegreesZeroTo360(double degrees) {
         return (degrees + 360) % 360;
     }

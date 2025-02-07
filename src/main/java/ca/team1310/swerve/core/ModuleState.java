@@ -1,15 +1,27 @@
 package ca.team1310.swerve.core;
 
+import ca.team1310.swerve.utils.Coordinates;
+
 /**
  * @author Tony Field
  * @since 2025-02-01 19:19
  */
 public class ModuleState {
 
-    double drivePosition, driveVelocity, driveOutputPower, anglePosition, angleVelocity, absoluteEncoderAngle, desiredSpeed, desiredAngle =
+    private Coordinates location;
+
+    private double drivePosition, driveVelocity, driveOutputPower, anglePosition, angleVelocity, absoluteEncoderAngle, desiredSpeed, desiredAngle =
         0;
 
     ModuleState() {}
+
+    public Coordinates getLocation() {
+        return location;
+    }
+
+    void setLocation(Coordinates location) {
+        this.location = location;
+    }
 
     public double getPosition() {
         return drivePosition;

@@ -110,11 +110,11 @@ public final class SwerveTelemetry {
 
     // Pose
     /**
-     * The x position of the robot with respect to the field in metres
+     * The x location of the robot with respect to the field in metres
      */
     public double poseMetresX = Double.MIN_VALUE;
     /**
-     * The y position of the robot with respect to the field in metres
+     * The y location of the robot with respect to the field in metres
      */
     public double poseMetresY = Double.MIN_VALUE;
     /**
@@ -156,11 +156,11 @@ public final class SwerveTelemetry {
      */
     public double visionTl = Double.MIN_VALUE;
     /**
-     * The x position of the robot with respect to the field as measured by the vision system in metres
+     * The x location of the robot with respect to the field as measured by the vision system in metres
      */
     public double visionPoseX = Double.MIN_VALUE;
     /**
-     * The y position of the robot with respect to the field as measured by the vision system in metres
+     * The y location of the robot with respect to the field as measured by the vision system in metres
      */
     public double visionPoseY = Double.MIN_VALUE;
     /**
@@ -240,7 +240,7 @@ public final class SwerveTelemetry {
             postSwerveAdvantageScopeConstants();
             postSwerveAdvantageScope();
             postRunnymedeSwerveTelemetry();
-            postYagslExtensions();
+            //            postYagslExtensions();
         }
     }
 
@@ -307,7 +307,7 @@ public final class SwerveTelemetry {
     }
 
     private void postRunnymedeSwerveTelemetry() {
-        SmartDashboard.putString(PREFIX + "Swerve/gyroHeading", String.format("%.1f deg", gyroRawYawDegrees));
+        SmartDashboard.putString(PREFIX + "Swerve/gyroHeading", String.format("%.1f deg", gyroAdjustedYawDegrees));
 
         double vX = desiredChassisSpeeds[0];
         double vY = desiredChassisSpeeds[1];

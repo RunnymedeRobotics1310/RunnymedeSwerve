@@ -117,12 +117,12 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
         double measuredPosition = getPosition();
         double error = normalizeDegreesZeroTo360(measuredPosition - actualAngleDegrees);
         if (error < ANGLE_ENCODER_MAX_ERROR_DEGREES) {
-            // no need to update the encoder position
+            // no need to update the encoder location
             return;
         }
 
         String log = String.format(
-            "Angle encoder %d position is off by more than %.2f degrees. Module omega is %.2f Resetting to %.2f. Measured %.2f, error %.2f.",
+            "Angle encoder %d location is off by more than %.2f degrees. Module omega is %.2f Resetting to %.2f. Measured %.2f, error %.2f.",
             spark.getDeviceId(),
             ANGLE_ENCODER_MAX_ERROR_DEGREES,
             omega,

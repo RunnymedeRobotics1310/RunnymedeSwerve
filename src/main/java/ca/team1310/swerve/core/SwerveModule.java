@@ -13,7 +13,7 @@ public interface SwerveModule {
     String getName();
 
     /**
-     * Get the location of the swerve module on the robot. This is the x and y position of the module with respect
+     * Get the location of the swerve module on the robot. This is the x and y location of the module with respect
      * to the center of the robot, with 0,0 being in the middle and positive x being forward and positive y being right.
      * @return
      */
@@ -29,7 +29,7 @@ public interface SwerveModule {
      * Update the state of the swerve module by reading data from the module hardware. Flags are included
      * to skip some sensor reads. Sensor reads are slow, so this allows some control over which ones
      * are read.
-     * @param odometry include necessary data for odometry, including module speed, position, and angle
+     * @param odometry include necessary data for odometry, including module speed, location, and angle
      * @param vision include the necessary data for vision, including angular velocity
      * @param telemetry includes all data
      */

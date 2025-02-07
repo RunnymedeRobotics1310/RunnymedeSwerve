@@ -31,7 +31,7 @@ public abstract class NSBase<T extends SparkBase> {
      */
     protected final T spark;
     /**
-     * The relative encoder that is used to measure the motor's position and velocity.
+     * The relative encoder that is used to measure the motor's location and velocity.
      */
     protected final RelativeEncoder encoder;
     /**

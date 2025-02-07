@@ -100,14 +100,14 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
         this.telemetry.moduleNames[1] = cfg.frontRightModuleConfig().name();
         this.telemetry.moduleNames[2] = cfg.backLeftModuleConfig().name();
         this.telemetry.moduleNames[3] = cfg.backRightModuleConfig().name();
-        this.telemetry.moduleWheelLocations[0] = cfg.frontLeftModuleConfig().xPositionMetres();
-        this.telemetry.moduleWheelLocations[1] = cfg.frontLeftModuleConfig().yPositionMetres();
-        this.telemetry.moduleWheelLocations[2] = cfg.frontRightModuleConfig().xPositionMetres();
-        this.telemetry.moduleWheelLocations[3] = cfg.frontRightModuleConfig().yPositionMetres();
-        this.telemetry.moduleWheelLocations[4] = cfg.backLeftModuleConfig().xPositionMetres();
-        this.telemetry.moduleWheelLocations[5] = cfg.backLeftModuleConfig().yPositionMetres();
-        this.telemetry.moduleWheelLocations[6] = cfg.backRightModuleConfig().xPositionMetres();
-        this.telemetry.moduleWheelLocations[7] = cfg.backRightModuleConfig().yPositionMetres();
+        this.telemetry.moduleWheelLocations[0] = cfg.frontLeftModuleConfig().location().getX();
+        this.telemetry.moduleWheelLocations[1] = cfg.frontLeftModuleConfig().location().getY();
+        this.telemetry.moduleWheelLocations[2] = cfg.frontRightModuleConfig().location().getX();
+        this.telemetry.moduleWheelLocations[3] = cfg.frontRightModuleConfig().location().getY();
+        this.telemetry.moduleWheelLocations[4] = cfg.backLeftModuleConfig().location().getX();
+        this.telemetry.moduleWheelLocations[5] = cfg.backLeftModuleConfig().location().getY();
+        this.telemetry.moduleWheelLocations[6] = cfg.backRightModuleConfig().location().getX();
+        this.telemetry.moduleWheelLocations[7] = cfg.backRightModuleConfig().location().getY();
     }
 
     public final void drive(double x, double y, double w) {
@@ -146,6 +146,10 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
          * Just like with swerve module heading optimization, all swerve code should be using this.
          */
         // todo: implement discretize
+        //        ChassisSpeeds speeds = ChassisSpeeds.discretize(desiredVx, desiredVy, desiredOmega, UPDATE_MODULE_PERIOD);
+        //        desiredVx = speeds.vxMetersPerSecond;
+        //        desiredVy = speeds.vyMetersPerSecond;
+        //        desiredOmega = speeds.omegaRadiansPerSecond;
 
         // calculate desired states
         math.calculateModuleSetpoints(desiredVx, desiredVy, desiredOmega);
@@ -166,38 +170,10 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
         } else {
             moduleStateUpdateCount++;
         }
-        this.modules[0].updateState(odometry, vision, telemetry);
-        this.modules[1].updateState(odometry, vision, telemetry);
-        this.modules[2].updateState(odometry, vision, telemetry);
         this.modules[3].updateState(odometry, vision, telemetry);
-    }
-
-    /**
-     * Get the pose of the modules on the field given a robot pose. Uses the robot pose and adds the location of each module.
-     *
-     * @param robotPose the pose of the robot on the field (referring to the center of the robot).
-     * @return Poses of front left, front right, back left, back right modules.
-     */
-    protected FieldPose[] getModulePoses(FieldPose robotPose) {
-        var poses = new FieldPose[4];
-        for (int i = 0; i < modules.length; i++) {
-            double robotX = robotPose.getX();
-            double robotY = robotPose.getY();
-            double robotTheta = robotPose.getTheta();
-            double moduleX = modules[i].getLocation().getX();
-            double moduleY = modules[i].getLocation().getY();
-
-            double c = moduleY / moduleX;
-            double moduleTheta = (Math.atan2(moduleY, moduleX) * 180) / Math.PI;
-            double fieldTheta = (moduleTheta + robotTheta);
-            double robotRelativeCoordFieldRelativeThetaModuleX = c * Math.cos(fieldTheta);
-            double robotRelativeCoordFieldRelativeThetaModuleY = c * Math.sin(fieldTheta);
-            double fieldRelativeModuleX = robotX + robotRelativeCoordFieldRelativeThetaModuleX;
-            double fieldRelativeModuleY = robotY + robotRelativeCoordFieldRelativeThetaModuleY;
-
-            poses[i] = new FieldPose(fieldRelativeModuleX, fieldRelativeModuleY, fieldTheta);
-        }
-        return poses;
+        this.modules[2].updateState(odometry, vision, telemetry);
+        this.modules[1].updateState(odometry, vision, telemetry);
+        this.modules[0].updateState(odometry, vision, telemetry);
     }
 
     /**
@@ -257,7 +233,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
         if (telemetry.enabled) {
             telemetry.desiredChassisSpeeds[0] = this.desiredVx;
             telemetry.desiredChassisSpeeds[1] = this.desiredVy;
-            telemetry.desiredChassisSpeeds[2] = this.desiredOmega;
+            telemetry.desiredChassisSpeeds[2] = Math.toDegrees(this.desiredOmega);
 
             for (int i = 0; i < modules.length; i++) {
                 ModuleState state = modules[i].getState();
@@ -269,7 +245,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
                 telemetry.moduleMeasuredStates[i * 2] = state.getPosition();
                 telemetry.moduleMeasuredStates[i * 2 + 1] = state.getSpeed();
 
-                // position information
+                // location information
                 telemetry.moduleAngleMotorPositionDegrees[i] = state.getAngle();
                 telemetry.moduleDriveMotorPositionMetres[i] = state.getPosition();
                 telemetry.driveMotorOutputPower[i] = state.getDriveOutputPower();

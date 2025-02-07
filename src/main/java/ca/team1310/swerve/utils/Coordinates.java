@@ -4,6 +4,7 @@
 package ca.team1310.swerve.utils;
 
 /**
+ * Object representign the x and y coordinates of a point.
  * @author Tony Field
  * @since 2025-02-05 18:21
  */

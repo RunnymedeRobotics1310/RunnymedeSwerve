@@ -53,7 +53,7 @@ public interface RunnymedeSwerveDrive {
     void setModuleState(String moduleName, double speed, double angle);
 
     /**
-     * Change the robot's internal understanding of its position and rotation. This
+     * Change the robot's internal understanding of its location and rotation. This
      * is not an incremental change or suggestion, it discontinuously re-sets the
      * pose to the specified pose.
      *
@@ -62,7 +62,7 @@ public interface RunnymedeSwerveDrive {
     void resetOdometry(FieldPose pose);
 
     /**
-     * Gets the current pose (position and rotation) of the robot, as reported by
+     * Gets the current pose (location and rotation) of the robot, as reported by
      * odometry.
      *
      * @return The robot's pose
@@ -70,7 +70,7 @@ public interface RunnymedeSwerveDrive {
     FieldPose getPose();
 
     /**
-     * Resets the gyro angle to zero and resets odometry to the same position, but
+     * Resets the gyro angle to zero and resets odometry to the same location, but
      * facing toward 0.
      */
     void zeroGyro();

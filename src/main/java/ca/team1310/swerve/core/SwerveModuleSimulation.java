@@ -15,10 +15,11 @@ class SwerveModuleSimulation implements SwerveModule {
 
     public SwerveModuleSimulation(ModuleConfig cfg) {
         this.name = cfg.name();
-        this.location = new Coordinates(cfg.xPositionMetres(), cfg.yPositionMetres());
+        this.location = cfg.location();
+        this.currentState = new ModuleState();
+        this.currentState.setLocation(cfg.location());
         this.timer.start();
         this.lastTime = this.timer.get();
-        this.currentState = new ModuleState();
         this.dt = 0.0;
     }
 

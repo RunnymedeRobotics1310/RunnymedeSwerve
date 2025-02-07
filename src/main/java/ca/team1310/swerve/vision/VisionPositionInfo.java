@@ -6,7 +6,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 
 /**
- * A class that represents the position information from a vision system.
+ * A class that represents the location information from a vision system.
  */
 public record VisionPositionInfo(
     Pose2d pose,
