@@ -95,7 +95,6 @@ class SwerveMath {
         bls *= maxSpeedMps;
         brs *= maxSpeedMps;
 
-
         //
         // WHEEL ANGLES
         //
@@ -111,7 +110,6 @@ class SwerveMath {
         fla *= 180 / Math.PI;
         bla *= 180 / Math.PI;
         bra *= 180 / Math.PI;
-
 
         //
         // save module directives
