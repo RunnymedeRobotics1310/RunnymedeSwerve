@@ -77,7 +77,7 @@ class SwerveModuleImpl implements SwerveModule {
     private void syncAngleEncoder() {
         encoderLock.lock();
         try {
-            angleMotor.setEncoderPosition(angleMotor.getPosition());
+            angleMotor.setEncoderPosition(angleEncoder.getPosition());
         } finally {
             encoderLock.unlock();
         }
