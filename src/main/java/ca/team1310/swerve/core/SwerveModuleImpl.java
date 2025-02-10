@@ -7,6 +7,7 @@ import ca.team1310.swerve.core.hardware.rev.neospark.NSFDriveMotor;
 import ca.team1310.swerve.core.hardware.rev.neospark.NSMAngleMotor;
 import ca.team1310.swerve.core.hardware.rev.neospark.NSMDriveMotor;
 import ca.team1310.swerve.utils.Coordinates;
+import ca.team1310.swerve.utils.SwerveUtils;
 import edu.wpi.first.wpilibj.Notifier;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -122,11 +123,9 @@ class SwerveModuleImpl implements SwerveModule {
         double currentHeadingDeg = angleMotor.getPosition();
         double angleError = Math.abs(desiredState.getAngle() - currentHeadingDeg);
         if (angleError > 90 && angleError < 270) {
-            if (currentHeadingDeg < 0) {
-                desiredState.set(-desiredState.getSpeed(), desiredState.getAngle() + 180);
-            } else {
-                desiredState.set(-desiredState.getSpeed(), desiredState.getAngle() - 180);
-            }
+            double optimal = currentHeadingDeg < 0 ? desiredState.getAngle() + 180 : desiredState.getAngle() - 180;
+            SwerveUtils.normalizeDegrees(optimal);
+            desiredState.set(-desiredState.getSpeed(), optimal);
         }
 
         /*

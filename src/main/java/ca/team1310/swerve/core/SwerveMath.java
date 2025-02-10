@@ -18,7 +18,6 @@ class SwerveMath {
     private final double trackwidthOverDiagonal;
     private final double maxSpeedMps;
     private final double maxOmegaRadPerSec;
-    private final double maxOmegaDegPerSec;
 
     private final ModuleDirective fr;
     private final ModuleDirective fl;
@@ -31,7 +30,6 @@ class SwerveMath {
         this.trackwidthOverDiagonal = trackWidth / hypot;
         this.maxSpeedMps = maxSpeedMps;
         this.maxOmegaRadPerSec = maxOmegaRadPerSec;
-        this.maxOmegaDegPerSec = Math.toDegrees(maxOmegaRadPerSec);
         this.fr = new ModuleDirective();
         this.fl = new ModuleDirective();
         this.bl = new ModuleDirective();
@@ -105,11 +103,11 @@ class SwerveMath {
         double bla = Math.atan2(a, d);
         double bra = Math.atan2(a, c);
 
-        // convert from -0.5 to 0.5 to -180 to 180
-        fra *= 180 / Math.PI;
-        fla *= 180 / Math.PI;
-        bla *= 180 / Math.PI;
-        bra *= 180 / Math.PI;
+        // convert from -PI to PI to -180 to 180
+        fra = Math.toDegrees(fra);
+        fla = Math.toDegrees(fla);
+        bla = Math.toDegrees(bla);
+        bra = Math.toDegrees(bra);
 
         //
         // save module directives
