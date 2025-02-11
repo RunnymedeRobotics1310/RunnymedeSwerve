@@ -27,14 +27,14 @@ public class MXPNavX implements Gyro {
 
         this.pitchOffset = navx.getPitch();
 
-        this.yawOffset = navx.getYaw();
+        this.yawOffset = -navx.getYaw();
     }
 
     @Override
     public void zeroGyro() {
         rollOffset = navx.getRoll();
         pitchOffset = navx.getPitch();
-        yawOffset = navx.getYaw();
+        yawOffset = -navx.getYaw();
     }
 
     @Override
@@ -49,7 +49,7 @@ public class MXPNavX implements Gyro {
 
     @Override
     public double getYaw() {
-        return normalizeDegrees(navx.getYaw() - yawOffset);
+        return normalizeDegrees((-navx.getYaw()) - yawOffset);
     }
 
     @Override

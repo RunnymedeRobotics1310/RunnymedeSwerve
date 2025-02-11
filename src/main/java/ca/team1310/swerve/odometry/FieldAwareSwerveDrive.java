@@ -54,7 +54,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
         this.field = new Field2d();
 
         // Set up pose estimator
-        Rotation2d initialRotation = Rotation2d.fromDegrees(gyro.getYaw());
+        Rotation2d initialRotation = Rotation2d.fromDegrees(getYaw());
         SwerveModulePosition[] initialModulePositions = getSwerveModulePositions();
         System.out.println(
             "Initial module positions: " +
@@ -111,7 +111,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     private void updateOdometry() {
         lock.lock();
         try {
-            estimator.update(Rotation2d.fromDegrees(gyro.getYaw()), getSwerveModulePositions());
+            estimator.update(Rotation2d.fromDegrees(getYaw()), getSwerveModulePositions());
             if (isSimulation) {
                 ChassisSpeeds measuredChassisSpeeds = kinematics.toChassisSpeeds(getSwerveModuleStates());
                 ((SimulatedGyro) gyro).updateOdometryForSimulation(measuredChassisSpeeds.omegaRadiansPerSecond);
