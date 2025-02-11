@@ -22,7 +22,7 @@ public interface Gyro {
     double getPitch();
 
     /**
-     * Get the yaw of the robot, in degrees.
+     * Get the yaw of the robot, in degrees. Positive is CounterClockWise.
      * @return the yaw of the robot, in degrees
      */
     double getYaw();
