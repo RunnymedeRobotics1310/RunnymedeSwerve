@@ -3,6 +3,7 @@
  */
 package ca.team1310.swerve.core.hardware.rev.neospark;
 
+import static ca.team1310.swerve.utils.SwerveUtils.normalizeDegrees;
 import static ca.team1310.swerve.utils.SwerveUtils.normalizeDegreesZeroTo360;
 
 import ca.team1310.swerve.core.AngleMotor;
@@ -115,19 +116,18 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
         }
 
         double measuredPosition = getPosition();
-        double error = normalizeDegreesZeroTo360(measuredPosition - actualAngleDegrees);
+        double error = Math.abs(normalizeDegrees(measuredPosition - actualAngleDegrees));
         if (error < ANGLE_ENCODER_MAX_ERROR_DEGREES) {
             // no need to update the encoder location
             return;
         }
 
         String log = String.format(
-            "Angle encoder %d location is off by more than %.2f degrees. Module omega is %.2f Resetting to %.2f. Measured %.2f, error %.2f.",
+            "Angle encoder %d location is off by more than %.2f degrees. Motor encoder: %.2f. Absolute Encoder: %.2f. Error %.2f.",
             spark.getDeviceId(),
             ANGLE_ENCODER_MAX_ERROR_DEGREES,
-            omega,
-            actualAngleDegrees,
             measuredPosition,
+            actualAngleDegrees,
             error
         );
         System.out.println(log);

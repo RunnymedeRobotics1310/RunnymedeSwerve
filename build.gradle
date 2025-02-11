@@ -12,7 +12,7 @@ java {
 }
 
 // set a valid semver version
-version = '3.0.0.45'
+version = '3.0.0.46'
 
 repositories {
     mavenCentral()
