@@ -273,4 +273,9 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     public double getYaw() {
         return 0;
     }
+
+    @Override
+    public double getYawRate() {
+        return 0;
+    }
 }

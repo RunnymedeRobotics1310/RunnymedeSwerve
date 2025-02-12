@@ -96,6 +96,12 @@ public interface RunnymedeSwerveDrive {
     double getYaw();
 
     /**
+     * Get the rate of change of the yaw of the robot in degrees per second.
+     * @return the yaw rate of the robot, in degrees per second
+     */
+    double getYawRate();
+
+    /**
      * Update the telemetry of the swerve drive, using data from the drivebase.
      * <p>
      * This function can be called at whatever period is desired. Data returned

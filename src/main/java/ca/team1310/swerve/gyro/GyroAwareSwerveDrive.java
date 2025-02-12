@@ -49,7 +49,8 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
         return gyro.getYaw();
     }
 
-    protected double getYawRate() {
+    @Override
+    public double getYawRate() {
         return gyro.getYawRate();
     }
 
