@@ -3,7 +3,6 @@ package ca.team1310.swerve.core;
 import ca.team1310.swerve.RunnymedeSwerveDrive;
 import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
-import ca.team1310.swerve.odometry.FieldPose;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotBase;
 
@@ -246,36 +245,5 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
                 telemetry.moduleAbsoluteEncoderPositionDegrees[i] = state.getAbsoluteEncoderAngle();
             }
         }
-    }
-
-    @Override
-    public void resetOdometry(FieldPose pose) {}
-
-    @Override
-    public FieldPose getPose() {
-        return new FieldPose();
-    }
-
-    @Override
-    public void zeroGyro() {}
-
-    @Override
-    public double getRoll() {
-        return 0;
-    }
-
-    @Override
-    public double getPitch() {
-        return 0;
-    }
-
-    @Override
-    public double getYaw() {
-        return 0;
-    }
-
-    @Override
-    public double getYawRate() {
-        return 0;
     }
 }

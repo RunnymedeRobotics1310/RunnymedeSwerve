@@ -1,6 +1,3 @@
-/*
- * Copyright 2025 The Kingsway Digital Company Limited. All rights reserved.
- */
 package ca.team1310.swerve.gyro;
 
 import ca.team1310.swerve.SwerveTelemetry;
@@ -8,7 +5,6 @@ import ca.team1310.swerve.core.CoreSwerveDrive;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
 import ca.team1310.swerve.gyro.hardware.MXPNavX;
 import ca.team1310.swerve.gyro.hardware.SimulatedGyro;
-import ca.team1310.swerve.odometry.FieldPose;
 import edu.wpi.first.wpilibj.RobotBase;
 
 /**
@@ -54,9 +50,6 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
     public double getYawRate() {
         return gyro.getYawRate();
     }
-
-    @Override
-    public void resetOdometry(FieldPose pose) {}
 
     public void updateTelemetry(SwerveTelemetry telemetry) {
         super.updateTelemetry(telemetry);

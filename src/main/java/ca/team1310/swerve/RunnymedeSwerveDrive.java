@@ -1,7 +1,6 @@
 package ca.team1310.swerve;
 
-import ca.team1310.swerve.core.ModuleState;
-import ca.team1310.swerve.odometry.FieldPose;
+import edu.wpi.first.math.geometry.Pose2d;
 
 /**
  * A Swerve Drive system that can be easily used in a robot's drive subsystem. Configuration is explicitly specified
@@ -21,10 +20,10 @@ public interface RunnymedeSwerveDrive {
      * <p>
      * Takes the desired chassis speeds of the robot - in a robot-oriented configuration.
      *
-     * @param vx The desired velocity of the robot in the x direction in meters per second.
-     *           Positive is forward.
-     * @param vy The desired velocity of the robot in the y direction in meters per second.
-     *           Positive is to the left.
+     * @param vx    The desired velocity of the robot in the x direction in meters per second.
+     *              Positive is forward.
+     * @param vy    The desired velocity of the robot in the y direction in meters per second.
+     *              Positive is to the left.
      * @param omega The desired angular velocity of the robot in radians per second.
      *              Positive is counter-clockwise.
      */
@@ -46,9 +45,9 @@ public interface RunnymedeSwerveDrive {
      * This SHOULD NOT be called during normal operation - it is designed for TEST MODE ONLY
      * when testing parts of the drivebase in a controlled environment.
      *
-     * @param moduleName   the module to activate
-     * @param speed - the speed of the drive motor in m/s
-     *             @param angle - the angle of the wheel in degrees
+     * @param moduleName the module to activate
+     * @param speed      - the speed of the drive motor in m/s
+     * @param angle      - the angle of the wheel in degrees
      */
     void setModuleState(String moduleName, double speed, double angle);
 
@@ -56,50 +55,78 @@ public interface RunnymedeSwerveDrive {
      * Change the robot's internal understanding of its location and rotation. This
      * is not an incremental change or suggestion, it discontinuously re-sets the
      * pose to the specified pose.
+     * <p>
+     * The default implementation does nothing.
      *
      * @param pose the new location and heading of the robot.
      */
-    void resetOdometry(FieldPose pose);
+    default void resetOdometry(Pose2d pose) {}
 
     /**
      * Gets the current pose (location and rotation) of the robot, as reported by
      * odometry.
+     * <p>
+     * The default implementation returns a pose at 0,0,0.
      *
      * @return The robot's pose
      */
-    FieldPose getPose();
+    default Pose2d getPose() {
+        return new Pose2d();
+    }
 
     /**
      * Resets the gyro angle to zero and resets odometry to the same location, but
      * facing toward 0.
+     * <p>
+     * The default implementation does nothing.
      */
-    void zeroGyro();
+    default void zeroGyro() {}
 
     /**
      * Get the current roll of the robot, in degrees, directly from the gyro.
+     * <p>
+     * The default implementation returns 0.
+     *
      * @return the roll of the robot, in degrees
      */
-    double getRoll();
+    default double getRoll() {
+        return 0;
+    }
 
     /**
      * Get the current pitch of the robot, in degrees, directly from the gyro.
+     * <p>
+     * The default implementation returns 0.
+     *
      * @return the pitch of the robot, in degrees
      */
-    double getPitch();
+    default double getPitch() {
+        return 0;
+    }
 
     /**
      * Get the current yaw of the robot, in degrees, directly from the gyro.
      * This may, possibly, differ from the rotation returned from <code>getPose()</code>
      * via odometry. Most of the time they will align.
+     * <p>
+     * The default implementation returns 0.
+     *
      * @return the yaw of the robot, in degrees
      */
-    double getYaw();
+    default double getYaw() {
+        return 0;
+    }
 
     /**
      * Get the rate of change of the yaw of the robot in degrees per second.
+     * <p>
+     * The default implementation returns 0.
+     *
      * @return the yaw rate of the robot, in degrees per second
      */
-    double getYawRate();
+    default double getYawRate() {
+        return 0;
+    }
 
     /**
      * Update the telemetry of the swerve drive, using data from the drivebase.
@@ -108,8 +135,10 @@ public interface RunnymedeSwerveDrive {
      * is not guaranteed to be all set at the exact same time - some values
      * may be updated more frequently than others. The data update frequencies
      * are controlled via configuration.
+     * <p>
+     * The default implementation does nothing.
      *
      * @param telemetry the telemetry object to update
      */
-    void updateTelemetry(SwerveTelemetry telemetry);
+    default void updateTelemetry(SwerveTelemetry telemetry) {}
 }

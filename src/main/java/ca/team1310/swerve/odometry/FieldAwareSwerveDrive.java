@@ -1,6 +1,3 @@
-/*
- * Copyright 2025 The Kingsway Digital Company Limited. All rights reserved.
- */
 package ca.team1310.swerve.odometry;
 
 import ca.team1310.swerve.SwerveTelemetry;
@@ -137,6 +134,15 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
         }
     }
 
+    public void resetOdometry(Pose2d pose) {
+        lock.lock();
+        try {
+            estimator.resetPose(pose);
+        } finally {
+            lock.unlock();
+        }
+    }
+
     private Pose2d[] getModulePoses(Pose2d robotPose) {
         return Arrays.stream(getModuleStates())
             .map(m -> {
@@ -149,30 +155,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
             .toArray(Pose2d[]::new);
     }
 
-    //
-    //    private Pose2d[] getModulePoses(Pose2d robotPose) {
-    //        var states = getModuleStates();
-    //        var modulePoses = new Pose2d[states.length];
-    //        double robotX = robotPose.getTranslation().getX();
-    //        double robotY = robotPose.getTranslation().getY();
-    //        double robotTheta = robotPose.getRotation().getDegrees();
-    //        for (int i = 0; i < states.length; i++) {
-    //            double moduleX = states[i].getLocation().getX();
-    //            double moduleY = states[i].getLocation().getY();
-    //
-    //            double radius = Math.hypot(moduleY, moduleX);
-    //            double fieldTheta = (Math.atan2(moduleY, moduleX) * 180) / Math.PI + robotTheta;
-    //            double fieldRelativeModuleX = radius * Math.cos(fieldTheta) + robotX;
-    //            double fieldRelativeModuleY = radius * Math.sin(fieldTheta) + robotY;
-    //            modulePoses[i] = new Pose2d(
-    //                new Translation2d(fieldRelativeModuleX, fieldRelativeModuleY),
-    //                Rotation2d.fromDegrees(fieldTheta)
-    //            );
-    //        }
-    //        return modulePoses;
-    //    }
-
-    public Pose2d getPose2d() {
+    public Pose2d getPose() {
         return estimator.getEstimatedPosition();
     }
 
