@@ -27,6 +27,7 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
     public GyroAwareSwerveDrive(CoreSwerveConfig cfg) {
         super(cfg);
         this.gyro = RobotBase.isSimulation() ? new SimulatedGyro() : new MXPNavX();
+        cfg.telemetry().gyro = gyro;
     }
 
     @Override

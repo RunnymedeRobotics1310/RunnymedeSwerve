@@ -1,9 +1,12 @@
 package ca.team1310.swerve.gyro;
 
+import edu.wpi.first.networktables.NTSendable;
+import edu.wpi.first.networktables.NTSendableBuilder;
+
 /**
  * Represents a gyro that can be used to determine the orientation of the robot.
  */
-public interface Gyro {
+public interface Gyro extends NTSendable {
     /**
      * Reset pitch, yaw, and roll to 0 degrees.
      */
@@ -32,4 +35,19 @@ public interface Gyro {
      * @return the rate of rotation of the yaw of the robot, in degrees per second
      */
     double getYawRate();
+
+    @Override
+    default void initSendable(NTSendableBuilder builder) {
+        builder.setSmartDashboardType("Gyro");
+        builder.addDoubleProperty(
+            "Value",
+            () -> {
+                double angle = getYaw();
+
+                // Round the angle to 2 decimal places for the Dashboard
+                return Math.round(angle * 100d) / 100d;
+            },
+            null
+        );
+    }
 }
