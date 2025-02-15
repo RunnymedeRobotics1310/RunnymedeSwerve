@@ -8,6 +8,8 @@ import ca.team1310.swerve.core.config.CoreSwerveConfig;
 import ca.team1310.swerve.gyro.GyroAwareSwerveDrive;
 import ca.team1310.swerve.gyro.hardware.SimulatedGyro;
 import ca.team1310.swerve.utils.Coordinates;
+import ca.team1310.swerve.vision.PoseEstimate;
+import ca.team1310.swerve.vision.VisionPoseCallback;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -44,13 +46,15 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
         new SwerveModuleState(),
         new SwerveModuleState(),
     };
+    private final VisionPoseCallback visionPoseCallback;
 
     private final Notifier odometryUpdater = new Notifier(this::updateOdometry);
     private final Lock lock = new java.util.concurrent.locks.ReentrantLock();
     private static final double ODOMETRY_UPDATE_PERIOD_SECONDS = 0.02;
 
-    public FieldAwareSwerveDrive(CoreSwerveConfig cfg) {
+    public FieldAwareSwerveDrive(CoreSwerveConfig cfg, VisionPoseCallback callback) {
         super(cfg);
+        this.visionPoseCallback = callback == null ? new VisionPoseCallback() {} : callback;
         this.field = new Field2d();
 
         // Set up pose estimator
@@ -115,6 +119,18 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
             if (isSimulation) {
                 ChassisSpeeds measuredChassisSpeeds = kinematics.toChassisSpeeds(getSwerveModuleStates());
                 ((SimulatedGyro) gyro).updateOdometryForSimulation(measuredChassisSpeeds.omegaRadiansPerSecond);
+            }
+            PoseEstimate poseEstimate = visionPoseCallback.getPoseEstimate(getYaw(), getYawRate());
+            if (poseEstimate != null) {
+                if (poseEstimate.getStandardDeviations() == null) {
+                    estimator.addVisionMeasurement(poseEstimate.getPose(), poseEstimate.getTimestampSeconds());
+                } else {
+                    estimator.addVisionMeasurement(
+                        poseEstimate.getPose(),
+                        poseEstimate.getTimestampSeconds(),
+                        poseEstimate.getStandardDeviations()
+                    );
+                }
             }
         } finally {
             lock.unlock();
