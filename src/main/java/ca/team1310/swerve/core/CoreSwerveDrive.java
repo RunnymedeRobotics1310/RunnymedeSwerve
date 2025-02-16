@@ -279,12 +279,12 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
                 // location information
                 telemetry.moduleAngleMotorPositionDegrees[i] = state.getAngle();
                 telemetry.moduleDriveMotorPositionMetres[i] = state.getPosition();
-            }
 
-            if (telemetry.level == TelemetryLevel.VERBOSE) {
-                telemetry.driveMotorOutputPower[i] = state.getDriveOutputPower();
-                // angle encoder
-                telemetry.moduleAbsoluteEncoderPositionDegrees[i] = state.getAbsoluteEncoderAngle();
+                if (telemetry.level == TelemetryLevel.VERBOSE) {
+                    telemetry.driveMotorOutputPower[i] = state.getDriveOutputPower();
+                    // angle encoder
+                    telemetry.moduleAbsoluteEncoderPositionDegrees[i] = state.getAbsoluteEncoderAngle();
+                }
             }
         }
 

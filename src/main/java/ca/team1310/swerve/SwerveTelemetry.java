@@ -152,9 +152,14 @@ public final class SwerveTelemetry {
             postInput();
         }
         if (level == CALCULATED) {
+            postConstants();
+            postInput();
             postCalculated();
         }
         if (level == VERBOSE) {
+            postConstants();
+            postInput();
+            postCalculated();
             postVerbose();
         }
     }
