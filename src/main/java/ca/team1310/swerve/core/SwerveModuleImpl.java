@@ -87,7 +87,7 @@ class SwerveModuleImpl implements SwerveModule {
         return name;
     }
 
-    public void updateState(boolean odometry, boolean vision, boolean telemetry) {
+    public void readState(boolean odometry, boolean vision, boolean telemetry) {
         measuredState.setDesiredSpeed(desiredState.getSpeed());
         measuredState.setDesiredAngle(desiredState.getAngle());
 

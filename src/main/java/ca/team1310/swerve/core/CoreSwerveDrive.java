@@ -31,7 +31,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     private static final double UPDATE_MODULE_PERIOD = 0.005;
 
     // module state refresher thread
-    private final Notifier updateModuleStates = new Notifier(this::updateModuleStates);
+    private final Notifier updateModuleStates = new Notifier(this::readModuleStates);
     private static final double UPDATE_MODULE_STATE_PERIOD = 0.005;
     private short moduleStateUpdateCount = 0;
     // cycles for updating module state. Maximum 10000
@@ -154,7 +154,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
         this.modules[3].setDesiredState(math.getBackRight());
     }
 
-    private void updateModuleStates() {
+    private void readModuleStates() {
         boolean odometry = moduleStateUpdateCount % ODOMETRY_UPDATE_CYCLES == 0;
         boolean vision = moduleStateUpdateCount % VISION_UPDATE_CYCLES == 0;
         boolean telemetry = moduleStateUpdateCount % TELEMETRY_UPDATE_CYCLES == 0;
@@ -163,10 +163,10 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
         } else {
             moduleStateUpdateCount++;
         }
-        this.modules[3].updateState(odometry, vision, telemetry);
-        this.modules[2].updateState(odometry, vision, telemetry);
-        this.modules[1].updateState(odometry, vision, telemetry);
-        this.modules[0].updateState(odometry, vision, telemetry);
+        this.modules[3].readState(odometry, vision, telemetry);
+        this.modules[2].readState(odometry, vision, telemetry);
+        this.modules[1].readState(odometry, vision, telemetry);
+        this.modules[0].readState(odometry, vision, telemetry);
     }
 
     /**

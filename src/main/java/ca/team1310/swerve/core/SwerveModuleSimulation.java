@@ -34,7 +34,7 @@ class SwerveModuleSimulation implements SwerveModule {
     }
 
     @Override
-    public void updateState(boolean odometry, boolean vision, boolean telemetry) {}
+    public void readState(boolean odometry, boolean vision, boolean telemetry) {}
 
     @Override
     public ModuleState getState() {
