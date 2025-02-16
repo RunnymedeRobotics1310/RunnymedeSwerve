@@ -10,6 +10,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  */
 public final class SwerveTelemetry {
 
+    /**
+     * The desired telemetry level.
+     */
     public TelemetryLevel level = TelemetryLevel.NONE;
 
     /**
