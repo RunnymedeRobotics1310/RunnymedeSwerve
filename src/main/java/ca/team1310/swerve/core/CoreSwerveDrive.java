@@ -39,6 +39,8 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     private final short VISION_UPDATE_CYCLES = 4 * 10;
     private final short TELEMETRY_UPDATE_CYCLES = 4 * 100;
 
+    private final double MINIMUM_OMEGA_VALUE_RAD_PER_SEC = Math.toRadians(1);
+
     /**
      * Construct a new CoreSwerveDrive object with the specified configuration.
      *
@@ -104,7 +106,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     public final void drive(double x, double y, double w) {
         desiredVx = x;
         desiredVy = y;
-        desiredOmega = w;
+        desiredOmega = Math.abs(w) < MINIMUM_OMEGA_VALUE_RAD_PER_SEC ? 0 : w;
     }
 
     /*
