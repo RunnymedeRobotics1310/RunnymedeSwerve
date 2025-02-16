@@ -1,6 +1,3 @@
-/*
- * Copyright 2025 The Kingsway Digital Company Limited. All rights reserved.
- */
 package ca.team1310.swerve.core.hardware.rev.neospark;
 
 import ca.team1310.swerve.core.config.MotorConfig;
