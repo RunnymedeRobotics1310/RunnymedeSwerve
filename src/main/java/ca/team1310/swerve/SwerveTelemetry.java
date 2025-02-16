@@ -1,6 +1,8 @@
 package ca.team1310.swerve;
 
-import edu.wpi.first.networktables.NTSendable;
+import static ca.team1310.swerve.core.config.TelemetryLevel.*;
+
+import ca.team1310.swerve.core.config.TelemetryLevel;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
@@ -8,12 +10,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  */
 public final class SwerveTelemetry {
 
-    /**
-     * Flag to enable / disable telemetry. If disabled, telemetry will be neither
-     * collected nor reported. If enabled, telemetry will be collected and
-     * reported.
-     */
-    public boolean enabled = false;
+    public TelemetryLevel level = TelemetryLevel.NONE;
 
     /**
      * The prefix to use for all SmartDashboard keys
@@ -89,28 +86,10 @@ public final class SwerveTelemetry {
      * The drive motor positions of the swerve modules in metres
      */
     public double[] moduleDriveMotorPositionMetres;
+    /**
+     * The drive motor output power of the swerve modules
+     */
     public double[] driveMotorOutputPower;
-    // Gyro
-    /**
-     * The gyro sendable object itself
-     */
-    public NTSendable gyro;
-    /**
-     * The raw yaw of the gyro in degrees
-     */
-    public double gyroRawYawDegrees = Double.MIN_VALUE;
-    /**
-     * The adjusted yaw of the gyro in degrees
-     */
-    public double gyroAdjustedYawDegrees = Double.MIN_VALUE;
-    /**
-     * The raw pitch of the gyro in degrees
-     */
-    public double gyroRawPitchDegrees = Double.MIN_VALUE;
-    /**
-     * The raw roll of the gyro in degrees
-     */
-    public double gyroRawRollDegrees = Double.MIN_VALUE;
 
     // Pose
     /**
@@ -139,32 +118,6 @@ public final class SwerveTelemetry {
      */
     public double visionPoseHeading = Double.MIN_VALUE;
 
-    // Field Oriented
-    /**
-     * The x velocity of the robot with respect to the field in metres per second
-     */
-    public double fieldOrientedVelocityX = Double.MIN_VALUE;
-    /**
-     * The y velocity of the robot with respect to the field in metres per second
-     */
-    public double fieldOrientedVelocityY = Double.MIN_VALUE;
-    /**
-     * The rotational velocity of the robot with respect to the field in radians per second
-     */
-    public double fieldOrientedVelocityOmega = Double.MIN_VALUE;
-    /**
-     * The x distance in metres from the current robot location to the desired pose. Not set by RunnymedeSwerve - typically set by subsystems that use RunnymedeSwerve.
-     */
-    public double fieldOrientedDeltaToPoseX = Double.MIN_VALUE;
-    /**
-     * The y distance in metres from the current robot location to the desired pose. Not set by RunnymedeSwerve - typically set by subsystems that use RunnymedeSwerve.
-     */
-    public double fieldOrientedDeltaToPoseY = Double.MIN_VALUE;
-    /**
-     * The heading in degrees from the current robot location to the desired pose. Not set by RunnymedeSwerve - typically set by subsystems that use RunnymedeSwerve.
-     */
-    public double fieldOrientedDeltaToPoseHeading = Double.MIN_VALUE;
-
     /**
      * Whether the swerve advantage scope constants have been posted to SmartDashboard
      */
@@ -191,15 +144,21 @@ public final class SwerveTelemetry {
      * Post all telemetry data to SmartDashboard
      */
     public void post() {
-        if (enabled) {
-            postSwerveAdvantageScopeConstants();
-            postSwerveAdvantageScope();
-            postRunnymedeSwerveTelemetry();
+        if (level == INPUT) {
+            postConstants();
+            postInput();
+        }
+        if (level == CALCULATED) {
+            postCalculated();
+        }
+        if (level == VERBOSE) {
+            postVerbose();
         }
     }
 
-    private void postSwerveAdvantageScopeConstants() {
+    private void postConstants() {
         if (!advantageScopeConstantsPosted && moduleWheelLocations[0] != 0.0) {
+            // advantagescope constants
             SmartDashboard.putNumber("swerve/moduleCount", moduleCount);
             SmartDashboard.putNumberArray("swerve/wheelLocations", moduleWheelLocations);
             SmartDashboard.putNumber("swerve/maxSpeed", maxTranslationSpeedMPS);
@@ -212,47 +171,33 @@ public final class SwerveTelemetry {
         }
     }
 
-    private void postSwerveAdvantageScope() {
-        SmartDashboard.putNumberArray("swerve/measuredStates", moduleMeasuredStates);
+    private void postInput() {
+        // advantagescope
         SmartDashboard.putNumberArray("swerve/desiredStates", moduleDesiredStates);
-        SmartDashboard.putNumber("swerve/robotRotation", poseHeadingDegrees);
-        SmartDashboard.putNumberArray("swerve/measuredChassisSpeeds", measuredChassisSpeeds);
         SmartDashboard.putNumberArray("swerve/desiredChassisSpeeds", desiredChassisSpeeds);
+        // other inputs
     }
 
-    private void postRunnymedeSwerveTelemetry() {
-        SmartDashboard.putData("Gyro", gyro);
-        SmartDashboard.putString(PREFIX + "Swerve/gyroHeading", String.format("%.1f deg", gyroAdjustedYawDegrees));
+    private void postCalculated() {
+        // advantagescope
+        SmartDashboard.putNumberArray("swerve/measuredStates", moduleMeasuredStates);
+        SmartDashboard.putNumber("swerve/robotRotation", poseHeadingDegrees);
+        SmartDashboard.putNumberArray("swerve/measuredChassisSpeeds", measuredChassisSpeeds);
+        // other calculated values
+    }
 
+    private void postVerbose() {
         double vX = desiredChassisSpeeds[0];
         double vY = desiredChassisSpeeds[1];
         double speed = Math.hypot(vX, vY);
         double omega = desiredChassisSpeeds[2];
         String vRobot = String.format("%.1f (%.1f, %.1f) m/s %.1f deg/s", speed, vX, vY, omega);
-        SmartDashboard.putString(PREFIX + "Swerve/velocity_robot", vRobot);
-
-        double fieldSpeed = Math.hypot(fieldOrientedVelocityX, fieldOrientedVelocityY);
-        String vField = String.format(
-            "%.1f (%.1f, %.1f) m/s %.1f deg/s",
-            fieldSpeed,
-            fieldOrientedVelocityX,
-            fieldOrientedVelocityY,
-            fieldOrientedVelocityOmega
-        );
-        SmartDashboard.putString(PREFIX + "Swerve/velocity_field", vField);
+        SmartDashboard.putString(PREFIX + "Swerve/desired_velocity_robot", vRobot);
 
         String poseOdo = String.format("(%.2f, %.2f) m %.1f deg", poseMetresX, poseMetresY, poseHeadingDegrees);
         SmartDashboard.putString(PREFIX + "Swerve/pose_odo", poseOdo);
 
         String poseVis = String.format("(%.2f, %.2f) m %.1f deg", visionPoseX, visionPoseY, visionPoseHeading);
         SmartDashboard.putString(PREFIX + "Swerve/pose_vis", poseVis);
-
-        String delta = String.format(
-            "(%.2f, %.2f) m %.1f deg",
-            fieldOrientedDeltaToPoseX,
-            fieldOrientedDeltaToPoseY,
-            fieldOrientedDeltaToPoseHeading
-        );
-        SmartDashboard.putString(PREFIX + "Swerve/distance_to_pose", delta);
     }
 }

@@ -127,18 +127,4 @@ public interface RunnymedeSwerveDrive {
     default double getYawRate() {
         return 0;
     }
-
-    /**
-     * Update the telemetry of the swerve drive, using data from the drivebase.
-     * <p>
-     * This function can be called at whatever period is desired. Data returned
-     * is not guaranteed to be all set at the exact same time - some values
-     * may be updated more frequently than others. The data update frequencies
-     * are controlled via configuration.
-     * <p>
-     * The default implementation does nothing.
-     *
-     * @param telemetry the telemetry object to update
-     */
-    default void updateTelemetry(SwerveTelemetry telemetry) {}
 }

@@ -9,8 +9,6 @@ import ca.team1310.swerve.core.hardware.rev.neospark.NSMDriveMotor;
 import ca.team1310.swerve.utils.Coordinates;
 import ca.team1310.swerve.utils.SwerveUtils;
 import edu.wpi.first.wpilibj.Notifier;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 class SwerveModuleImpl implements SwerveModule {
 
@@ -23,7 +21,6 @@ class SwerveModuleImpl implements SwerveModule {
     private final AbsoluteAngleEncoder angleEncoder;
     private ModuleDirective desiredState = new ModuleDirective();
     private final ModuleState measuredState = new ModuleState();
-    private final Lock encoderLock = new ReentrantLock();
     private final Notifier encoderSynchronizer = new Notifier(this::syncAngleEncoder);
 
     SwerveModuleImpl(ModuleConfig cfg, int robotPeriodMillis) {
@@ -74,30 +71,21 @@ class SwerveModuleImpl implements SwerveModule {
         );
     }
 
-    private void syncAngleEncoder() {
-        encoderLock.lock();
-        try {
-            angleMotor.setEncoderPosition(angleEncoder.getPosition());
-        } finally {
-            encoderLock.unlock();
-        }
+    private synchronized void syncAngleEncoder() {
+        angleMotor.setEncoderPosition(angleEncoder.getPosition());
     }
 
     public String getName() {
         return name;
     }
 
-    public void readState(boolean odometry, boolean vision, boolean telemetry) {
+    public synchronized void readState(boolean odometry, boolean telemetry) {
         measuredState.setDesiredSpeed(desiredState.getSpeed());
         measuredState.setDesiredAngle(desiredState.getAngle());
 
-        if (odometry || vision || telemetry) {
+        if (odometry || telemetry) {
             measuredState.setAngle(angleMotor.getPosition());
             measuredState.setPosition(driveMotor.getDistance());
-        }
-
-        if (vision || telemetry) {
-            measuredState.setAngleVelocity(angleMotor.getVelocity());
         }
 
         if (telemetry) {
@@ -107,11 +95,11 @@ class SwerveModuleImpl implements SwerveModule {
         }
     }
 
-    public ModuleState getState() {
+    public synchronized ModuleState getState() {
         return measuredState;
     }
 
-    public void setDesiredState(ModuleDirective desiredState) {
+    public synchronized void setDesiredState(ModuleDirective desiredState) {
         this.desiredState = desiredState;
 
         /*
@@ -124,7 +112,7 @@ class SwerveModuleImpl implements SwerveModule {
         double angleError = Math.abs(desiredState.getAngle() - currentHeadingDeg);
         if (angleError > 90 && angleError < 270) {
             double optimal = currentHeadingDeg < 0 ? desiredState.getAngle() + 180 : desiredState.getAngle() - 180;
-            SwerveUtils.normalizeDegrees(optimal);
+            optimal = SwerveUtils.normalizeDegrees(optimal);
             desiredState.set(-desiredState.getSpeed(), optimal);
         }
 

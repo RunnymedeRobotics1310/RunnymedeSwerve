@@ -1,6 +1,5 @@
 package ca.team1310.swerve.gyro;
 
-import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.CoreSwerveDrive;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
 import ca.team1310.swerve.gyro.hardware.MXPNavX;
@@ -13,6 +12,9 @@ import edu.wpi.first.wpilibj.RobotBase;
  */
 public class GyroAwareSwerveDrive extends CoreSwerveDrive {
 
+    /**
+     * The gyro for the swerve drive
+     */
     protected final Gyro gyro;
 
     /**
@@ -23,38 +25,30 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
     public GyroAwareSwerveDrive(CoreSwerveConfig cfg) {
         super(cfg);
         this.gyro = RobotBase.isSimulation() ? new SimulatedGyro() : new MXPNavX();
-        cfg.telemetry().gyro = gyro;
     }
 
     @Override
-    public void zeroGyro() {
+    public synchronized void zeroGyro() {
         gyro.zeroGyro();
     }
 
     @Override
-    public double getRoll() {
+    public synchronized double getRoll() {
         return gyro.getRoll();
     }
 
     @Override
-    public double getPitch() {
+    public synchronized double getPitch() {
         return gyro.getPitch();
     }
 
     @Override
-    public double getYaw() {
+    public synchronized double getYaw() {
         return gyro.getYaw();
     }
 
     @Override
-    public double getYawRate() {
+    public synchronized double getYawRate() {
         return gyro.getYawRate();
-    }
-
-    public void updateTelemetry(SwerveTelemetry telemetry) {
-        super.updateTelemetry(telemetry);
-        telemetry.gyroAdjustedYawDegrees = gyro.getYaw();
-        telemetry.gyroRawPitchDegrees = gyro.getPitch();
-        telemetry.gyroRawRollDegrees = gyro.getYaw();
     }
 }

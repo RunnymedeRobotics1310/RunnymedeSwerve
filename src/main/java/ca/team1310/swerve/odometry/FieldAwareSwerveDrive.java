@@ -1,7 +1,11 @@
 package ca.team1310.swerve.odometry;
 
+import static ca.team1310.swerve.SwerveTelemetry.PREFIX;
+
 import ca.team1310.swerve.SwerveTelemetry;
+import ca.team1310.swerve.core.ModuleState;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
+import ca.team1310.swerve.core.config.TelemetryLevel;
 import ca.team1310.swerve.gyro.GyroAwareSwerveDrive;
 import ca.team1310.swerve.gyro.hardware.SimulatedGyro;
 import ca.team1310.swerve.utils.Coordinates;
@@ -20,7 +24,6 @@ import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import java.util.Arrays;
-import java.util.concurrent.locks.Lock;
 
 /**
  * @author Tony Field
@@ -37,22 +40,23 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
         new SwerveModulePosition(),
         new SwerveModulePosition(),
     };
-    private final SwerveModuleState[] moduleState = {
-        new SwerveModuleState(),
-        new SwerveModuleState(),
-        new SwerveModuleState(),
-        new SwerveModuleState(),
-    };
     private final VisionPoseCallback visionPoseCallback;
 
-    private final Notifier odometryUpdater = new Notifier(this::updateOdometry);
-    private final Lock lock = new java.util.concurrent.locks.ReentrantLock();
-    private static final double ODOMETRY_UPDATE_PERIOD_SECONDS = 0.02;
+    private final Notifier odometryUpdater;
+    private static final int UPDATE_ODOMETRY_EVERY_MILLIS = 20;
 
+    /**
+     * Create a new field-aware swerve drive. An optional vision pose callback can be provided to
+     * allow the drive to use vision data for odometry.
+     * @param cfg the core configuration for the swerve drive
+     * @param callback the vision pose callback
+     */
     public FieldAwareSwerveDrive(CoreSwerveConfig cfg, VisionPoseCallback callback) {
         super(cfg);
         this.visionPoseCallback = callback == null ? new VisionPoseCallback() {} : callback;
         this.field = new Field2d();
+        SmartDashboard.putData(field);
+        SmartDashboard.putData(PREFIX + "Gyro", super.gyro);
 
         // Set up pose estimator
         Rotation2d initialRotation = Rotation2d.fromDegrees(getYaw());
@@ -62,11 +66,6 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
             Arrays.stream(initialModulePositions).map(SwerveModulePosition::toString).reduce("", (a, b) -> a + b)
         );
         Pose2d initialPose = new Pose2d(new Translation2d(0, 0), initialRotation);
-
-        // Set up telemetry
-        if (cfg.telemetry().enabled) {
-            SmartDashboard.putData(this.field);
-        }
 
         // set up the pose estimator
         var moduleLocations = new Translation2d[4];
@@ -96,11 +95,12 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
             initialPose
         );
 
-        this.odometryUpdater.startPeriodic(ODOMETRY_UPDATE_PERIOD_SECONDS);
+        this.odometryUpdater = new Notifier(this::updateOdometry);
+        this.odometryUpdater.startPeriodic(UPDATE_ODOMETRY_EVERY_MILLIS / 1000.0);
         this.odometryUpdater.setName("RunnymedeSwerve Odometry");
     }
 
-    private SwerveModulePosition[] getSwerveModulePositions() {
+    private synchronized SwerveModulePosition[] getSwerveModulePositions() {
         var states = getModuleStates();
         for (int i = 0; i < states.length; i++) {
             modulePosition[i].distanceMeters = states[i].getPosition();
@@ -109,42 +109,85 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
         return modulePosition;
     }
 
-    private void updateOdometry() {
-        lock.lock();
-        try {
-            estimator.update(Rotation2d.fromDegrees(getYaw()), getSwerveModulePositions());
-            if (isSimulation) {
-                ChassisSpeeds measuredChassisSpeeds = kinematics.toChassisSpeeds(getSwerveModuleStates());
-                ((SimulatedGyro) gyro).updateOdometryForSimulation(measuredChassisSpeeds.omegaRadiansPerSecond);
+    private synchronized void updateOdometry() {
+        if (this.estimator == null) {
+            System.out.println("Cannot update odometry - estimator is null");
+            return;
+        }
+
+        // odometry
+        estimator.update(Rotation2d.fromDegrees(getYaw()), getSwerveModulePositions());
+
+        // simulation
+        if (isSimulation) {
+            // note only capturing this twice in sim mode (which will run on a laptop, not a robot)
+            ChassisSpeeds measuredChassisSpeeds = getMeasuredChassisSpeeds();
+            ((SimulatedGyro) gyro).updateOdometryForSimulation(measuredChassisSpeeds.omegaRadiansPerSecond);
+        }
+
+        // vision
+        PoseEstimate poseEstimate = visionPoseCallback.getPoseEstimate(getYaw(), getYawRate());
+        if (poseEstimate != null) {
+            if (poseEstimate.getStandardDeviations() == null) {
+                estimator.addVisionMeasurement(poseEstimate.getPose(), poseEstimate.getTimestampSeconds());
+            } else {
+                estimator.addVisionMeasurement(
+                    poseEstimate.getPose(),
+                    poseEstimate.getTimestampSeconds(),
+                    poseEstimate.getStandardDeviations()
+                );
             }
-            PoseEstimate poseEstimate = visionPoseCallback.getPoseEstimate(getYaw(), getYawRate());
-            if (poseEstimate != null) {
-                if (poseEstimate.getStandardDeviations() == null) {
-                    estimator.addVisionMeasurement(poseEstimate.getPose(), poseEstimate.getTimestampSeconds());
-                } else {
-                    estimator.addVisionMeasurement(
-                        poseEstimate.getPose(),
-                        poseEstimate.getTimestampSeconds(),
-                        poseEstimate.getStandardDeviations()
-                    );
-                }
-            }
-        } finally {
-            lock.unlock();
         }
     }
 
-    public void resetOdometry(Pose2d pose) {
-        lock.lock();
-        try {
-            estimator.resetPose(pose);
-        } finally {
-            lock.unlock();
-        }
+    public synchronized void resetOdometry(Pose2d pose) {
+        estimator.resetPose(pose);
     }
 
-    private Pose2d[] getModulePoses(Pose2d robotPose) {
-        return Arrays.stream(getModuleStates())
+    public synchronized Pose2d getPose() {
+        return estimator.getEstimatedPosition();
+    }
+
+    public synchronized void updateTelemetry(SwerveTelemetry telemetry) {
+        if (telemetry.level == TelemetryLevel.CALCULATED) {
+            if (this.estimator == null) {
+                System.out.println("Cannot update telemetry - estimator is null");
+                return;
+            }
+
+            Pose2d pose = estimator.getEstimatedPosition();
+            field.setRobotPose(pose);
+            ChassisSpeeds measuredChassisSpeeds = getMeasuredChassisSpeeds();
+            telemetry.measuredChassisSpeeds[0] = measuredChassisSpeeds.vxMetersPerSecond;
+            telemetry.measuredChassisSpeeds[1] = measuredChassisSpeeds.vyMetersPerSecond;
+            telemetry.measuredChassisSpeeds[2] = Math.toDegrees(measuredChassisSpeeds.omegaRadiansPerSecond);
+
+            if (telemetry.level == TelemetryLevel.VERBOSE) {
+                telemetry.poseMetresX = pose.getTranslation().getX();
+                telemetry.poseMetresY = pose.getTranslation().getY();
+                telemetry.poseHeadingDegrees = pose.getRotation().getDegrees();
+            }
+
+            var states = getModuleStates();
+            field.getObject("XModules").setPoses(asModulePoses(states, pose));
+        }
+        super.updateTelemetry(telemetry);
+    }
+
+    private synchronized ChassisSpeeds getMeasuredChassisSpeeds() {
+        var states = getModuleStates();
+        var swerveModuleStates = new SwerveModuleState[states.length];
+        for (int i = 0; i < states.length; i++) {
+            swerveModuleStates[i] = new SwerveModuleState(
+                states[i].getSpeed(),
+                Rotation2d.fromDegrees(states[i].getAngle())
+            );
+        }
+        return kinematics.toChassisSpeeds(swerveModuleStates);
+    }
+
+    private static Pose2d[] asModulePoses(ModuleState[] states, Pose2d robotPose) {
+        return Arrays.stream(states)
             .map(m -> {
                 Coordinates loc = m.getLocation();
                 Translation2d trans = new Translation2d(loc.getX(), loc.getY());
@@ -153,34 +196,5 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
                 return robotPose.plus(tx);
             })
             .toArray(Pose2d[]::new);
-    }
-
-    public Pose2d getPose() {
-        return estimator.getEstimatedPosition();
-    }
-
-    public void updateTelemetry(SwerveTelemetry telemetry) {
-        super.updateTelemetry(telemetry);
-
-        Pose2d pose = estimator.getEstimatedPosition();
-        field.setRobotPose(pose);
-        ChassisSpeeds measuredChassisSpeeds = kinematics.toChassisSpeeds(getSwerveModuleStates());
-        telemetry.measuredChassisSpeeds[0] = measuredChassisSpeeds.vxMetersPerSecond;
-        telemetry.measuredChassisSpeeds[1] = measuredChassisSpeeds.vyMetersPerSecond;
-        telemetry.measuredChassisSpeeds[2] = Math.toDegrees(measuredChassisSpeeds.omegaRadiansPerSecond);
-        telemetry.poseMetresX = pose.getTranslation().getX();
-        telemetry.poseMetresY = pose.getTranslation().getY();
-        telemetry.poseHeadingDegrees = pose.getRotation().getDegrees();
-
-        field.getObject("XModules").setPoses(getModulePoses(pose));
-    }
-
-    private SwerveModuleState[] getSwerveModuleStates() {
-        var states = getModuleStates();
-        for (int i = 0; i < states.length; i++) {
-            moduleState[i].speedMetersPerSecond = states[i].getSpeed();
-            moduleState[i].angle = Rotation2d.fromDegrees(states[i].getAngle());
-        }
-        return moduleState;
     }
 }

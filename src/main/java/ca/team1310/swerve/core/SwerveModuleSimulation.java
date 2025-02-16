@@ -11,7 +11,7 @@ class SwerveModuleSimulation implements SwerveModule {
     private final Timer timer = new Timer();
     private double dt;
     private double lastTime;
-    private ModuleState currentState;
+    private final ModuleState currentState;
 
     public SwerveModuleSimulation(ModuleConfig cfg) {
         this.name = cfg.name();
@@ -34,7 +34,7 @@ class SwerveModuleSimulation implements SwerveModule {
     }
 
     @Override
-    public void readState(boolean odometry, boolean vision, boolean telemetry) {}
+    public void readState(boolean odometry, boolean telemetry) {}
 
     @Override
     public ModuleState getState() {
@@ -52,7 +52,6 @@ class SwerveModuleSimulation implements SwerveModule {
         this.currentState.setVelocity(desiredState.getSpeed());
         this.currentState.setPosition(currentState.getPosition() + desiredState.getSpeed() * this.dt);
         this.currentState.setAbsoluteEncoderAngle(desiredState.getAngle());
-        this.currentState.setAngleVelocity(0);
         this.currentState.setDriveOutputPower(0);
     }
 }

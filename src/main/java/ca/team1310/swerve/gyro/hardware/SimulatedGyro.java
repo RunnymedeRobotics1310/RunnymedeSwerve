@@ -47,19 +47,13 @@ public class SimulatedGyro implements Gyro {
         return this.roll;
     }
 
+    /**
+     * Update the gyro heading with the updated yaw based on the  current omega value
+     * @param omegaRadiansPerSecond the current omega value in radians per second
+     */
     public void updateOdometryForSimulation(double omegaRadiansPerSecond) {
         double change = omegaRadiansPerSecond * (this.timer.get() - this.lastTime);
         this.yaw += Units.radiansToDegrees(change);
         this.lastTime = this.timer.get();
     }
-    //
-    //    @Override
-    //    public void populateTelemetry(SwerveTelemetry telemetry) {
-    //        if (telemetry.enabled) {
-    //            telemetry.gyroRawYawDegrees = this.getYaw();
-    //            telemetry.gyroAdjustedYawDegrees = this.getYaw();
-    //            telemetry.gyroRawPitchDegrees = this.getPitch();
-    //            telemetry.gyroRawRollDegrees = this.getRoll();
-    //        }
-    //    }
 }

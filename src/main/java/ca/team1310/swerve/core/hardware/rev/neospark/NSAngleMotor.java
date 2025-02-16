@@ -1,7 +1,6 @@
 package ca.team1310.swerve.core.hardware.rev.neospark;
 
 import static ca.team1310.swerve.utils.SwerveUtils.normalizeDegrees;
-import static ca.team1310.swerve.utils.SwerveUtils.normalizeDegreesZeroTo360;
 
 import ca.team1310.swerve.core.AngleMotor;
 import ca.team1310.swerve.core.config.MotorConfig;
@@ -25,6 +24,7 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
      * Construct a properly configured angle motor.
      * @param spark The spark motor controller
      * @param cfg   The configuration of the motor
+     * @param robotPeriodMillis The period of the robot in milliseconds
      */
     public NSAngleMotor(T spark, MotorConfig cfg, int robotPeriodMillis) {
         super(spark);
@@ -86,7 +86,7 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
 
     @Override
     public double getPosition() {
-        return normalizeDegreesZeroTo360(encoder.getPosition());
+        return normalizeDegrees(encoder.getPosition());
     }
 
     @Override

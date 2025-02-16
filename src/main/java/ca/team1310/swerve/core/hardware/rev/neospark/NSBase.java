@@ -38,6 +38,7 @@ public abstract class NSBase<T extends SparkBase> {
 
     /**
      * Construct a properly configured motor.
+     * @param spark The spark motor controller
      */
     public NSBase(T spark) {
         // instantiate & configure motor

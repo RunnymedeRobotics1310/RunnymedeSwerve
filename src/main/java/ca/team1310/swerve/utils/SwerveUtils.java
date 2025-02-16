@@ -46,10 +46,6 @@ public final class SwerveUtils {
         return degrees;
     }
 
-    public static double normalizeDegreesZeroTo360(double degrees) {
-        return (degrees + 360) % 360;
-    }
-
     /**
      * Compute the difference between two poses. Note, as of 2024-02-18, Pose2d.minus(Pose2d) does
      * this incorrectly.

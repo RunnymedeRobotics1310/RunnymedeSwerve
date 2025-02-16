@@ -15,7 +15,7 @@ public interface SwerveModule {
     /**
      * Get the location of the swerve module on the robot. This is the x and y location of the module with respect
      * to the center of the robot, with 0,0 being in the middle and positive x being forward and positive y being right.
-     * @return
+     * @return the location of the module with respect to the centre of the robot, in metres.
      */
     Coordinates getLocation();
 
@@ -30,10 +30,9 @@ public interface SwerveModule {
      * to skip some sensor reads. Sensor reads are slow, so this allows some control over which ones
      * are read.
      * @param odometry include necessary data for odometry, including module speed, location, and angle
-     * @param vision include the necessary data for vision, including angular velocity
      * @param telemetry includes all data
      */
-    void readState(boolean odometry, boolean vision, boolean telemetry);
+    void readState(boolean odometry, boolean telemetry);
 
     /**
      * Get the current swerve module state. This can safely be called repeatedly.

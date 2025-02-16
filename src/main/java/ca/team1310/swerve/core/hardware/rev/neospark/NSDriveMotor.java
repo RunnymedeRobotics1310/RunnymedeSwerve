@@ -20,6 +20,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
      * @param spark The spark motor controller
      * @param cfg   The configuration of the motor
      * @param wheelRadiusMetres The radius of the wheel in metres
+     * @param robotPeriodMillis The period of the robot in milliseconds
      */
     public NSDriveMotor(T spark, MotorConfig cfg, double wheelRadiusMetres, int robotPeriodMillis) {
         super(spark);
