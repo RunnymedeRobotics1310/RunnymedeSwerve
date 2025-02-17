@@ -1,9 +1,10 @@
 package ca.team1310.swerve.core;
 
+import static ca.team1310.swerve.core.config.TelemetryLevel.*;
+
 import ca.team1310.swerve.RunnymedeSwerveDrive;
 import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
-import ca.team1310.swerve.core.config.TelemetryLevel;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotBase;
 
@@ -256,7 +257,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
      * @param telemetry the telemetry object to update
      */
     protected synchronized void updateTelemetry(SwerveTelemetry telemetry) {
-        if (telemetry.level == TelemetryLevel.INPUT) {
+        if (telemetry.level == INPUT || telemetry.level == CALCULATED || telemetry.level == VERBOSE) {
             telemetry.desiredChassisSpeeds[0] = this.desiredVx;
             telemetry.desiredChassisSpeeds[1] = this.desiredVy;
             telemetry.desiredChassisSpeeds[2] = Math.toDegrees(this.desiredOmega);
@@ -265,13 +266,13 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
         for (int i = 0; i < modules.length; i++) {
             ModuleState state = modules[i].getState();
 
-            if (telemetry.level == TelemetryLevel.INPUT) {
+            if (telemetry.level == INPUT || telemetry.level == CALCULATED || telemetry.level == VERBOSE) {
                 // desired states
                 telemetry.moduleDesiredStates[i * 2] = state.getDesiredAngle();
                 telemetry.moduleDesiredStates[i * 2 + 1] = state.getDesiredSpeed();
             }
 
-            if (telemetry.level == TelemetryLevel.CALCULATED) {
+            if (telemetry.level == CALCULATED || telemetry.level == VERBOSE) {
                 // measured states
                 telemetry.moduleMeasuredStates[i * 2] = state.getPosition();
                 telemetry.moduleMeasuredStates[i * 2 + 1] = state.getSpeed();
@@ -279,15 +280,14 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
                 // location information
                 telemetry.moduleAngleMotorPositionDegrees[i] = state.getAngle();
                 telemetry.moduleDriveMotorPositionMetres[i] = state.getPosition();
+            }
 
-                if (telemetry.level == TelemetryLevel.VERBOSE) {
-                    telemetry.driveMotorOutputPower[i] = state.getDriveOutputPower();
-                    // angle encoder
-                    telemetry.moduleAbsoluteEncoderPositionDegrees[i] = state.getAbsoluteEncoderAngle();
-                }
+            if (telemetry.level == VERBOSE) {
+                telemetry.driveMotorOutputPower[i] = state.getDriveOutputPower();
+                // angle encoder
+                telemetry.moduleAbsoluteEncoderPositionDegrees[i] = state.getAbsoluteEncoderAngle();
             }
         }
-
         // post it!
         telemetry.post();
     }

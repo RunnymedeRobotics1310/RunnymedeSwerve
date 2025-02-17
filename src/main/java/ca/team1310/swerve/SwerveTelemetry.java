@@ -147,11 +147,12 @@ public final class SwerveTelemetry {
      * Post all telemetry data to SmartDashboard
      */
     public void post() {
-        if (level == INPUT) {
+        if (level == INPUT || level == CALCULATED || level == VERBOSE) {
             postConstants();
             postInput();
         }
-        if (level == CALCULATED) {
+
+        if (level == CALCULATED || level == VERBOSE) {
             postConstants();
             postInput();
             postCalculated();

@@ -1,6 +1,7 @@
 package ca.team1310.swerve.odometry;
 
 import static ca.team1310.swerve.SwerveTelemetry.PREFIX;
+import static ca.team1310.swerve.core.config.TelemetryLevel.*;
 
 import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.ModuleState;
@@ -149,7 +150,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     }
 
     public synchronized void updateTelemetry(SwerveTelemetry telemetry) {
-        if (telemetry.level == TelemetryLevel.CALCULATED) {
+        if (telemetry.level == CALCULATED || telemetry.level == VERBOSE) {
             if (this.estimator == null) {
                 System.out.println("Cannot update telemetry - estimator is null");
                 return;
@@ -162,7 +163,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
             telemetry.measuredChassisSpeeds[1] = measuredChassisSpeeds.vyMetersPerSecond;
             telemetry.measuredChassisSpeeds[2] = Math.toDegrees(measuredChassisSpeeds.omegaRadiansPerSecond);
 
-            if (telemetry.level == TelemetryLevel.VERBOSE) {
+            if (telemetry.level == VERBOSE) {
                 telemetry.poseMetresX = pose.getTranslation().getX();
                 telemetry.poseMetresY = pose.getTranslation().getY();
                 telemetry.poseHeadingDegrees = pose.getRotation().getDegrees();
