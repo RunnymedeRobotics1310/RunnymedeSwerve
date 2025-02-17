@@ -130,7 +130,8 @@ public class SwerveMath {
      * Calculate the module velocities for the swerve drive when operating in robot-oriented mode.
      * </p>
      * <p>
-     * This is the core worker function for these calculations.
+     * This is the core worker function for these calculations. It takes pre-calculated ratios as input to avoid
+     * making unnecessary calculations that are constant for any given robot.
      * </p>
      *
      * <h1>Detailed Explanation of the Math</h1>
@@ -159,23 +160,29 @@ public class SwerveMath {
      * the x-axis pointing forward, and the y-axis pointing left.</p>
      * <p>We need to express our final values in polar coordinates, so we define a coordinate system with an angle of 0
      * pointing up (i.e. overlaid onto the X axis), counter-clockwise positive.</p>
-     * <p>We define vectors from the origin to each wheel. The angle to the front-left module shall be named alpha,
-     * and based on our coordinate system, it will be negative.</p>
-     * <p>The tangential velocity vector associated with each wheel is defined as w * r, where r is the distance from
-     * the origin to the module.</p>
-     * <p>Because we have a rectangular base with known dimensions, r is half the diagonal of the drive base, and we
-     * can get that using the pythagorean theorem.</p>
+     * <p>If we draw a vectors from the origin to each wheel, the angle to the front-left module shall be named
+     * alpha.</p>
+     * <p>The tangential velocity (i.e. for a module) is defined as v = wr, where v is the tangential velocity and
+     * r is the radius of the rotational motion (and w is the input angular velocity).</p>
+     * <p>Note that r is known to us already, as we have the dimensions of the robot - it is half the diagonal distance
+     * between opposite wheels.</p>
+     * <p>We want to work with the x and y components of the tangential velocity separately, so we will take the cosine
+     * and sine of the angle to the module for x and y respectively. That means that the x and y components of the
+     * tangential vector are:
+     * </p>
+     * <ul>
+     *     <li>vx = w * r * cos(alpha)</li>
+     *     <li>vy = w * r * sin(alpha)</li>
+     * </ul>
      *
      * <h2>Calculations</h2>
      * <p>We will calculate the wheel motion vectors by x and y components. As such, the x component of the front-left
      * wheel is defined as the input x value plus the x component of the tangential vector for the front-left wheel.
      * The y component of the front-left wheel is defined as the input y plus the y component of the tangential vector
-     * for the front-left wheel. The same pattern applies for the other three wheels.</p>
-     * <p>To get the x and y components for each wheel, we take the sine and cosine of their respective angle in the
-     * coordinate system and multiply it by the value r.</p>
-     * <p>We multiply these sin/cos values by w to get the x and y components of the tangential vector.</p>
-     * <p>When we perform all of these calculations, we notice that the horizontal component for both back wheels is
-     * the same, the horizontal component of the front wheels are the same, the vertical components of the right wheels
+     * for the front-left wheel. The same pattern applies for the other three wheels - note that the angle to each
+     * motor will be different.</p>
+     * <p>When we create all of these equations, we notice that the horizontal components for both back wheels are
+     * the same, the horizontal components of the front wheels are the same, the vertical components of the right wheels
      * are the same, and the vertical components of the left wheels are the same. (This would not be true for a non-
      * rectangular drive base, or a drive base with a different number of modules. To expand this solution to a drive
      * base with different characteristics, this simplification can't be used, but the principles are the same).</p>
@@ -195,7 +202,8 @@ public class SwerveMath {
      *     <li>left_vert = x - w * sin(alpha)</li>
      * </ul>
      * <p>Back to our cartesian coordinates, we know that cos(alpha) is wheelbase / frame diagonal, and sin(alpha) is
-     * trackwidth / frame diagonal. We simplify the above equations as follows:</p>
+     * trackwidth / frame diagonal. We can therefore rewrite the above equations substituting this ratio in for
+     * the sin/cos values as follows:</p>
      * <ul>
      *     <li>rear_horiz = y - w * wheelbase / frame diagonal</li>
      *     <li>front_horiz = y + w * wheelbase / frame diagonal</li>
