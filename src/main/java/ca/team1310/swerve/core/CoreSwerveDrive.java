@@ -160,7 +160,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
         //        desiredOmega = speeds.omegaRadiansPerSecond;
 
         // calculate desired states
-        math.calculateModuleSetpoints(desiredVx, desiredVy, desiredOmega);
+        math.calculateAndStoreModuleVelocities(desiredVx, desiredVy, desiredOmega);
 
         // set the module states
         this.modules[0].setDesiredState(math.getFrontLeft());
