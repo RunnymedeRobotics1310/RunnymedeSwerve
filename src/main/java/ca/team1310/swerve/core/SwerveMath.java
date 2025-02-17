@@ -72,7 +72,7 @@ public class SwerveMath {
         // convert from rad/s to a scale of -1.0 to 1.0
         w /= maxOmegaRadPerSec;
 
-        var result = calculateModuleVelocities(wheelBaseOverFrameDiagonal, trackWidthOverFrameDiagonal, x, y, w);
+        var result = _calculateModuleVelocities(wheelBaseOverFrameDiagonal, trackWidthOverFrameDiagonal, x, y, w);
 
         // convert from -1.0 - 1.0 into to m/s
         result[0] *= maxSpeedMps;
@@ -122,7 +122,7 @@ public class SwerveMath {
         double hypot = Math.hypot(wheelBase, trackWidth);
         double wheelBaseOverFrameDiagonal = wheelBase / hypot;
         double trackWidthOverFrameDiagonal = trackWidth / hypot;
-        return calculateModuleVelocitiesInternal(wheelBaseOverFrameDiagonal, trackWidthOverFrameDiagonal, x, y, w);
+        return _calculateModuleVelocities(wheelBaseOverFrameDiagonal, trackWidthOverFrameDiagonal, x, y, w);
     }
 
     /**
@@ -244,7 +244,7 @@ public class SwerveMath {
      * @return an array of the calculated module velocities, in the format [frs, fra, fls, fla, bls, bla, brs, bra]
      * where frs is the front right wheel speed from -1 to 1, fra is the front right wheel angle, from -PI to PI, etc.
      */
-    private static double[] calculateModuleVelocitiesInternal(
+    private static double[] _calculateModuleVelocities(
         double wheelBaseOverFrameDiagonal,
         double trackWidthOverFrameDiagonal,
         double x,
