@@ -98,7 +98,6 @@ public class SwerveMath {
      * <p>
      * Units for x, y, and w are from -1.0 to 1.0, where 1.0 represents the maximum speed of the for each type of
      * movement.
-     * <p>
      *
      * @param trackWidth the track width of the drivetrain (i.e. from the left to the right of the robot). Units
      *                   are not relevant.
