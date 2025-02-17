@@ -1,14 +1,9 @@
-/*
- * Copyright 2025 The Kingsway Digital Company Limited. All rights reserved.
- */
 package ca.team1310.swerve.gyro;
 
 import ca.team1310.swerve.core.CoreSwerveDrive;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
 import ca.team1310.swerve.gyro.hardware.MXPNavX;
 import ca.team1310.swerve.gyro.hardware.SimulatedGyro;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.RobotBase;
 
 /**
@@ -17,6 +12,9 @@ import edu.wpi.first.wpilibj.RobotBase;
  */
 public class GyroAwareSwerveDrive extends CoreSwerveDrive {
 
+    /**
+     * The gyro for the swerve drive
+     */
     protected final Gyro gyro;
 
     /**
@@ -29,36 +27,28 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
         this.gyro = RobotBase.isSimulation() ? new SimulatedGyro() : new MXPNavX();
     }
 
-    public void periodicInternal() {
-        super.periodicInternal();
-        this.gyro.periodic();
-    }
-
-    public void zeroGyro() {
+    @Override
+    public synchronized void zeroGyro() {
         gyro.zeroGyro();
     }
 
-    public double getGyroRoll() {
+    @Override
+    public synchronized double getRoll() {
         return gyro.getRoll();
     }
 
-    public double getGyroPitch() {
+    @Override
+    public synchronized double getPitch() {
         return gyro.getPitch();
     }
 
-    public double getGyroYaw() {
+    @Override
+    public synchronized double getYaw() {
         return gyro.getYaw();
     }
 
-    protected double getGyroYawRate() {
+    @Override
+    public synchronized double getYawRate() {
         return gyro.getYawRate();
-    }
-
-    @Override
-    public void resetOdometry(Pose2d pose) {}
-
-    @Override
-    public Pose2d getPose() {
-        return new Pose2d(0, 0, Rotation2d.fromDegrees(getGyroYaw()));
     }
 }

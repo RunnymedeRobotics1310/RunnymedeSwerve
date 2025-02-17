@@ -1,41 +1,42 @@
 package ca.team1310.swerve.core;
 
-import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.config.ModuleConfig;
 import ca.team1310.swerve.core.hardware.cancoder.CanCoder;
 import ca.team1310.swerve.core.hardware.rev.neospark.NSFAngleMotor;
 import ca.team1310.swerve.core.hardware.rev.neospark.NSFDriveMotor;
 import ca.team1310.swerve.core.hardware.rev.neospark.NSMAngleMotor;
 import ca.team1310.swerve.core.hardware.rev.neospark.NSMDriveMotor;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
+import ca.team1310.swerve.utils.Coordinates;
+import ca.team1310.swerve.utils.SwerveUtils;
 import edu.wpi.first.wpilibj.Notifier;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 class SwerveModuleImpl implements SwerveModule {
 
-    private static final double ANGLEENCODERPERIODSECONDS = 1.0;
+    private static final double ANGLE_ENCODER_SYNC_PERIOD_SECONDS = 0.5;
 
     private final String name;
-    private final Translation2d location;
+    private final Coordinates location;
     private final DriveMotor driveMotor;
     private final AngleMotor angleMotor;
     private final AbsoluteAngleEncoder angleEncoder;
-    private SwerveModuleState desiredState;
-    private Notifier encoderSynchronizer = new Notifier(this::syncAngleEncoder);
-    private final Lock encoderLock = new ReentrantLock();
+    private ModuleDirective desiredState = new ModuleDirective();
+    private final ModuleState measuredState = new ModuleState();
+    private final Notifier encoderSynchronizer = new Notifier(this::syncAngleEncoder);
 
     SwerveModuleImpl(ModuleConfig cfg, int robotPeriodMillis) {
         this.name = cfg.name();
-        this.location = new Translation2d(cfg.xPositionMetres(), cfg.yPositionMetres());
+        this.location = cfg.location();
+        measuredState.setLocation(cfg.location());
         this.driveMotor = getDriveMotor(cfg, robotPeriodMillis);
         this.angleMotor = getAngleMotor(cfg, robotPeriodMillis);
         this.angleEncoder = getAbsoluteAngleEncoder(cfg);
-        this.encoderSynchronizer.startPeriodic(ANGLEENCODERPERIODSECONDS);
-        this.encoderSynchronizer.setName("RunnymedeSwerve Angle Encoder Sync " + name);
+        encoderSynchronizer.setName("RunnymedeSwerve Angle Encoder Sync " + name);
+        encoderSynchronizer.startPeriodic(ANGLE_ENCODER_SYNC_PERIOD_SECONDS);
+    }
+
+    @Override
+    public Coordinates getLocation() {
+        return location;
     }
 
     private DriveMotor getDriveMotor(ModuleConfig cfg, int robotPeriodMillis) {
@@ -70,41 +71,50 @@ class SwerveModuleImpl implements SwerveModule {
         );
     }
 
-    private void syncAngleEncoder() {
-        encoderLock.lock();
-        try {
-            angleMotor.setEncoderPosition(angleMotor.getPosition());
-        } finally {
-            encoderLock.unlock();
-        }
+    private synchronized void syncAngleEncoder() {
+        angleMotor.setEncoderPosition(angleEncoder.getPosition());
     }
 
     public String getName() {
         return name;
     }
 
-    public Translation2d getLocation() {
-        return location;
+    public synchronized void readState(boolean odometry, boolean telemetry) {
+        measuredState.setDesiredSpeed(desiredState.getSpeed());
+        measuredState.setDesiredAngle(desiredState.getAngle());
+
+        if (odometry || telemetry) {
+            measuredState.setAngle(angleMotor.getPosition());
+            measuredState.setPosition(driveMotor.getDistance());
+        }
+
+        if (telemetry) {
+            measuredState.setVelocity(driveMotor.getVelocity());
+            measuredState.setDriveOutputPower(driveMotor.getMeasuredVoltage());
+            measuredState.setAbsoluteEncoderAngle(angleEncoder.getPosition());
+        }
     }
 
-    public SwerveModulePosition getPosition() {
-        return new SwerveModulePosition(driveMotor.getDistance(), Rotation2d.fromDegrees(angleMotor.getPosition()));
+    public synchronized ModuleState getState() {
+        return measuredState;
     }
 
-    public SwerveModuleState getState() {
-        return new SwerveModuleState(driveMotor.getVelocity(), Rotation2d.fromDegrees(angleMotor.getPosition()));
-    }
-
-    public void setDesiredState(SwerveModuleState desiredState) {
+    public synchronized void setDesiredState(ModuleDirective desiredState) {
         this.desiredState = desiredState;
-        updateMotors();
-    }
 
-    private void updateMotors() {
-        Rotation2d currentHeading = Rotation2d.fromDegrees(angleMotor.getPosition());
-
-        // Optimize the reference state to avoid spinning further than 90 degrees
-        desiredState.optimize(currentHeading);
+        /*
+         * Optimize the reference state to avoid spinning further than 90 degrees
+         *
+         * Start by figuring out if the module is currently within 90 degrees of the desired angle.
+         * Then if it is, flip the heading and reverse the motor
+         */
+        double currentHeadingDeg = angleMotor.getPosition();
+        double angleError = Math.abs(desiredState.getAngle() - currentHeadingDeg);
+        if (angleError > 90 && angleError < 270) {
+            double optimal = currentHeadingDeg < 0 ? desiredState.getAngle() + 180 : desiredState.getAngle() - 180;
+            optimal = SwerveUtils.normalizeDegrees(optimal);
+            desiredState.set(-desiredState.getSpeed(), optimal);
+        }
 
         /*
          * Scale down speed when wheels aren't facing the right direction
@@ -117,39 +127,14 @@ class SwerveModuleImpl implements SwerveModule {
          * desired direction of travel that can occur when modules change directions. This results
          * in smoother driving.
          */
-        Rotation2d steerError = desiredState.angle.minus(currentHeading);
-        double cosineScalar = steerError.getCos();
-        desiredState.speedMetersPerSecond *= (cosineScalar < 0 ? 0 : cosineScalar);
+        angleError = desiredState.getAngle() - currentHeadingDeg;
+        double cosineScalar = Math.cos(Math.toRadians(angleError));
+        desiredState.set(desiredState.getSpeed() * (cosineScalar < 0 ? 0 : cosineScalar), desiredState.getAngle());
 
-        driveMotor.setReferenceVelocity(desiredState.speedMetersPerSecond);
-
-        angleMotor.setReferenceAngle(desiredState.angle.getDegrees());
-    }
-
-    public void populateTelemetry(SwerveTelemetry telemetry, int moduleIndex) {
-        if (telemetry.enabled) {
-            // identify the module
-            telemetry.moduleNames[moduleIndex] = name;
-            telemetry.moduleWheelLocations[moduleIndex * 2] = location.getX();
-            telemetry.moduleWheelLocations[moduleIndex * 2 + 1] = location.getY();
-
-            // desired states
-            if (desiredState != null) {
-                telemetry.moduleDesiredStates[moduleIndex * 2] = desiredState.angle.getDegrees();
-                telemetry.moduleDesiredStates[moduleIndex * 2 + 1] = desiredState.speedMetersPerSecond;
-            }
-
-            // measured states
-            telemetry.moduleMeasuredStates[moduleIndex * 2] = angleMotor.getPosition();
-            telemetry.moduleMeasuredStates[moduleIndex * 2 + 1] = driveMotor.getVelocity();
-
-            // position information
-            telemetry.moduleAngleMotorPositionDegrees[moduleIndex] = angleMotor.getPosition();
-            telemetry.moduleDriveMotorPositionMetres[moduleIndex] = driveMotor.getDistance();
-            telemetry.driveMotorOutputPower[moduleIndex] = driveMotor.getMeasuredVoltage();
-
-            // angle encoder
-            telemetry.moduleAbsoluteEncoderPositionDegrees[moduleIndex] = angleEncoder.getPosition();
-        }
+        /*
+         * Set the reference velocity and angle for the motors
+         */
+        driveMotor.setReferenceVelocity(desiredState.getSpeed());
+        angleMotor.setReferenceAngle(desiredState.getAngle());
     }
 }

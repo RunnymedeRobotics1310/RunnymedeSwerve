@@ -1,6 +1,3 @@
-/*
- * Copyright 2025 The Kingsway Digital Company Limited. All rights reserved.
- */
 package ca.team1310.swerve.core.hardware.rev.neospark;
 
 import static edu.wpi.first.units.Units.Seconds;
@@ -31,7 +28,7 @@ public abstract class NSBase<T extends SparkBase> {
      */
     protected final T spark;
     /**
-     * The relative encoder that is used to measure the motor's position and velocity.
+     * The relative encoder that is used to measure the motor's location and velocity.
      */
     protected final RelativeEncoder encoder;
     /**
@@ -41,6 +38,7 @@ public abstract class NSBase<T extends SparkBase> {
 
     /**
      * Construct a properly configured motor.
+     * @param spark The spark motor controller
      */
     public NSBase(T spark) {
         // instantiate & configure motor

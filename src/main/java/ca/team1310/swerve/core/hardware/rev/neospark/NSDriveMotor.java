@@ -1,6 +1,3 @@
-/*
- * Copyright 2025 The Kingsway Digital Company Limited. All rights reserved.
- */
 package ca.team1310.swerve.core.hardware.rev.neospark;
 
 import ca.team1310.swerve.core.DriveMotor;
@@ -16,11 +13,14 @@ import com.revrobotics.spark.config.SparkFlexConfig;
  */
 public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implements DriveMotor {
 
+    private double prevTargetVelocityMPS = 0;
+
     /**
      * Construct a properly configured drive motor.
      * @param spark The spark motor controller
      * @param cfg   The configuration of the motor
      * @param wheelRadiusMetres The radius of the wheel in metres
+     * @param robotPeriodMillis The period of the robot in milliseconds
      */
     public NSDriveMotor(T spark, MotorConfig cfg, double wheelRadiusMetres, int robotPeriodMillis) {
         super(spark);
@@ -89,6 +89,11 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
 
     @Override
     public void setReferenceVelocity(double targetVelocityMPS) {
+        // don't set if already set
+        if (Math.abs(targetVelocityMPS - prevTargetVelocityMPS) < 1E-9) {
+            return;
+        }
+        prevTargetVelocityMPS = targetVelocityMPS;
         doWithRetry(() -> controller.setReference(targetVelocityMPS, SparkBase.ControlType.kVelocity));
     }
 

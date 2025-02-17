@@ -1,9 +1,6 @@
-/*
- * Copyright 2025 The Kingsway Digital Company Limited. All rights reserved.
- */
 package ca.team1310.swerve.core.hardware.rev.neospark;
 
-import static ca.team1310.swerve.utils.SwerveUtils.normalizeDegreesZeroTo360;
+import static ca.team1310.swerve.utils.SwerveUtils.normalizeDegrees;
 
 import ca.team1310.swerve.core.AngleMotor;
 import ca.team1310.swerve.core.config.MotorConfig;
@@ -21,10 +18,13 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
     private static final double ANGLE_ENCODER_MAX_ERROR_DEGREES = 1;
     private static final double MAX_ANGULAR_VELOCITY_FOR_ENCODER_UPDATE = 1; // degrees per second
 
+    private double prevTargetDegrees = 0;
+
     /**
      * Construct a properly configured angle motor.
      * @param spark The spark motor controller
      * @param cfg   The configuration of the motor
+     * @param robotPeriodMillis The period of the robot in milliseconds
      */
     public NSAngleMotor(T spark, MotorConfig cfg, int robotPeriodMillis) {
         super(spark);
@@ -86,11 +86,21 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
 
     @Override
     public double getPosition() {
-        return normalizeDegreesZeroTo360(encoder.getPosition());
+        return normalizeDegrees(encoder.getPosition());
+    }
+
+    @Override
+    public double getVelocity() {
+        return encoder.getVelocity();
     }
 
     @Override
     public void setReferenceAngle(double degrees) {
+        // don't set if already set
+        if (Math.abs(degrees - prevTargetDegrees) < 1E-9) {
+            return;
+        }
+        prevTargetDegrees = degrees;
         doWithRetry(() -> controller.setReference(degrees, SparkBase.ControlType.kPosition));
     }
 
@@ -103,19 +113,18 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
         }
 
         double measuredPosition = getPosition();
-        double error = normalizeDegreesZeroTo360(measuredPosition - actualAngleDegrees);
+        double error = Math.abs(normalizeDegrees(measuredPosition - actualAngleDegrees));
         if (error < ANGLE_ENCODER_MAX_ERROR_DEGREES) {
-            // no need to update the encoder position
+            // no need to update the encoder location
             return;
         }
 
         String log = String.format(
-            "Angle encoder %d position is off by more than %.2f degrees. Module omega is %.2f Resetting to %.2f. Measured %.2f, error %.2f.",
+            "Angle encoder %d location is off by more than %.2f degrees. Motor encoder: %.2f. Absolute Encoder: %.2f. Error %.2f.",
             spark.getDeviceId(),
             ANGLE_ENCODER_MAX_ERROR_DEGREES,
-            omega,
-            actualAngleDegrees,
             measuredPosition,
+            actualAngleDegrees,
             error
         );
         System.out.println(log);

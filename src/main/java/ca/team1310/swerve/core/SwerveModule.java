@@ -1,9 +1,6 @@
 package ca.team1310.swerve.core;
 
-import ca.team1310.swerve.SwerveTelemetry;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
+import ca.team1310.swerve.utils.Coordinates;
 
 /**
  * A swerve module that can be controlled and queried for information. The main swerve drive interacts with three or more of these units using only the methods contained herein.
@@ -16,33 +13,30 @@ public interface SwerveModule {
     String getName();
 
     /**
-     * Get the location of the swerve module on the robot
-     * @return the location of the swerve module on the robot with respect to the robot's center.
+     * Get the location of the swerve module on the robot. This is the x and y location of the module with respect
+     * to the center of the robot, with 0,0 being in the middle and positive x being forward and positive y being right.
+     * @return the location of the module with respect to the centre of the robot, in metres.
      */
-    Translation2d getLocation();
-
-    /**
-     * Get the current swerve module position state. This includes the "distance" and "angle" of the module.
-     * @return the current position of the module
-     */
-    SwerveModulePosition getPosition();
-
-    /**
-     * Get the current swerve module state. This includes the "speed" and "angle" of the module.
-     * @return the current state of the module
-     */
-    SwerveModuleState getState();
+    Coordinates getLocation();
 
     /**
      * Set the desired state of the swerve module. This includes the "speed" and "angle" of the module.
      * @param desiredState the desired state of the module
      */
-    void setDesiredState(SwerveModuleState desiredState);
+    void setDesiredState(ModuleDirective desiredState);
 
     /**
-     * Populate the telemetry object with the module's data.
-     * @param telemetry the telemetry object to populate
-     * @param moduleIndex the index of the module in the swerve drive
+     * Update the internal state of the swerve module by reading data from the module hardware. Flags are included
+     * to skip some sensor reads. Sensor reads are slow, so this allows some control over which ones
+     * are read.
+     * @param odometry include necessary data for odometry, including module speed, location, and angle
+     * @param telemetry includes all data
      */
-    void populateTelemetry(SwerveTelemetry telemetry, int moduleIndex);
+    void readState(boolean odometry, boolean telemetry);
+
+    /**
+     * Get the current swerve module state. This can safely be called repeatedly.
+     * @return the current state of the module
+     */
+    ModuleState getState();
 }

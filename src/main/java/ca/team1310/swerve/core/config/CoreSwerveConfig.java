@@ -15,7 +15,7 @@ import ca.team1310.swerve.SwerveTelemetry;
  * @param frontRightModuleConfig specify the configuration of the front right module
  * @param backLeftModuleConfig specify the configuration of the back left module
  * @param backRightModuleConfig specify the configuration of the back right module
- * @param telemetry the swerve telemetry object
+ * @param telemetryLevel the swerve telemetry level
  */
 public record CoreSwerveConfig(
     double wheelBaseMetres,
@@ -29,5 +29,5 @@ public record CoreSwerveConfig(
     ModuleConfig frontRightModuleConfig,
     ModuleConfig backLeftModuleConfig,
     ModuleConfig backRightModuleConfig,
-    SwerveTelemetry telemetry
+    TelemetryLevel telemetryLevel
 ) {}

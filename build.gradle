@@ -6,13 +6,15 @@ plugins {
 }
 
 java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
     }
 }
 
 // set a valid semver version
-version = '2.4.5.12'
+version = '3.0.1.23'
 
 repositories {
     mavenCentral()

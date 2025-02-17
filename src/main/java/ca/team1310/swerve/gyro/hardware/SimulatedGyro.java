@@ -1,13 +1,10 @@
 package ca.team1310.swerve.gyro.hardware;
 
-import ca.team1310.swerve.SwerveTelemetry;
+import static ca.team1310.swerve.utils.SwerveUtils.normalizeDegrees;
+
 import ca.team1310.swerve.gyro.Gyro;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 
 /**
  * A simulated gyro that can be used in simulation mode.
@@ -29,15 +26,12 @@ public class SimulatedGyro implements Gyro {
         this.lastTime = this.timer.get();
     }
 
-    @Override
-    public void periodic() {}
-
     public double getYawRate() {
         return this.yawRate;
     }
 
     public double getYaw() {
-        return this.yaw;
+        return normalizeDegrees(this.yaw);
     }
 
     public double getPitch() {
@@ -53,25 +47,13 @@ public class SimulatedGyro implements Gyro {
         return this.roll;
     }
 
-    public void updateOdometryForSimulation(
-        SwerveDriveKinematics kinematics,
-        SwerveModuleState[] states,
-        Pose2d[] modulePoses,
-        Field2d field
-    ) {
-        double change = kinematics.toChassisSpeeds(states).omegaRadiansPerSecond * (this.timer.get() - this.lastTime);
+    /**
+     * Update the gyro heading with the updated yaw based on the  current omega value
+     * @param omegaRadiansPerSecond the current omega value in radians per second
+     */
+    public void updateOdometryForSimulation(double omegaRadiansPerSecond) {
+        double change = omegaRadiansPerSecond * (this.timer.get() - this.lastTime);
         this.yaw += Units.radiansToDegrees(change);
         this.lastTime = this.timer.get();
-        field.getObject("XModules").setPoses(modulePoses);
-    }
-
-    @Override
-    public void populateTelemetry(SwerveTelemetry telemetry) {
-        if (telemetry.enabled) {
-            telemetry.gyroRawYawDegrees = this.getYaw();
-            telemetry.gyroAdjustedYawDegrees = this.getYaw();
-            telemetry.gyroRawPitchDegrees = this.getPitch();
-            telemetry.gyroRawRollDegrees = this.getRoll();
-        }
     }
 }
