@@ -126,41 +126,13 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
     /*
      * Set the module states based on the desired speed and angle.
-     * Note that if discretize() is used, this will need to be called
-     * on a very regular periodic basis - the period needs to match
-     * the period used in the discretize() call.
      */
     private synchronized void updateModules() {
-        /*
-         * Correct the robot's trajectory while it is rotating using ChassisSpeeds.discretize()
-         *
-         * From
-         * https://www.chiefdelphi.com/t/looking-for-an-explanation-of-chassisspeeds-discretize/
-         * btwn Tony Field (1310 Mentor) and Tyler Veness WPILib developer (controls and API design)
-         *
-         * Consider a hypothetical swerve robot translating in a straight line while rotating around
-         * its center. The chassis velocities required to do that follow sinusoids (i.e., they
-         * continuously vary). The robot code can only update the velocity commands at discrete
-         * intervals, so the actual robot follows an arc away from the desired path.
-         *
-         * ChassisSpeeds.discretize() compensates for the discretization error by selecting constant
-         * translational and rotational velocity commands that make the robot’s arc intersect the
-         * desired path at the end of the timestep, where the desired path has decoupled translation
-         * and rotation.
-         *
-         * Note that this only cancels out one cause of drift from the desired path. Another cause
-         * is the swerve’s feedback controllers not keeping up with the commands.
-         *
-         * Just like with swerve module heading optimization, all swerve code should be using this.
-         */
-        // todo: implement discretize
-        //        ChassisSpeeds speeds = ChassisSpeeds.discretize(desiredVx, desiredVy, desiredOmega, UPDATE_MODULE_PERIOD);
-        //        desiredVx = speeds.vxMetersPerSecond;
-        //        desiredVy = speeds.vyMetersPerSecond;
-        //        desiredOmega = speeds.omegaRadiansPerSecond;
+        // Correct the robot's trajectory while it is rotating. Set DT to period of this method call.
+        var v = SwerveMath.discretize(desiredVx, desiredVy, desiredOmega, UPDATE_MODULES_PERIOD);
 
         // calculate desired states
-        math.calculateAndStoreModuleVelocities(desiredVx, desiredVy, desiredOmega);
+        math.calculateAndStoreModuleVelocities(v[0], v[1], v[2]);
 
         // set the module states
         this.modules[0].setDesiredState(math.getFrontLeft());
@@ -212,6 +184,26 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
         this.desiredOmega = 0;
     }
 
+    /**
+     * Get the measured velocity of the robot, given the current module states.
+     *
+     * @return an array of the robot's velocity in the form [vx, vy, omega],
+     * where vx and vy are in m/s and
+     * omega is in rad/s (counter-clockwise is positive).
+     */
+    public double[] getMeasuredRobotVelocity() {
+        return math.calculateRobotVelocity(
+            moduleStates[1].getSpeed(),
+            moduleStates[1].getAngle(),
+            moduleStates[0].getSpeed(),
+            moduleStates[0].getAngle(),
+            moduleStates[2].getSpeed(),
+            moduleStates[2].getAngle(),
+            moduleStates[3].getSpeed(),
+            moduleStates[3].getAngle()
+        );
+    }
+
     @Override
     public final synchronized boolean lock() {
         boolean moving = false;
@@ -261,6 +253,11 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
             telemetry.desiredChassisSpeeds[0] = this.desiredVx;
             telemetry.desiredChassisSpeeds[1] = this.desiredVy;
             telemetry.desiredChassisSpeeds[2] = Math.toDegrees(this.desiredOmega);
+
+            if (telemetry.level == CALCULATED || telemetry.level == VERBOSE) {
+                // todo: uncomment when implementation is complete, and remove from fieldAwareSwerveDrive.
+                //                telemetry.measuredChassisSpeeds = getMeasuredRobotVelocity();
+            }
         }
 
         for (int i = 0; i < modules.length; i++) {

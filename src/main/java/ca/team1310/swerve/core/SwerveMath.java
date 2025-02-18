@@ -365,4 +365,92 @@ public class SwerveMath {
         result[1] = x * sin + y * cos;
         return result;
     }
+
+    /**
+     * Compute the robot's velocity (vX (metres per second), vY (metres per second), omega (radians per second))
+     * given the velocities of the four swerve modules.
+     *
+     * @param frs front right module speed (metres per second)
+     * @param fra front right module angle (radians)
+     * @param fls front left module speed (metres per second)
+     * @param fla front left module angle (radians)
+     * @param bls back left module speed (metres per second)
+     * @param bla back left module angle (radians)
+     * @param brs back right module speed (metres per second)
+     * @param bra back right module angle (radians)
+     * @return an array containing the x, y, and omega components of the robot's velocity
+     */
+    public double[] calculateRobotVelocity(
+        double frs,
+        double fra,
+        double fls,
+        double fla,
+        double bls,
+        double bla,
+        double brs,
+        double bra
+    ) {
+        // todo: fixme: implement this
+        return null;
+    }
+
+    /**
+     * Discretizes a continuous-time robot velocity.
+     *
+     * <p>This function converts a continuous-time robot velocity into a discrete-time one such that
+     * when the discrete-time robot velocity is applied for one timestep, the robot moves as if the
+     * velocity components are independent (i.e., the robot moves v_x * dt along the x-axis, v_y * dt
+     * along the y-axis, and omega * dt around the z-axis).
+     *
+     * <p>This is useful for compensating for translational skew when translating and rotating a
+     * swerve drivetrain.</p>
+     *
+     * <p> From
+     * https://www.chiefdelphi.com/t/looking-for-an-explanation-of-chassisspeeds-discretize/
+     * btwn Tony Field (1310 Mentor) and Tyler Veness WPILib developer (controls and API design)
+     * </p>
+     *
+     * <p>
+     * Consider a hypothetical swerve robot translating in a straight line while rotating around
+     * its center. The chassis velocities required to do that follow sinusoids (i.e., they
+     * continuously vary). The robot code can only update the velocity commands at discrete
+     * intervals, so the actual robot follows an arc away from the desired path.
+     * </p>
+     * <p>
+     * ChassisSpeeds.discretize() compensates for the discretization error by selecting constant
+     * translational and rotational velocity commands that make the robot’s arc intersect the
+     * desired path at the end of the timestep, where the desired path has decoupled translation
+     * and rotation.
+     * </p>
+     * <p>
+     * Note that this only cancels out one cause of drift from the desired path. Another cause
+     * is the swerve’s feedback controllers not keeping up with the commands.
+     * </p>
+     * <p>
+     * Just like with swerve module heading optimization, all swerve code should be using this.
+     * </p>
+     * @param vxMetresPerSecond     Forward velocity.
+     * @param vyMetresPerSecond     Sideways velocity.
+     * @param omegaRadiansPerSecond Angular velocity.
+     * @param dtSeconds             The duration of the timestep the speeds should be applied for.
+     * @return Discretized ChassisSpeeds.
+     * @see <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/kinematics/ChassisSpeeds.html">ChassisSpeeds</a>
+     */
+    public static double[] discretize(
+        double vxMetresPerSecond,
+        double vyMetresPerSecond,
+        double omegaRadiansPerSecond,
+        double dtSeconds
+    ) {
+        // Compute the desired location of the robot after dt, relative to the current location.
+        // The desired location has decoupled translation and rotation.
+
+        // Find the robot translation and rotation (with respect to the robot) that is required to move the robot
+        // from its current location to the desired location
+
+        // Turn the chassis translation/rotation deltas into average velocities
+
+        return new double[] { vxMetresPerSecond, vyMetresPerSecond, omegaRadiansPerSecond };
+        // todo: fixme: implement - current functionality has no effect.
+    }
 }
