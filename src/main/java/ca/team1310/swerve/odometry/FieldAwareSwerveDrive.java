@@ -127,7 +127,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
         }
 
         // vision
-        PoseEstimate poseEstimate = visionPoseCallback.getPoseEstimate(getYaw(), getYawRate());
+        PoseEstimate poseEstimate = visionPoseCallback.getPoseEstimate(getPose(), getYaw(), getYawRate());
         if (poseEstimate != null) {
             if (poseEstimate.getStandardDeviations() == null) {
                 estimator.addVisionMeasurement(poseEstimate.getPose(), poseEstimate.getTimestampSeconds());
