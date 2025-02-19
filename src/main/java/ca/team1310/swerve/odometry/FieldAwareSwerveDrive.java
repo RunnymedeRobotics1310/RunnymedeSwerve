@@ -42,6 +42,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
         new SwerveModulePosition(),
     };
     private final VisionPoseCallback visionPoseCallback;
+    private PoseEstimate visionPoseEstimate;
 
     private final Notifier odometryUpdater;
     private static final int UPDATE_ODOMETRY_EVERY_MILLIS = 20;
@@ -127,15 +128,15 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
         }
 
         // vision
-        PoseEstimate poseEstimate = visionPoseCallback.getPoseEstimate(getPose(), getYaw(), getYawRate());
-        if (poseEstimate != null) {
-            if (poseEstimate.getStandardDeviations() == null) {
-                estimator.addVisionMeasurement(poseEstimate.getPose(), poseEstimate.getTimestampSeconds());
+        visionPoseEstimate = visionPoseCallback.getPoseEstimate(getPose(), getYaw(), getYawRate());
+        if (visionPoseEstimate != null) {
+            if (visionPoseEstimate.getStandardDeviations() == null) {
+                estimator.addVisionMeasurement(visionPoseEstimate.getPose(), visionPoseEstimate.getTimestampSeconds());
             } else {
                 estimator.addVisionMeasurement(
-                    poseEstimate.getPose(),
-                    poseEstimate.getTimestampSeconds(),
-                    poseEstimate.getStandardDeviations()
+                        visionPoseEstimate.getPose(),
+                        visionPoseEstimate.getTimestampSeconds(),
+                        visionPoseEstimate.getStandardDeviations()
                 );
             }
         }
@@ -167,6 +168,17 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
                 telemetry.poseMetresX = pose.getTranslation().getX();
                 telemetry.poseMetresY = pose.getTranslation().getY();
                 telemetry.poseHeadingDegrees = pose.getRotation().getDegrees();
+
+                if (visionPoseEstimate != null) {
+                    telemetry.visionPoseX = visionPoseEstimate.getPose().getX();
+                    telemetry.visionPoseY = visionPoseEstimate.getPose().getY();
+                    telemetry.visionPoseHeading = visionPoseEstimate.getPose().getRotation().getDegrees();
+                }
+                else {
+                    telemetry.visionPoseX = 0;
+                    telemetry.visionPoseY = 0;
+                    telemetry.visionPoseHeading = 0;
+                }
             }
 
             var states = getModuleStates();
