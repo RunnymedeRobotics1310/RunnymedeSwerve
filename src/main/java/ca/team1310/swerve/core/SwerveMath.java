@@ -397,13 +397,19 @@ public class SwerveMath {
     /**
      * Discretizes a continuous-time robot velocity.
      *
-     * <p>This function converts a continuous-time robot velocity into a discrete-time one such that
-     * when the discrete-time robot velocity is applied for one timestep, the robot moves as if the
-     * velocity components are independent (i.e., the robot moves v_x * dt along the x-axis, v_y * dt
-     * along the y-axis, and omega * dt around the z-axis).
+     * <p>This function converts a continuous-time robot-oriented velocity into a discrete-time
+     * robot-oriented such that when the discrete-time robot velocity is applied for one timestep,
+     * the robot moves as if the velocity components are independent (i.e., the robot moves
+     * v_x * dt along the x-axis, v_y * dt along the y-axis, and omega * dt around the z-axis).
      *
      * <p>This is useful for compensating for translational skew when translating and rotating a
      * swerve drivetrain.</p>
+     *
+     * <p>From a practical perspective, this is most important after converting from field-oriented
+     * velocity to robot-oriented velocity, as this is the situation in which translation and rotation
+     * are considered separately by the user. If the conversion is done at too large an interval,
+     * the robot will curl off the intended path because robot-oriented velocities aren't updating
+     * as fast as the actual orientation of the robot.</p>
      *
      * <p> From
      * https://www.chiefdelphi.com/t/looking-for-an-explanation-of-chassisspeeds-discretize/
@@ -433,7 +439,7 @@ public class SwerveMath {
      * @param vyMetresPerSecond     Sideways velocity.
      * @param omegaRadiansPerSecond Angular velocity.
      * @param dtSeconds             The duration of the timestep the speeds should be applied for.
-     * @return Discretized ChassisSpeeds.
+     * @return Discretized robot velocity.
      * @see <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/kinematics/ChassisSpeeds.html">ChassisSpeeds</a>
      */
     public static double[] discretize(
