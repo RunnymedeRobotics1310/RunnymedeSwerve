@@ -392,8 +392,22 @@ public class SwerveMath {
         double brs,
         double bra
     ) {
-        // todo: fixme: implement this
-        return null;
+        // Compute the horiz and vert components of the wheel vectors
+        double rear_horiz = bls * Math.cos(bla); //cos
+        double front_horiz = frs * Math.cos(fra);
+        double right_vert = bls * Math.sin(bla); //sin
+        double left_vert = frs * Math.sin(fra);
+
+        // Compute the x, y, and omega
+        double w = ((front_horiz - rear_horiz) / 2) * wheelBaseOverFrameDiagonal;
+        double y = front_horiz - w * wheelBaseOverFrameDiagonal;
+        double x = right_vert + w * trackWidthOverFrameDiagonal;
+
+        // Put the x, y, and omega into an array (duuh)
+        double[] robotVelocity = { x, y, w };
+
+        // Return the robot velocity (idk why im commenting anymore)
+        return robotVelocity;
     }
 
     /**
