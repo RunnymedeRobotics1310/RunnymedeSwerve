@@ -1,5 +1,7 @@
 package ca.team1310.swerve.vision;
 
+import edu.wpi.first.math.geometry.Pose2d;
+
 /**
  * Callback interface for getting pose estimates from a vision system.
  *
@@ -16,11 +18,12 @@ public interface VisionPoseCallback {
      * <p>
      * The returned pose estimate will be set into the swerve drive's pose estimator.
      *
+     * @param estimatedPose the current estimated pose of the robot
      * @param yaw     the current robot heading in degrees, ccw positive
      * @param yawRate the current rate of change of the robot heading in degrees per second
      * @return the current pose estimate, or null if no estimate is available.  The default implementation returns null.
      */
-    default PoseEstimate getPoseEstimate(double yaw, double yawRate) {
+    default PoseEstimate getPoseEstimate(Pose2d estimatedPose, double yaw, double yawRate) {
         return null;
     }
 }
