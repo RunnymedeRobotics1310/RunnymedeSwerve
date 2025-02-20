@@ -1,5 +1,7 @@
 package ca.team1310.swerve.core;
 
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+
 /**
  * Essential math utilities for swerve drive calculations.
  * <p>
@@ -435,16 +437,17 @@ public class SwerveMath {
      * <p>
      * Just like with swerve module heading optimization, all swerve code should be using this.
      * </p>
-     * @param vxMetresPerSecond     Forward velocity.
-     * @param vyMetresPerSecond     Sideways velocity.
-     * @param omegaRadiansPerSecond Angular velocity.
-     * @param dtSeconds             The duration of the timestep the speeds should be applied for.
+     *
+     * @param xRobotOrientedMetresPerSecond Forward velocity.
+     * @param yRobotOrientedMetresPerSecond Sideways velocity.
+     * @param omegaRadiansPerSecond         Angular velocity.
+     * @param dtSeconds                     The duration of the timestep the speeds should be applied for.
      * @return Discretized robot velocity.
      * @see <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/kinematics/ChassisSpeeds.html">ChassisSpeeds</a>
      */
     public static double[] discretize(
-        double vxMetresPerSecond,
-        double vyMetresPerSecond,
+        double xRobotOrientedMetresPerSecond,
+        double yRobotOrientedMetresPerSecond,
         double omegaRadiansPerSecond,
         double dtSeconds
     ) {
@@ -456,7 +459,13 @@ public class SwerveMath {
 
         // Turn the chassis translation/rotation deltas into average velocities
 
-        return new double[] { vxMetresPerSecond, vyMetresPerSecond, omegaRadiansPerSecond };
-        // todo: fixme: implement - current functionality has no effect.
+        // todo: fixme: implement independently of WPILib logic
+        var vel = ChassisSpeeds.discretize(
+            xRobotOrientedMetresPerSecond,
+            yRobotOrientedMetresPerSecond,
+            omegaRadiansPerSecond,
+            dtSeconds
+        );
+        return new double[] { vel.vxMetersPerSecond, vel.vyMetersPerSecond, vel.omegaRadiansPerSecond };
     }
 }
