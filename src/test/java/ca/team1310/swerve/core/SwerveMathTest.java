@@ -16,11 +16,11 @@ public class SwerveMathTest {
 
     @Test
     public void test() {
-        assertTrue(true);
+        assertTrue(true, "true is true");
     }
 
     @Test
-    public void testToRobotVelocitiesAndBack() {
+    public void testToModuleVelocitiesAndBack() {
         double x = 0.5;
         double y = 0;
         double omega = 0;
@@ -58,8 +58,8 @@ public class SwerveMathTest {
             brs,
             bra
         );
-        assertEquals(x, backToRobot[0], "x");
-        assertEquals(y, backToRobot[1], "y");
-        assertEquals(omega, backToRobot[2], "omega");
+        assertEquals(x, backToRobot[0], "x component is as expected");
+        assertEquals(y, backToRobot[1], "y component is as expected");
+        assertEquals(omega, backToRobot[2], "omega component is as expected");
     }
 }
