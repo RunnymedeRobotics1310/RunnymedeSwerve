@@ -400,6 +400,7 @@ public class SwerveMath {
         bls /= maxSpeedMps;
         bla /= maxOmegaRadPerSec;
         brs /= maxSpeedMps;
+        bra /= maxOmegaRadPerSec;
 
         double[] velocities = _calculateRobotVelocity(
             wheelBaseOverFrameDiagonal,
