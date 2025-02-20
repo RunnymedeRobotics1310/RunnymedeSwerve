@@ -14,7 +14,7 @@ java {
 }
 
 // set a valid semver version
-version = '3.0.7'
+version = '3.0.8-SNAPSHOT.11'
 
 repositories {
     mavenCentral()
@@ -25,13 +25,20 @@ dependencies {
     implementation wpi.java.deps.wpilib()
     implementation wpi.java.vendor.java()
 
-    testImplementation libs.junit.jupiter
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation(platform('org.junit:junit-bom:5.11.4'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+
 }
 
-tasks.named('test') {
+test {
     useJUnitPlatform()
+    systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
 }
+
 
 tasks.register('javadocJar', Jar) {
     archiveClassifier.set('javadoc')
@@ -70,7 +77,7 @@ publishing {
 
                 developers {
                     developer {
-                        id.set('ca.team1310') // Replace with your ID
+                        id.set('ca.team1310')
                         name.set('Runnymede Robotics (Team 1310)')
                         email.set('1310.runnymede.robotics@gmail.com')
                     }

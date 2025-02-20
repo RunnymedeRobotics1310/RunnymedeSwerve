@@ -5,6 +5,7 @@ import static ca.team1310.swerve.core.config.TelemetryLevel.*;
 import ca.team1310.swerve.RunnymedeSwerveDrive;
 import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotBase;
 
@@ -128,18 +129,25 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
      * Set the module states based on the desired speed and angle.
      */
     private synchronized void updateModules() {
-        // Correct the robot's trajectory while it is rotating. Set DT to period of this method call.
-        var v = SwerveMath.discretize(desiredVx, desiredVy, desiredOmega, UPDATE_MODULES_PERIOD);
-
         // calculate desired states
-        math.calculateAndStoreModuleVelocities(v[0], v[1], v[2]);
+        math.calculateAndStoreModuleVelocities(desiredVx, desiredVy, desiredOmega);
 
         // set the module states
         this.modules[0].setDesiredState(math.getFrontLeft());
         this.modules[1].setDesiredState(math.getFrontRight());
         this.modules[2].setDesiredState(math.getBackLeft());
         this.modules[3].setDesiredState(math.getBackRight());
+
+        if (isSimulation) {
+            updateGyroForSimulation();
+        }
     }
+
+    /**
+     * Update the gyro in case the robot is running in
+     * simulation mode.
+     */
+    protected void updateGyroForSimulation() {}
 
     private synchronized void readModuleStates() {
         boolean odometry = moduleStateUpdateCount % ODOMETRY_UPDATE_CYCLES == 0;
@@ -255,8 +263,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
             telemetry.desiredChassisSpeeds[2] = Math.toDegrees(this.desiredOmega);
 
             if (telemetry.level == CALCULATED || telemetry.level == VERBOSE) {
-                // todo: uncomment when implementation is complete, and remove from fieldAwareSwerveDrive.
-                //                telemetry.measuredChassisSpeeds = getMeasuredRobotVelocity();
+                telemetry.measuredChassisSpeeds = getMeasuredRobotVelocity();
             }
         }
 

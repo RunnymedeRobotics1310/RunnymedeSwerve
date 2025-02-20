@@ -21,8 +21,7 @@ public class MXPNavX implements Gyro {
      * Create a new MXPNavX gyro
      */
     public MXPNavX() {
-        this.navx = new AHRS(NavXComType.kMXP_SPI);
-
+        this.navx = new AHRS(NavXComType.kMXP_SPI, AHRS.NavXUpdateRate.k100Hz);
         this.rollOffset = navx.getRoll();
 
         this.pitchOffset = navx.getPitch();

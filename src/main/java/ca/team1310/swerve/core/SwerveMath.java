@@ -392,6 +392,109 @@ public class SwerveMath {
         double brs,
         double bra
     ) {
+        // scale down units to -1 - 1
+        frs /= maxSpeedMps;
+        fra /= maxOmegaRadPerSec;
+        fls /= maxSpeedMps;
+        fla /= maxOmegaRadPerSec;
+        bls /= maxSpeedMps;
+        bla /= maxOmegaRadPerSec;
+        brs /= maxSpeedMps;
+
+        double[] velocities = _calculateRobotVelocity(
+            wheelBaseOverFrameDiagonal,
+            trackWidthOverFrameDiagonal,
+            frs,
+            fra,
+            fls,
+            fla,
+            bls,
+            bla,
+            brs,
+            bra
+        );
+
+        // scale units to m/s and rad/s
+        velocities[0] *= maxSpeedMps;
+        velocities[1] *= maxSpeedMps;
+        velocities[2] *= maxOmegaRadPerSec;
+
+        return velocities;
+    }
+
+    /**
+     * Compute the robot's velocity (vX, vY omega) given the velocities of the four swerve modules.
+     *
+     * @param trackWidth the track width of the drivetrain (i.e. from the left to the right of the robot). Units
+     *                   are not relevant.
+     * @param wheelBase  the wheelbase of the drivetrain, (i.e. from the front to the back of the robot). Units
+     *                   are not relevant.
+     * @param frs front right module speed (from -1.0 to 1.0)
+     * @param fra front right module angle (from -1.0 to 1.0)
+     * @param fls front left module speed (from -1.0 to 1.0)
+     * @param fla front left module angle (from -1.0 to 1.0)
+     * @param bls back left module speed (from -1.0 to 1.0)
+     * @param bla back left module angle (from -1.0 to 1.0)
+     * @param brs back right module speed (from -1.0 to 1.0)
+     * @param bra back right module angle (from -1.0 to 1.0)
+     * @return an array containing the x, y, and omega components of the robot's velocity each from -1.0 to 1.0.
+     */
+    public static double[] calculateRobotVelocity(
+        double trackWidth,
+        double wheelBase,
+        double frs,
+        double fra,
+        double fls,
+        double fla,
+        double bls,
+        double bla,
+        double brs,
+        double bra
+    ) {
+        double hypot = Math.hypot(wheelBase, trackWidth);
+        double wheelBaseOverFrameDiagonal = wheelBase / hypot;
+        double trackWidthOverFrameDiagonal = trackWidth / hypot;
+        return _calculateRobotVelocity(
+            wheelBaseOverFrameDiagonal,
+            trackWidthOverFrameDiagonal,
+            frs,
+            fra,
+            fls,
+            fla,
+            bls,
+            bla,
+            brs,
+            bra
+        );
+    }
+
+    /**
+     * Compute the robot's velocity (vX, vY omega) given the velocities of the four swerve modules.
+     *
+     * @param wheelBaseOverFrameDiagonal  the ratio of the wheelbase to the diagonal of the robot
+     * @param trackWidthOverFrameDiagonal the ratio of the track width to the diagonal of the robot
+     * @param frs front right module speed (from -1.0 to 1.0)
+     * @param fra front right module angle (from -1.0 to 1.0)
+     * @param fls front left module speed (from -1.0 to 1.0)
+     * @param fla front left module angle (from -1.0 to 1.0)
+     * @param bls back left module speed (from -1.0 to 1.0)
+     * @param bla back left module angle (from -1.0 to 1.0)
+     * @param brs back right module speed (from -1.0 to 1.0)
+     * @param bra back right module angle (from -1.0 to 1.0)
+     * @return an array containing the x, y, and omega components of the robot's velocity each from -1.0 to 1.0.
+     */
+    private static double[] _calculateRobotVelocity(
+        double wheelBaseOverFrameDiagonal,
+        double trackWidthOverFrameDiagonal,
+        double frs,
+        double fra,
+        double fls,
+        double fla,
+        double bls,
+        double bla,
+        double brs,
+        double bra
+    ) {
         // Compute the horiz and vert components of the wheel vectors
         double rear_horiz = bls * Math.cos(bla); //cos
         double front_horiz = frs * Math.cos(fra);
@@ -403,83 +506,6 @@ public class SwerveMath {
         double y = front_horiz - w * wheelBaseOverFrameDiagonal;
         double x = right_vert + w * trackWidthOverFrameDiagonal;
 
-        // Put the x, y, and omega into an array (duuh)
-        double[] robotVelocity = { x, y, w };
-
-        // Return the robot velocity (idk why im commenting anymore)
-        return robotVelocity;
-    }
-
-    /**
-     * Discretizes a continuous-time robot velocity.
-     *
-     * <p>This function converts a continuous-time robot-oriented velocity into a discrete-time
-     * robot-oriented such that when the discrete-time robot velocity is applied for one timestep,
-     * the robot moves as if the velocity components are independent (i.e., the robot moves
-     * v_x * dt along the x-axis, v_y * dt along the y-axis, and omega * dt around the z-axis).
-     *
-     * <p>This is useful for compensating for translational skew when translating and rotating a
-     * swerve drivetrain.</p>
-     *
-     * <p>From a practical perspective, this is most important after converting from field-oriented
-     * velocity to robot-oriented velocity, as this is the situation in which translation and rotation
-     * are considered separately by the user. If the conversion is done at too large an interval,
-     * the robot will curl off the intended path because robot-oriented velocities aren't updating
-     * as fast as the actual orientation of the robot.</p>
-     *
-     * <p> From
-     * https://www.chiefdelphi.com/t/looking-for-an-explanation-of-chassisspeeds-discretize/
-     * btwn Tony Field (1310 Mentor) and Tyler Veness WPILib developer (controls and API design)
-     * </p>
-     *
-     * <p>
-     * Consider a hypothetical swerve robot translating in a straight line while rotating around
-     * its center. The chassis velocities required to do that follow sinusoids (i.e., they
-     * continuously vary). The robot code can only update the velocity commands at discrete
-     * intervals, so the actual robot follows an arc away from the desired path.
-     * </p>
-     * <p>
-     * ChassisSpeeds.discretize() compensates for the discretization error by selecting constant
-     * translational and rotational velocity commands that make the robot’s arc intersect the
-     * desired path at the end of the timestep, where the desired path has decoupled translation
-     * and rotation.
-     * </p>
-     * <p>
-     * Note that this only cancels out one cause of drift from the desired path. Another cause
-     * is the swerve’s feedback controllers not keeping up with the commands.
-     * </p>
-     * <p>
-     * Just like with swerve module heading optimization, all swerve code should be using this.
-     * </p>
-     *
-     * @param xRobotOrientedMetresPerSecond Forward velocity.
-     * @param yRobotOrientedMetresPerSecond Sideways velocity.
-     * @param omegaRadiansPerSecond         Angular velocity.
-     * @param dtSeconds                     The duration of the timestep the speeds should be applied for.
-     * @return Discretized robot velocity.
-     * @see <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/math/kinematics/ChassisSpeeds.html">ChassisSpeeds</a>
-     */
-    public static double[] discretize(
-        double xRobotOrientedMetresPerSecond,
-        double yRobotOrientedMetresPerSecond,
-        double omegaRadiansPerSecond,
-        double dtSeconds
-    ) {
-        // Compute the desired location of the robot after dt, relative to the current location.
-        // The desired location has decoupled translation and rotation.
-
-        // Find the robot translation and rotation (with respect to the robot) that is required to move the robot
-        // from its current location to the desired location
-
-        // Turn the chassis translation/rotation deltas into average velocities
-
-        // todo: fixme: implement independently of WPILib logic
-        var vel = ChassisSpeeds.discretize(
-            xRobotOrientedMetresPerSecond,
-            yRobotOrientedMetresPerSecond,
-            omegaRadiansPerSecond,
-            dtSeconds
-        );
-        return new double[] { vel.vxMetersPerSecond, vel.vyMetersPerSecond, vel.omegaRadiansPerSecond };
+        return new double[] { x, y, w };
     }
 }

@@ -51,9 +51,10 @@ public class SimulatedGyro implements Gyro {
      * Update the gyro heading with the updated yaw based on the  current omega value
      * @param omegaRadiansPerSecond the current omega value in radians per second
      */
-    public void updateOdometryForSimulation(double omegaRadiansPerSecond) {
-        double change = omegaRadiansPerSecond * (this.timer.get() - this.lastTime);
+    public void updateGyroForSimulation(double omegaRadiansPerSecond) {
+        double now = this.timer.get();
+        double change = omegaRadiansPerSecond * (now - this.lastTime);
         this.yaw += Units.radiansToDegrees(change);
-        this.lastTime = this.timer.get();
+        this.lastTime = now;
     }
 }
