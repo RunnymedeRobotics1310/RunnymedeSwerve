@@ -263,7 +263,10 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
             telemetry.desiredChassisSpeeds[2] = Math.toDegrees(this.desiredOmega);
 
             if (telemetry.level == CALCULATED || telemetry.level == VERBOSE) {
-                telemetry.measuredChassisSpeeds = getMeasuredRobotVelocity();
+                var measuredChassisSpeeds = getMeasuredRobotVelocity();
+                telemetry.measuredChassisSpeeds[0] = measuredChassisSpeeds[0];
+                telemetry.measuredChassisSpeeds[1] = measuredChassisSpeeds[1];
+                telemetry.measuredChassisSpeeds[2] = Math.toDegrees(measuredChassisSpeeds[2]);
             }
         }
 
