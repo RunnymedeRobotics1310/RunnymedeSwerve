@@ -203,6 +203,13 @@ public final class SwerveTelemetry {
         String vRobot = String.format("%.1f (%.1f, %.1f) m/s %.1f deg/s", speed, vX, vY, omega);
         SmartDashboard.putString(PREFIX + "Swerve/desired_velocity_robot", vRobot);
 
+        vX = measuredChassisSpeeds[0];
+        vY = measuredChassisSpeeds[1];
+        speed = Math.hypot(vX, vY);
+        omega = measuredChassisSpeeds[2];
+        vRobot = String.format("%.1f (%.1f, %.1f) m/s %.1f deg/s", speed, vX, vY, omega);
+        SmartDashboard.putString(PREFIX + "Swerve/measured_velocity_robot", vRobot);
+
         String poseOdo = String.format("(%.2f, %.2f) m %.1f deg", poseMetresX, poseMetresY, poseHeadingDegrees);
         SmartDashboard.putString(PREFIX + "Swerve/pose_odo", poseOdo);
 
