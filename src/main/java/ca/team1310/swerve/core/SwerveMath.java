@@ -496,15 +496,15 @@ public class SwerveMath {
         double bra
     ) {
         // Compute the horiz and vert components of the wheel vectors
-        double rear_horiz = bls * Math.cos(bla); //cos
-        double front_horiz = frs * Math.cos(fra);
-        double right_vert = bls * Math.sin(bla); //sin
-        double left_vert = frs * Math.sin(fra);
+        double rear_horiz = bls * Math.sin(bla); //cos  a
+        double front_horiz = frs * Math.sin(fra); //     b
+        double right_vert = frs * Math.cos(fra); //sin  c
+        double left_vert = bls * Math.cos(bla); //       d
 
         // Compute the x, y, and omega
-        double w = ((front_horiz - rear_horiz) / 2) * wheelBaseOverFrameDiagonal;
+        double w = (front_horiz - rear_horiz) / (2 * wheelBaseOverFrameDiagonal);
         double y = front_horiz - w * wheelBaseOverFrameDiagonal;
-        double x = right_vert + w * trackWidthOverFrameDiagonal;
+        double x = right_vert - w * trackWidthOverFrameDiagonal;
 
         return new double[] { x, y, w };
     }
