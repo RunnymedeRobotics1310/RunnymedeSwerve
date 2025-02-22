@@ -96,7 +96,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     private synchronized SwerveModulePosition[] getSwerveModulePositions() {
         var states = getModuleStates();
         for (int i = 0; i < states.length; i++) {
-            modulePosition[i].distanceMeters = states[i].getPosition();
+            modulePosition[i].distanceMeters = -states[i].getPosition();
             modulePosition[i].angle = Rotation2d.fromDegrees(states[i].getAngle());
         }
         return modulePosition;
