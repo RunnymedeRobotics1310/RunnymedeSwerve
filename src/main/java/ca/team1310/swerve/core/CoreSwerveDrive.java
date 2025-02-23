@@ -13,6 +13,15 @@ import edu.wpi.first.wpilibj.RobotBase;
  */
 public class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
+    /*
+     * Module array order - note, these are aligned with SwerveMath order for simplicity.
+     * <code>
+     *     1 ------ 0
+     *     |        |
+     *     |        |
+     *     2 ------ 3
+     * </code>
+     */
     private final SwerveModule[] modules;
     private final ModuleState[] moduleStates;
 
