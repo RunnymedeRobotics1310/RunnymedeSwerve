@@ -1,7 +1,5 @@
 package ca.team1310.swerve.core;
 
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-
 /**
  * Essential math utilities for swerve drive calculations.
  * <p>
@@ -17,6 +15,33 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
  * Module-specific calculations in this class assume a rectangular drive base, and that the center of rotation is
  * in the middle of the robot. An explanation of the principles behind the approach is included in this class, and
  * can be used as a basis for understanding how to adapt the calculations for other configurations.
+ * <p>
+ * <a name="array-indices"></a>When component information is provided or returned in array form, the order in which each module's information
+ * is returned is done based on the following order:
+ * <p>
+ * <code>
+ *     fl ------ fr
+ *      |        |
+ *      |        |
+ *     bl ------ br
+ * </code>
+ * <p>
+ * <code>
+ *     1 ------ 0
+ *     |        |
+ *     |        |
+ *     2 ------ 3
+ * </code>
+ * <p>
+ * So in cases where a module includes both a speed and an angle, the order of the values in the array will be
+ * [frs, fra, fls, fla, bls, bla, brs, bra]:
+ * <p>
+ * <code>
+ *     s: 2, a: 3 ------ s: 0, a: 1
+ *              |        |
+ *              |        |
+ *     s: 4, a: 5 ------ s: 6, a: 7
+ * </code>
  *
  * @author Tony Field
  * @author Quentin Field
@@ -100,7 +125,6 @@ public class SwerveMath {
      * <p>
      * Units for x, y, and w are from -1.0 to 1.0, where 1.0 represents the maximum speed of the for each type of
      * movement.
-     *
      * @param trackWidth the track width of the drivetrain (i.e. from the left to the right of the robot). Units
      *                   are not relevant.
      * @param wheelBase  the wheelbase of the drivetrain, (i.e. from the front to the back of the robot). Units
@@ -113,6 +137,7 @@ public class SwerveMath {
      *                   1.0 is the maximum achievable value.  (counter-clockwise positive)
      * @return an array of the calculated module setpoints, in the format [frs, fra, fls, fla, bls, bla, brs, bra]
      * where frs is the front right wheel speed from -1 to 1, fra is the front right wheel angle, from -PI to PI, etc.
+     * @see <a href="#array-indices">Array Indices</a>
      */
     public static double[] calculateModuleVelocities(
         double trackWidth,
@@ -253,6 +278,7 @@ public class SwerveMath {
      *                                    value and 1.0 is the maximum achievable value.  (counter-clockwise positive)
      * @return an array of the calculated module velocities, in the format [frs, fra, fls, fla, bls, bla, brs, bra]
      * where frs is the front right wheel speed from -1 to 1, fra is the front right wheel angle, from -PI to PI, etc.
+     * @see <a href="#array-indices">Array Indices</a>
      */
     private static double[] _calculateModuleVelocities(
         double wheelBaseOverFrameDiagonal,
@@ -334,6 +360,7 @@ public class SwerveMath {
      * @param fieldOrientedY      the y component of the vector (left is positive, units don't matter)
      * @param robotHeadingRadians the heading of the robot in radians (counter-clockwise is positive)
      * @return an array containing the x and y components of the vector in robot-oriented coordinates
+     * @see <a href="#array-indices">Array Indices</a>
      */
     public static double[] toRobotOriented(double fieldOrientedX, double fieldOrientedY, double robotHeadingRadians) {
         return rotate(fieldOrientedX, fieldOrientedY, -robotHeadingRadians);
@@ -346,6 +373,7 @@ public class SwerveMath {
      * @param robotOrientedY      the y component of the vector (left is positive, units don't matter)
      * @param robotHeadingRadians the heading of the robot in radians (counter-clockwise is positive)
      * @return an array containing the x and y components of the vector in field-oriented coordinates
+     * @see <a href="#array-indices">Array Indices</a>
      */
     public static double[] toFieldOriented(double robotOrientedX, double robotOrientedY, double robotHeadingRadians) {
         return rotate(robotOrientedX, robotOrientedY, robotHeadingRadians);
@@ -358,6 +386,7 @@ public class SwerveMath {
      * @param y            the y component of the vector. Units do not matter (but both x and y must be the same unit).
      * @param angleRadians the angle to rotate the vector by, in radians
      * @return a vector containing the rotated x and y values
+     * @see <a href="#array-indices">Array Indices</a>
      */
     public static double[] rotate(double x, double y, double angleRadians) {
         double cos = Math.cos(angleRadians);
