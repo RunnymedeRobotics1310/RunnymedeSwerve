@@ -103,7 +103,7 @@ publishing {
 jreleaser {
     project {
         name = 'RunnymedeSwerve'
-        description = 'Team 1310 Runymede Robotics Swerve Lib'
+        description = 'Team 1310 Runnymede Robotics Swerve Lib'
         copyright = '2025 Runnymede Robotics, All Rights Reserved.'
     }
     signing {

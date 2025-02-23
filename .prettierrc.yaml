@@ -2,8 +2,9 @@ plugins:
   - prettier-plugin-java
 overrides:
   - files:
-      - '*.java'
+      - "*.java"
     options:
-      printWidth: 120
+      printWidth: 140
       tabWidth: 4
       useTabs: false
+      trailingComma: "none"
