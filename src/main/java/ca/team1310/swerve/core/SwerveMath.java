@@ -16,7 +16,7 @@ package ca.team1310.swerve.core;
  * in the middle of the robot. An explanation of the principles behind the approach is included in this class, and
  * can be used as a basis for understanding how to adapt the calculations for other configurations.
  * <p>
- * <a name="array-indices"></a>When component information is provided or returned in array form, the order in which each module's information
+ * <a id="array-indices"></a>When component information is provided or returned in array form, the order in which each module's information
  * is returned is done based on the following order:
  * <p>
  * <code>
