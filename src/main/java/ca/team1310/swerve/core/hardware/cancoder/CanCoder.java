@@ -52,9 +52,7 @@ public class CanCoder implements AbsoluteAngleEncoder {
 
         CANcoderConfiguration configuration = new CANcoderConfiguration();
         configuration.MagnetSensor.withAbsoluteSensorDiscontinuityPoint(Rotations.of(1)).withSensorDirection(
-            encoderConfig.inverted()
-                ? SensorDirectionValue.Clockwise_Positive
-                : SensorDirectionValue.CounterClockwise_Positive
+            encoderConfig.inverted() ? SensorDirectionValue.Clockwise_Positive : SensorDirectionValue.CounterClockwise_Positive
         );
 
         StatusCode error = encoder.getConfigurator().apply(configuration);
@@ -76,11 +74,7 @@ public class CanCoder implements AbsoluteAngleEncoder {
             "CANCoder " + encoder.getDeviceID() + " magnetic field is less than ideal.",
             Alert.AlertType.kWarning
         );
-        readingFaulty = new Alert(
-            "Encoders",
-            "CANCoder " + encoder.getDeviceID() + " reading was faulty.",
-            Alert.AlertType.kWarning
-        );
+        readingFaulty = new Alert("Encoders", "CANCoder " + encoder.getDeviceID() + " reading was faulty.", Alert.AlertType.kWarning);
         readingIgnored = new Alert(
             "Encoders",
             "CANCoder " + encoder.getDeviceID() + " reading was faulty, ignoring.",

@@ -74,14 +74,7 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
             .positionWrappingInputRange(-180, 180);
 
         // send them to the motor
-        doWithRetry(
-            () ->
-                spark.configure(
-                    config,
-                    SparkBase.ResetMode.kNoResetSafeParameters,
-                    SparkBase.PersistMode.kPersistParameters
-                )
-        );
+        doWithRetry(() -> spark.configure(config, SparkBase.ResetMode.kNoResetSafeParameters, SparkBase.PersistMode.kPersistParameters));
     }
 
     @Override

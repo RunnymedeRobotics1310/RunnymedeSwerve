@@ -139,13 +139,7 @@ public class SwerveMath {
      * where frs is the front right wheel speed from -1 to 1, fra is the front right wheel angle, from -PI to PI, etc.
      * @see <a href="#array-indices">Array Indices</a>
      */
-    public static double[] calculateModuleVelocities(
-        double trackWidth,
-        double wheelBase,
-        double x,
-        double y,
-        double w
-    ) {
+    public static double[] calculateModuleVelocities(double trackWidth, double wheelBase, double x, double y, double w) {
         double hypot = Math.hypot(wheelBase, trackWidth);
         double wheelBaseOverFrameDiagonal = wheelBase / hypot;
         double trackWidthOverFrameDiagonal = trackWidth / hypot;
@@ -411,16 +405,7 @@ public class SwerveMath {
      * @param bra back right module angle (radians)
      * @return an array containing the x, y, and omega components of the robot's velocity
      */
-    public double[] calculateRobotVelocity(
-        double frs,
-        double fra,
-        double fls,
-        double fla,
-        double bls,
-        double bla,
-        double brs,
-        double bra
-    ) {
+    public double[] calculateRobotVelocity(double frs, double fra, double fls, double fla, double bls, double bla, double brs, double bra) {
         // scale down units to -1 - 1
         frs /= maxSpeedMps;
         fra /= maxOmegaRadPerSec;
@@ -484,18 +469,7 @@ public class SwerveMath {
         double hypot = Math.hypot(wheelBase, trackWidth);
         double wheelBaseOverFrameDiagonal = wheelBase / hypot;
         double trackWidthOverFrameDiagonal = trackWidth / hypot;
-        return _calculateRobotVelocity(
-            wheelBaseOverFrameDiagonal,
-            trackWidthOverFrameDiagonal,
-            frs,
-            fra,
-            fls,
-            fla,
-            bls,
-            bla,
-            brs,
-            bra
-        );
+        return _calculateRobotVelocity(wheelBaseOverFrameDiagonal, trackWidthOverFrameDiagonal, frs, fra, fls, fla, bls, bla, brs, bra);
     }
 
     /**

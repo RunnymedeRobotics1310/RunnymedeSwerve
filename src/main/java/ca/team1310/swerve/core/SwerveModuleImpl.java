@@ -47,12 +47,7 @@ class SwerveModuleImpl implements SwerveModule {
                 cfg.wheelRadiusMetres(),
                 robotPeriodMillis
             );
-            default -> new NSMDriveMotor(
-                cfg.driveMotorCanId(),
-                cfg.driveMotorConfig(),
-                cfg.wheelRadiusMetres(),
-                robotPeriodMillis
-            );
+            default -> new NSMDriveMotor(cfg.driveMotorCanId(), cfg.driveMotorConfig(), cfg.wheelRadiusMetres(), robotPeriodMillis);
         };
     }
 
@@ -64,11 +59,7 @@ class SwerveModuleImpl implements SwerveModule {
     }
 
     private AbsoluteAngleEncoder getAbsoluteAngleEncoder(ModuleConfig cfg) {
-        return new CanCoder(
-            cfg.angleEncoderCanId(),
-            cfg.angleEncoderAbsoluteOffsetDegrees(),
-            cfg.absoluteAngleEncoderConfig()
-        );
+        return new CanCoder(cfg.angleEncoderCanId(), cfg.angleEncoderAbsoluteOffsetDegrees(), cfg.absoluteAngleEncoderConfig());
     }
 
     private synchronized void syncAngleEncoder() {
