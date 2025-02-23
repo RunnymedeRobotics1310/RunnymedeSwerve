@@ -11,5 +11,5 @@ public enum MotorType {
     /**
      * A NEO motor with a Spark Flex controller
      */
-    NEO_SPARK_FLEX,
+    NEO_SPARK_FLEX
 }

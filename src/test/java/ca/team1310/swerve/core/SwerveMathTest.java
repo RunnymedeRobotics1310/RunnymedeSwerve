@@ -29,7 +29,7 @@ public class SwerveMathTest {
     @ParameterizedTest
     @CsvSource(
         {
-            "0.5,    0,   0", "1.0, 0, 0", "0, 1.0, 0", "0.75,    0.15,   0.25",
+            "0.5,    0,   0", "1.0, 0, 0", "0, 1.0, 0", "0.75,    0.15,   0.25"
             //"1.0, 2.0, 3.0", // fails to demonstrate test parameter validation
             //"0.0, 0.2, 3.0", // fails to demonstrate test parameter validation
             //    "-0.8,  0.05, -0.5",  TODO: FIXME - TEST NOT PASSING DUE TO API BUG
@@ -38,10 +38,7 @@ public class SwerveMathTest {
     public void testToModuleVelocitiesAndBack(double x, double y, double omega) {
         // validate test parameters
         double speed = Math.hypot(x, y);
-        assertTrue(
-            speed <= 1,
-            "speed (magnitude of xy vector) must be between -1 and 1 - invalid test parameter - fix the test."
-        );
+        assertTrue(speed <= 1, "speed (magnitude of xy vector) must be between -1 and 1 - invalid test parameter - fix the test.");
         assertTrue(omega <= 1, "omega must be between -1 and 1 - invalid test parameter - fix the test.");
         assertTrue(omega >= -1, "omega must be between -1 and 1 - invalid test parameter - fix the test.");
 
@@ -56,18 +53,7 @@ public class SwerveMathTest {
         double brs = velocities[6];
         double bra = velocities[7];
 
-        double[] backToRobot = SwerveMath.calculateRobotVelocity(
-            trackWidth,
-            wheelBase,
-            frs,
-            fra,
-            fls,
-            fla,
-            bls,
-            bla,
-            brs,
-            bra
-        );
+        double[] backToRobot = SwerveMath.calculateRobotVelocity(trackWidth, wheelBase, frs, fra, fls, fla, bls, bla, brs, bra);
         assertEquals(x, backToRobot[0], EPSILON, "x component");
         assertEquals(y, backToRobot[1], EPSILON, "y component");
         assertEquals(omega, backToRobot[2], EPSILON, "omega component");
@@ -76,7 +62,7 @@ public class SwerveMathTest {
     @ParameterizedTest
     @CsvSource(
         {
-            "0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0.5, 0", "0,0,0,0,0,0,0,0,0,0,0", "1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0",
+            "0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0.5, 0", "0,0,0,0,0,0,0,0,0,0,0", "1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0"
             // "0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1",  TODO: FIXME - TEST NOT PASSING DUE TO API BUG
         }
     )
@@ -120,18 +106,7 @@ public class SwerveMathTest {
         double y,
         double omega
     ) {
-        double[] backToRobot = SwerveMath.calculateRobotVelocity(
-            trackWidth,
-            wheelBase,
-            frs,
-            fra,
-            fls,
-            fla,
-            bls,
-            bla,
-            brs,
-            bra
-        );
+        double[] backToRobot = SwerveMath.calculateRobotVelocity(trackWidth, wheelBase, frs, fra, fls, fla, bls, bla, brs, bra);
         assertEquals(x, backToRobot[0], EPSILON, "x component is as expected");
         assertEquals(y, backToRobot[1], EPSILON, "y component is as expected");
         assertEquals(omega, backToRobot[2], EPSILON, "omega component is as expected");

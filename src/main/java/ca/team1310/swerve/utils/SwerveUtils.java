@@ -85,11 +85,7 @@ public final class SwerveUtils {
      * @param toleranceMetres the tolerance to use for the comparison
      * @return true if the robot is within the tolerance of the desired location
      */
-    public static boolean isCloseEnough(
-        Translation2d currentLocation,
-        Translation2d desiredLocation,
-        double toleranceMetres
-    ) {
+    public static boolean isCloseEnough(Translation2d currentLocation, Translation2d desiredLocation, double toleranceMetres) {
         Translation2d delta = desiredLocation.minus(currentLocation);
         return Math.abs(delta.getNorm()) <= toleranceMetres;
     }

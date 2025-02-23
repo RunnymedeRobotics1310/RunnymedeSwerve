@@ -10,8 +10,7 @@ public class ModuleState {
 
     private Coordinates location;
 
-    private double drivePosition, driveVelocity, driveOutputPower, anglePosition, absoluteEncoderAngle, desiredSpeed, desiredAngle =
-        0;
+    private double drivePosition, driveVelocity, driveOutputPower, anglePosition, absoluteEncoderAngle, desiredSpeed, desiredAngle = 0;
 
     ModuleState() {}
 

@@ -23,5 +23,5 @@ public enum TelemetryLevel {
     /**
      * Same as calculated data and also displays data for human consumption
      */
-    VERBOSE,
+    VERBOSE
 }

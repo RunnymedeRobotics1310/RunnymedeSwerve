@@ -33,7 +33,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
         new SwerveModulePosition(),
         new SwerveModulePosition(),
         new SwerveModulePosition(),
-        new SwerveModulePosition(),
+        new SwerveModulePosition()
     };
     private final VisionPoseCallback visionPoseCallback;
     private PoseEstimate visionPoseEstimate;
@@ -72,10 +72,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
             cfg.frontRightModuleConfig().location().getX(),
             cfg.frontRightModuleConfig().location().getY()
         );
-        moduleLocations[2] = new Translation2d(
-            cfg.backLeftModuleConfig().location().getX(),
-            cfg.backLeftModuleConfig().location().getY()
-        );
+        moduleLocations[2] = new Translation2d(cfg.backLeftModuleConfig().location().getX(), cfg.backLeftModuleConfig().location().getY());
         moduleLocations[3] = new Translation2d(
             cfg.backRightModuleConfig().location().getX(),
             cfg.backRightModuleConfig().location().getY()

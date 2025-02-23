@@ -72,14 +72,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
             .positionWrappingEnabled(false);
 
         // send them to the motor
-        doWithRetry(
-            () ->
-                spark.configure(
-                    config,
-                    SparkBase.ResetMode.kNoResetSafeParameters,
-                    SparkBase.PersistMode.kPersistParameters
-                )
-        );
+        doWithRetry(() -> spark.configure(config, SparkBase.ResetMode.kNoResetSafeParameters, SparkBase.PersistMode.kPersistParameters));
     }
 
     @Override

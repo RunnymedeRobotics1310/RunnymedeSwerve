@@ -14,3 +14,11 @@ gradle.properties
 
 # Ignore bin folder (not sure yet where this is created)
 bin
+
+# Ignore the lib folder
+lib
+
+# Ignore eclipse settings
+.project
+org.eclipse.*
+.classpath

@@ -1,5 +1,7 @@
 {
-  "java.configuration.updateBuildConfiguration": "interactive",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "java.configuration.updateBuildConfiguration": "automatic",
   "filewatcher.commands": [
     {
       "match": "\\.java",
@@ -7,5 +9,6 @@
       "cmd": "npx prettier --write ${file}",
       "event": "onFileChange"
     }
-  ]
+  ],
+  "workbench.tree.indent": 14
 }

@@ -122,9 +122,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
         readModulesThread.startPeriodic(READ_MODULES_PERIOD_MILLIS / 1000.0);
 
         telemetryThread.setName("RunnymedeSwerve updateTelemetry");
-        telemetryThread.startPeriodic(
-            isSimulation ? READ_MODULES_PERIOD_MILLIS / 1000.0 : TELEMETRY_UPDATE_PERIOD / 1000.0
-        );
+        telemetryThread.startPeriodic(isSimulation ? READ_MODULES_PERIOD_MILLIS / 1000.0 : TELEMETRY_UPDATE_PERIOD / 1000.0);
     }
 
     public final synchronized void drive(double x, double y, double w) {
