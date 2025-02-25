@@ -23,11 +23,11 @@ class SwerveModuleImpl implements SwerveModule {
     private final ModuleState measuredState = new ModuleState();
     private final Notifier encoderSynchronizer = new Notifier(this::syncAngleEncoder);
 
-    SwerveModuleImpl(ModuleConfig cfg, int robotPeriodMillis) {
+    SwerveModuleImpl(ModuleConfig cfg, double maxAttainableModuleSpeedMps, int robotPeriodMillis) {
         this.name = cfg.name();
         this.location = cfg.location();
         measuredState.setLocation(cfg.location());
-        this.driveMotor = getDriveMotor(cfg, robotPeriodMillis);
+        this.driveMotor = getDriveMotor(cfg, maxAttainableModuleSpeedMps, robotPeriodMillis);
         this.angleMotor = getAngleMotor(cfg, robotPeriodMillis);
         this.angleEncoder = getAbsoluteAngleEncoder(cfg);
         encoderSynchronizer.setName("RunnymedeSwerve Angle Encoder Sync " + name);
@@ -39,15 +39,16 @@ class SwerveModuleImpl implements SwerveModule {
         return location;
     }
 
-    private DriveMotor getDriveMotor(ModuleConfig cfg, int robotPeriodMillis) {
+    private DriveMotor getDriveMotor(ModuleConfig cfg, double maxAttainableModuleSpeedMps, int robotPeriodMillis) {
         return switch (cfg.driveMotorConfig().type()) {
             case NEO_SPARK_FLEX -> new NSFDriveMotor(
                 cfg.driveMotorCanId(),
                 cfg.driveMotorConfig(),
                 cfg.wheelRadiusMetres(),
+                maxAttainableModuleSpeedMps,
                 robotPeriodMillis
             );
-            default -> new NSMDriveMotor(cfg.driveMotorCanId(), cfg.driveMotorConfig(), cfg.wheelRadiusMetres(), robotPeriodMillis);
+            default -> new NSMDriveMotor(cfg.driveMotorCanId(), cfg.driveMotorConfig(), cfg.wheelRadiusMetres(), maxAttainableModuleSpeedMps, robotPeriodMillis);
         };
     }
 
