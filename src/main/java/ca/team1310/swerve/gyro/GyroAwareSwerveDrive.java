@@ -15,58 +15,56 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  */
 public class GyroAwareSwerveDrive extends CoreSwerveDrive {
 
-    /**
-     * The gyro for the swerve drive
-     */
-    private final Gyro gyro;
+  /** The gyro for the swerve drive */
+  private final Gyro gyro;
 
-    /**
-     * Create a new field-aware swerve drive
-     *
-     * @param cfg the core configuration for the swerve drive
-     */
-    public GyroAwareSwerveDrive(CoreSwerveConfig cfg) {
-        super(cfg);
-        this.gyro = RobotBase.isSimulation() ? new SimulatedGyro() : new MXPNavX();
-        SmartDashboard.putData(PREFIX + "Gyro", this.gyro);
-    }
+  /**
+   * Create a new field-aware swerve drive
+   *
+   * @param cfg the core configuration for the swerve drive
+   */
+  public GyroAwareSwerveDrive(CoreSwerveConfig cfg) {
+    super(cfg);
+    this.gyro = RobotBase.isSimulation() ? new SimulatedGyro() : new MXPNavX();
+    SmartDashboard.putData(PREFIX + "Gyro", this.gyro);
+  }
 
-    @Override
-    public synchronized void zeroGyro() {
-        gyro.zeroGyro();
-    }
+  @Override
+  public synchronized void zeroGyro() {
+    gyro.zeroGyro();
+  }
 
-    @Override
-    public synchronized double getRoll() {
-        return gyro.getRoll();
-    }
+  @Override
+  public synchronized double getRoll() {
+    return gyro.getRoll();
+  }
 
-    @Override
-    public synchronized double getPitch() {
-        return gyro.getPitch();
-    }
+  @Override
+  public synchronized double getPitch() {
+    return gyro.getPitch();
+  }
 
-    @Override
-    public synchronized double getYaw() {
-        if (gyro == null) {
-            System.out.println("Cannot get yaw, gyro is null");
-            return 0;
-        }
-        return gyro.getYaw();
+  @Override
+  public synchronized double getYaw() {
+    if (gyro == null) {
+      System.out.println("Cannot get yaw, gyro is null");
+      return 0;
     }
+    return gyro.getYaw();
+  }
 
-    @Override
-    public synchronized double getYawRate() {
-        return gyro.getYawRate();
-    }
+  @Override
+  public synchronized double getYawRate() {
+    return gyro.getYawRate();
+  }
 
-    @Override
-    protected void updateGyroForSimulation() {
-        // simulation
-        if (isSimulation && gyro != null) {
-            // note only capturing this twice in sim mode (which will run on a laptop, not a robot)
-            var measuredRobotVelocity = getMeasuredRobotVelocity();
-            ((SimulatedGyro) gyro).updateGyroForSimulation(measuredRobotVelocity[2]);
-        }
+  @Override
+  protected void updateGyroForSimulation() {
+    // simulation
+    if (isSimulation && gyro != null) {
+      // note only capturing this twice in sim mode (which will run on a laptop, not a robot)
+      var measuredRobotVelocity = getMeasuredRobotVelocity();
+      ((SimulatedGyro) gyro).updateGyroForSimulation(measuredRobotVelocity[2]);
     }
+  }
 }
