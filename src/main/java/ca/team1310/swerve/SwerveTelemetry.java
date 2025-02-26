@@ -181,15 +181,15 @@ public final class SwerveTelemetry {
     double vY = desiredChassisSpeeds[1];
     double speed = Math.hypot(vX, vY);
     double omega = desiredChassisSpeeds[2];
-    String vRobot = String.format("%.1f (%.1f, %.1f) m/s %.1f deg/s", speed, vX, vY, omega);
-    SmartDashboard.putString(PREFIX + "Swerve/desired_velocity_robot", vRobot);
+    String vRobot = String.format("%.2f (%.2f, %.2f) m/s %.1f deg/s", speed, vX, vY, omega);
+    SmartDashboard.putString(PREFIX + "Swerve/velocity_desired_robot", vRobot);
 
     vX = measuredChassisSpeeds[0];
     vY = measuredChassisSpeeds[1];
     speed = Math.hypot(vX, vY);
     omega = measuredChassisSpeeds[2];
-    vRobot = String.format("%.1f (%.1f, %.1f) m/s %.1f deg/s", speed, vX, vY, omega);
-    SmartDashboard.putString(PREFIX + "Swerve/measured_velocity_robot", vRobot);
+    vRobot = String.format("%.2f (%.2f, %.2f) m/s %.1f deg/s", speed, vX, vY, omega);
+    SmartDashboard.putString(PREFIX + "Swerve/velocity_measured_robot", vRobot);
 
     String poseOdo =
         String.format("(%.2f, %.2f) m %.1f deg", poseMetresX, poseMetresY, poseHeadingDegrees);
@@ -198,5 +198,11 @@ public final class SwerveTelemetry {
     String poseVis =
         String.format("(%.2f, %.2f) m %.1f deg", visionPoseX, visionPoseY, visionPoseHeading);
     SmartDashboard.putString(PREFIX + "Swerve/pose_vis", poseVis);
+
+    for (int i = 0; i < moduleCount; i++) {
+      String name = moduleNames[i];
+      double pwr = driveMotorOutputPower[i];
+      SmartDashboard.putString(PREFIX + "Swerve/drive_power_" + name, String.format("%.3f", pwr));
+    }
   }
 }

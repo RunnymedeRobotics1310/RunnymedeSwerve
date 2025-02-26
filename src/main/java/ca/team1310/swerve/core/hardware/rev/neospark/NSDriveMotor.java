@@ -13,7 +13,8 @@ import com.revrobotics.spark.config.SparkFlexConfig;
  */
 public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implements DriveMotor {
 
-  private double prevTargetVelocityMPS = 0;
+  private final double maxSpeedMps;
+  private double prevTarget = 0;
 
   /**
    * Construct a properly configured drive motor.
@@ -32,6 +33,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
       double maxAttainableModuleSpeedMps,
       int robotPeriodMillis) {
     super(spark);
+    this.maxSpeedMps = maxAttainableModuleSpeedMps;
     SparkFlexConfig config = new SparkFlexConfig();
     config.inverted(cfg.inverted());
     config.idleMode(SparkBaseConfig.IdleMode.kBrake);
@@ -80,7 +82,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
         .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
         .pidf(cfg.p(), cfg.i(), cfg.d(), cfg.ff())
         .iZone(cfg.izone())
-        .outputRange(-maxAttainableModuleSpeedMps, maxAttainableModuleSpeedMps)
+        .outputRange(-1, 1)
         .positionWrappingEnabled(false);
 
     // send them to the motor
@@ -100,11 +102,19 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
   @Override
   public void setReferenceVelocity(double targetVelocityMPS) {
     // don't set if already set
-    if (Math.abs(targetVelocityMPS - prevTargetVelocityMPS) < 1E-9) {
+    double target = asPower(targetVelocityMPS);
+    if (Math.abs(target - prevTarget) < 1E-9) {
       return;
     }
-    prevTargetVelocityMPS = targetVelocityMPS;
-    doWithRetry(() -> controller.setReference(targetVelocityMPS, SparkBase.ControlType.kVelocity));
+    prevTarget = target;
+    doWithRetry(() -> controller.setReference(target, SparkBase.ControlType.kVelocity));
+  }
+
+  private double asPower(double velocity) {
+    // this fixes a bug in the controller.setReference
+    // which does not seem to operate correctly in
+    // velocity mode.
+    return velocity / maxSpeedMps * 20;
   }
 
   @Override
