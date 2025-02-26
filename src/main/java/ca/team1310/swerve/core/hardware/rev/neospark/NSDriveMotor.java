@@ -22,7 +22,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
      * @param wheelRadiusMetres The radius of the wheel in metres
      * @param robotPeriodMillis The period of the robot in milliseconds
      */
-    public NSDriveMotor(T spark, MotorConfig cfg, double wheelRadiusMetres, int robotPeriodMillis) {
+    public NSDriveMotor(T spark, MotorConfig cfg, double wheelRadiusMetres, double maxAttainableModuleSpeedMps, int robotPeriodMillis) {
         super(spark);
         SparkFlexConfig config = new SparkFlexConfig();
         config.inverted(cfg.inverted());
@@ -68,7 +68,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
             .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
             .pidf(cfg.p(), cfg.i(), cfg.d(), cfg.ff())
             .iZone(cfg.izone())
-            .outputRange(-1, 1)
+            .outputRange(-maxAttainableModuleSpeedMps, maxAttainableModuleSpeedMps)
             .positionWrappingEnabled(false);
 
         // send them to the motor

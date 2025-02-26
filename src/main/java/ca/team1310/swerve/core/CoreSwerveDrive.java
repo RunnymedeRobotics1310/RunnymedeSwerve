@@ -55,6 +55,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
      * @param cfg the configuration of the swerve drive
      */
     protected CoreSwerveDrive(CoreSwerveConfig cfg) {
+        System.out.println("Initializing RunnymedeSwerve CoreSwerveDrive.");
         // order matters in case we want to use AdvantageScope
         double dt = cfg.robotPeriodSeconds();
         this.modules = new SwerveModule[4];
@@ -65,10 +66,10 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
             this.modules[2] = new SwerveModuleSimulation(cfg.backLeftModuleConfig());
             this.modules[3] = new SwerveModuleSimulation(cfg.backRightModuleConfig());
         } else {
-            this.modules[0] = new SwerveModuleImpl(cfg.frontLeftModuleConfig(), (int) (dt * 1000));
-            this.modules[1] = new SwerveModuleImpl(cfg.frontRightModuleConfig(), (int) (dt * 1000));
-            this.modules[2] = new SwerveModuleImpl(cfg.backLeftModuleConfig(), (int) (dt * 1000));
-            this.modules[3] = new SwerveModuleImpl(cfg.backRightModuleConfig(), (int) (dt * 1000));
+            this.modules[0] = new SwerveModuleImpl(cfg.frontLeftModuleConfig(), cfg.maxAttainableModuleSpeedMetresPerSecond(), (int) (dt * 1000));
+            this.modules[1] = new SwerveModuleImpl(cfg.frontRightModuleConfig(), cfg.maxAttainableModuleSpeedMetresPerSecond(), (int) (dt * 1000));
+            this.modules[2] = new SwerveModuleImpl(cfg.backLeftModuleConfig(), cfg.maxAttainableModuleSpeedMetresPerSecond(), (int) (dt * 1000));
+            this.modules[3] = new SwerveModuleImpl(cfg.backRightModuleConfig(), cfg.maxAttainableModuleSpeedMetresPerSecond(), (int) (dt * 1000));
         }
 
         this.moduleStates = new ModuleState[4];
@@ -80,7 +81,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
         this.math = new SwerveMath(
             cfg.wheelBaseMetres(),
             cfg.trackWidthMetres(),
-            cfg.maxAttainableModuleSpeedMetresPerSecond(),
+            cfg.maxAttainableTranslationSpeedMetresPerSecond(),
             cfg.maxAchievableRotationalVelocityRadiansPerSecond()
         );
 
