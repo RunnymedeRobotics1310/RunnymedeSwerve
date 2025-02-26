@@ -65,12 +65,12 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
         // set up the pose estimator
         var moduleLocations = new Translation2d[4];
         moduleLocations[0] = new Translation2d(
-            cfg.frontLeftModuleConfig().location().getX(),
-            cfg.frontLeftModuleConfig().location().getY()
-        );
-        moduleLocations[1] = new Translation2d(
             cfg.frontRightModuleConfig().location().getX(),
             cfg.frontRightModuleConfig().location().getY()
+        );
+        moduleLocations[1] = new Translation2d(
+            cfg.frontLeftModuleConfig().location().getX(),
+            cfg.frontLeftModuleConfig().location().getY()
         );
         moduleLocations[2] = new Translation2d(cfg.backLeftModuleConfig().location().getX(), cfg.backLeftModuleConfig().location().getY());
         moduleLocations[3] = new Translation2d(

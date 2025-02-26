@@ -13,6 +13,15 @@ import edu.wpi.first.wpilibj.RobotBase;
  */
 public class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
+    /*
+     * Module array order - note, these are aligned with SwerveMath order for simplicity.
+     * <code>
+     *     1 ------ 0
+     *     |        |
+     *     |        |
+     *     2 ------ 3
+     * </code>
+     */
     private final SwerveModule[] modules;
     private final ModuleState[] moduleStates;
 
@@ -61,15 +70,31 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
         this.modules = new SwerveModule[4];
         this.isSimulation = RobotBase.isSimulation();
         if (isSimulation) {
-            this.modules[0] = new SwerveModuleSimulation(cfg.frontLeftModuleConfig());
-            this.modules[1] = new SwerveModuleSimulation(cfg.frontRightModuleConfig());
+            this.modules[0] = new SwerveModuleSimulation(cfg.frontRightModuleConfig());
+            this.modules[1] = new SwerveModuleSimulation(cfg.frontLeftModuleConfig());
             this.modules[2] = new SwerveModuleSimulation(cfg.backLeftModuleConfig());
             this.modules[3] = new SwerveModuleSimulation(cfg.backRightModuleConfig());
         } else {
-            this.modules[0] = new SwerveModuleImpl(cfg.frontLeftModuleConfig(), cfg.maxAttainableModuleSpeedMetresPerSecond(), (int) (dt * 1000));
-            this.modules[1] = new SwerveModuleImpl(cfg.frontRightModuleConfig(), cfg.maxAttainableModuleSpeedMetresPerSecond(), (int) (dt * 1000));
-            this.modules[2] = new SwerveModuleImpl(cfg.backLeftModuleConfig(), cfg.maxAttainableModuleSpeedMetresPerSecond(), (int) (dt * 1000));
-            this.modules[3] = new SwerveModuleImpl(cfg.backRightModuleConfig(), cfg.maxAttainableModuleSpeedMetresPerSecond(), (int) (dt * 1000));
+            this.modules[0] = new SwerveModuleImpl(
+                cfg.frontRightModuleConfig(),
+                cfg.maxAttainableModuleSpeedMetresPerSecond(),
+                (int) (dt * 1000)
+            );
+            this.modules[1] = new SwerveModuleImpl(
+                cfg.frontLeftModuleConfig(),
+                cfg.maxAttainableModuleSpeedMetresPerSecond(),
+                (int) (dt * 1000)
+            );
+            this.modules[2] = new SwerveModuleImpl(
+                cfg.backLeftModuleConfig(),
+                cfg.maxAttainableModuleSpeedMetresPerSecond(),
+                (int) (dt * 1000)
+            );
+            this.modules[3] = new SwerveModuleImpl(
+                cfg.backRightModuleConfig(),
+                cfg.maxAttainableModuleSpeedMetresPerSecond(),
+                (int) (dt * 1000)
+            );
         }
 
         this.moduleStates = new ModuleState[4];
@@ -93,14 +118,14 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
         this.telemetry.trackWidthMetres = cfg.trackWidthMetres();
         this.telemetry.wheelBaseMetres = cfg.wheelBaseMetres();
         this.telemetry.wheelRadiusMetres = cfg.wheelRadiusMetres();
-        this.telemetry.moduleNames[0] = cfg.frontLeftModuleConfig().name();
-        this.telemetry.moduleNames[1] = cfg.frontRightModuleConfig().name();
+        this.telemetry.moduleNames[0] = cfg.frontRightModuleConfig().name();
+        this.telemetry.moduleNames[1] = cfg.frontLeftModuleConfig().name();
         this.telemetry.moduleNames[2] = cfg.backLeftModuleConfig().name();
         this.telemetry.moduleNames[3] = cfg.backRightModuleConfig().name();
-        this.telemetry.moduleWheelLocations[0] = cfg.frontLeftModuleConfig().location().getX();
-        this.telemetry.moduleWheelLocations[1] = cfg.frontLeftModuleConfig().location().getY();
-        this.telemetry.moduleWheelLocations[2] = cfg.frontRightModuleConfig().location().getX();
-        this.telemetry.moduleWheelLocations[3] = cfg.frontRightModuleConfig().location().getY();
+        this.telemetry.moduleWheelLocations[0] = cfg.frontRightModuleConfig().location().getX();
+        this.telemetry.moduleWheelLocations[1] = cfg.frontRightModuleConfig().location().getY();
+        this.telemetry.moduleWheelLocations[2] = cfg.frontLeftModuleConfig().location().getX();
+        this.telemetry.moduleWheelLocations[3] = cfg.frontLeftModuleConfig().location().getY();
         this.telemetry.moduleWheelLocations[4] = cfg.backLeftModuleConfig().location().getX();
         this.telemetry.moduleWheelLocations[5] = cfg.backLeftModuleConfig().location().getY();
         this.telemetry.moduleWheelLocations[6] = cfg.backRightModuleConfig().location().getX();
@@ -131,8 +156,8 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
         math.calculateAndStoreModuleVelocities(desiredVx, desiredVy, desiredOmega);
 
         // set the module states
-        this.modules[0].setDesiredState(math.getFrontLeft());
-        this.modules[1].setDesiredState(math.getFrontRight());
+        this.modules[0].setDesiredState(math.getFrontRight());
+        this.modules[1].setDesiredState(math.getFrontLeft());
         this.modules[2].setDesiredState(math.getBackLeft());
         this.modules[3].setDesiredState(math.getBackRight());
 
@@ -155,10 +180,10 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
         } else {
             moduleStateUpdateCount++;
         }
-        this.modules[3].readState(odometry, telemetry);
-        this.modules[2].readState(odometry, telemetry);
-        this.modules[1].readState(odometry, telemetry);
         this.modules[0].readState(odometry, telemetry);
+        this.modules[1].readState(odometry, telemetry);
+        this.modules[2].readState(odometry, telemetry);
+        this.modules[3].readState(odometry, telemetry);
 
         if (telemetry) {
             updateTelemetry(this.telemetry);
@@ -199,10 +224,10 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
      */
     protected double[] getMeasuredRobotVelocity() {
         return math.calculateRobotVelocity(
-            moduleStates[1].getSpeed(),
-            moduleStates[1].getAngle(),
             moduleStates[0].getSpeed(),
             moduleStates[0].getAngle(),
+            moduleStates[1].getSpeed(),
+            moduleStates[1].getAngle(),
             moduleStates[2].getSpeed(),
             moduleStates[2].getAngle(),
             moduleStates[3].getSpeed(),

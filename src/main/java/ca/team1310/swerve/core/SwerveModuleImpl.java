@@ -48,7 +48,13 @@ class SwerveModuleImpl implements SwerveModule {
                 maxAttainableModuleSpeedMps,
                 robotPeriodMillis
             );
-            default -> new NSMDriveMotor(cfg.driveMotorCanId(), cfg.driveMotorConfig(), cfg.wheelRadiusMetres(), maxAttainableModuleSpeedMps, robotPeriodMillis);
+            default -> new NSMDriveMotor(
+                cfg.driveMotorCanId(),
+                cfg.driveMotorConfig(),
+                cfg.wheelRadiusMetres(),
+                maxAttainableModuleSpeedMps,
+                robotPeriodMillis
+            );
         };
     }
 
