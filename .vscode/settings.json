@@ -1,14 +1,26 @@
 {
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.formatOnSave": true,
-  "java.configuration.updateBuildConfiguration": "automatic",
-  "filewatcher.commands": [
-    {
-      "match": "\\.java",
-      "isAsync": true,
-      "cmd": "npx prettier --write ${file}",
-      "event": "onFileChange"
-    }
-  ],
-  "workbench.tree.indent": 14
-}
+	"java.configuration.updateBuildConfiguration": "automatic",
+	"java.server.launchMode": "Standard",
+	"files.exclude": {
+	  "**/.git": true,
+	  "**/.svn": true,
+	  "**/.hg": true,
+	  "**/CVS": true,
+	  "**/.DS_Store": true,
+	  "bin/": true,
+	  "**/.classpath": true,
+	  "**/.project": true,
+	  "**/.settings": true,
+	  "**/.factorypath": true,
+	  "**/*~": true
+	},
+	"[java]": {
+	  "editor.defaultFormatter": "josevseb.google-java-format-for-vs-code",
+	  "editor.formatOnPaste": true,
+	  "editor.formatOnSave": true,
+	  "editor.formatOnType": true,
+	},
+	"workbench.tree.indent": 14,
+	"java.format.enabled": true,
+	"git.allowForcePush": true
+  }
