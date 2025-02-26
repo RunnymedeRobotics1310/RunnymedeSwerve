@@ -16,6 +16,8 @@ public class NSFDriveMotor extends NSDriveMotor<SparkFlex> {
    * @param canId The CAN ID of the motor
    * @param cfg The configuration of the motor
    * @param wheelRadiusMetres The radius of the wheel in metres
+   * @param maxAttainableModuleSpeedMps The maximum attainable speed of the module's drive motor in
+   *     metres per
    * @param robotPeriodMillis The period of the robot in milliseconds
    */
   public NSFDriveMotor(

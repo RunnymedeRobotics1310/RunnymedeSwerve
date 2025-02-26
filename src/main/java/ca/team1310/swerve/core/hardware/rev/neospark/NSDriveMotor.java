@@ -21,6 +21,8 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
    * @param spark The spark motor controller
    * @param cfg The configuration of the motor
    * @param wheelRadiusMetres The radius of the wheel in metres
+   * @param maxAttainableModuleSpeedMps The maximum attainable speed of the module's drive motor in
+   *     metres per
    * @param robotPeriodMillis The period of the robot in milliseconds
    */
   public NSDriveMotor(
