@@ -17,7 +17,7 @@ public class NSFDriveMotor extends NSDriveMotor<SparkFlex> {
      * @param wheelRadiusMetres The radius of the wheel in metres
      * @param robotPeriodMillis  The period of the robot in milliseconds
      */
-    public NSFDriveMotor(int canId, MotorConfig cfg, double wheelRadiusMetres, int robotPeriodMillis) {
-        super(new SparkFlex(canId, SparkLowLevel.MotorType.kBrushless), cfg, wheelRadiusMetres, robotPeriodMillis);
+    public NSFDriveMotor(int canId, MotorConfig cfg, double wheelRadiusMetres, double maxAttainableModuleSpeedMps, int robotPeriodMillis) {
+        super(new SparkFlex(canId, SparkLowLevel.MotorType.kBrushless), cfg, wheelRadiusMetres, maxAttainableModuleSpeedMps, robotPeriodMillis);
     }
 }
