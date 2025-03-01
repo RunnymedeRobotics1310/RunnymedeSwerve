@@ -35,6 +35,11 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
   }
 
   @Override
+  public synchronized void setYaw(double yaw) {
+    gyro.setYaw(yaw);
+  }
+
+  @Override
   public synchronized double getRoll() {
     return gyro.getRoll();
   }

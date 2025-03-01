@@ -73,6 +73,13 @@ public interface RunnymedeSwerveDrive {
   }
 
   /**
+   * Set the gyro yaw offset of the robot, in degrees.
+   *
+   * @param yaw the yaw offset of the robot, in degrees
+   */
+  default void setYaw(double yaw) { }
+
+  /**
    * Resets the gyro angle to zero and resets odometry to the same location, but facing toward 0.
    *
    * <p>The default implementation does nothing.

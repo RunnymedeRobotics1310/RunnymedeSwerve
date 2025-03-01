@@ -9,6 +9,8 @@ import ca.team1310.swerve.gyro.GyroAwareSwerveDrive;
 import ca.team1310.swerve.utils.Coordinates;
 import ca.team1310.swerve.vision.PoseEstimate;
 import ca.team1310.swerve.vision.VisionPoseCallback;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -16,6 +18,9 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -40,6 +45,10 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
 
   private final Notifier odometryUpdater;
   private static final int UPDATE_ODOMETRY_EVERY_MILLIS = 20;
+
+  private static final double VISION_HIGH_QUALITY_X = 0.1;
+  private static final double VISION_HIGH_QUALITY_Y = 0.1;
+  private static final double VISION_HIGH_QUALITY_HEADING = 1;
 
   /**
    * Create a new field-aware swerve drive. An optional vision pose callback can be provided to
@@ -120,15 +129,26 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
         estimator.addVisionMeasurement(
             visionPoseEstimate.getPose(), visionPoseEstimate.getTimestampSeconds());
       } else {
-        estimator.addVisionMeasurement(
-            visionPoseEstimate.getPose(),
-            visionPoseEstimate.getTimestampSeconds(),
-            visionPoseEstimate.getStandardDeviations());
+        double[] stddevs = visionPoseEstimate.getStandardDeviations();
+
+        if ((stddevs[0] <= VISION_HIGH_QUALITY_X
+                && stddevs[1] <= VISION_HIGH_QUALITY_Y
+                && stddevs[2] <= VISION_HIGH_QUALITY_HEADING)
+            || DriverStation.isDisabled()) {
+          estimator.resetPose(visionPoseEstimate.getPose());
+        } else {
+          Matrix<N3, N1> deviations = VecBuilder.fill(stddevs[0], stddevs[1], stddevs[2]);
+          estimator.addVisionMeasurement(
+              visionPoseEstimate.getPose(),
+              visionPoseEstimate.getTimestampSeconds(),
+              deviations);
+        }
       }
     }
   }
 
   public synchronized void resetOdometry(Pose2d pose) {
+    //setYaw(getPose().getRotation().getDegrees());
     estimator.resetPose(pose);
   }
 

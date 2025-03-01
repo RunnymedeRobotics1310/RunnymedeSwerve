@@ -14,7 +14,7 @@ java {
 }
 
 // set a valid semver version
-version = '3.0.13-SNAPSHOT'
+version = '3.0.14-SNAPSHOT'
 
 repositories {
     mavenCentral()

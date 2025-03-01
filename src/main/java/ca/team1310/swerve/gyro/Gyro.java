@@ -9,6 +9,14 @@ public interface Gyro extends NTSendable {
   void zeroGyro();
 
   /**
+   * Set the yaw offset of the robot, in degrees. This is useful for setting the robot's initial
+   * orientation.
+   *
+   * @param yaw the yaw offset of the robot, in degrees
+   */
+  void setYaw(double yaw);
+
+  /**
    * Get the roll of the robot, in degrees.
    *
    * @return the roll of the robot, in degrees

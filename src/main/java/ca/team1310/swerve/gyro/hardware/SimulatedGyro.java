@@ -35,6 +35,9 @@ public class SimulatedGyro implements Gyro {
   }
 
   @Override
+  public void setYaw(double yaw) { }
+
+  @Override
   public void zeroGyro() {
     this.yaw = 0;
   }

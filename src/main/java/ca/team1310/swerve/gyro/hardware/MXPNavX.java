@@ -26,6 +26,11 @@ public class MXPNavX implements Gyro {
   }
 
   @Override
+  public void setYaw(double yaw) {
+    yawOffset = (-navx.getYaw())-yaw;
+  }
+
+  @Override
   public void zeroGyro() {
     rollOffset = navx.getRoll();
     pitchOffset = navx.getPitch();
