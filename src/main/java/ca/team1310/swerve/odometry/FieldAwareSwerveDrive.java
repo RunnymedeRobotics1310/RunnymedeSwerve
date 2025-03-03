@@ -135,7 +135,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
                 && stddevs[1] <= VISION_HIGH_QUALITY_Y
                 && stddevs[2] <= VISION_HIGH_QUALITY_HEADING)
             || DriverStation.isDisabled()) {
-          estimator.resetPose(visionPoseEstimate.getPose());
+          resetOdometry(visionPoseEstimate.getPose());
         } else {
           Matrix<N3, N1> deviations = VecBuilder.fill(stddevs[0], stddevs[1], stddevs[2]);
           estimator.addVisionMeasurement(
