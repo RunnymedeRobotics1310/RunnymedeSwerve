@@ -88,7 +88,6 @@ public final class SwerveUtils {
    */
   public static boolean isCloseEnough(
       Translation2d currentLocation, Translation2d desiredLocation, double toleranceMetres) {
-    Translation2d delta = desiredLocation.minus(currentLocation);
-    return Math.abs(delta.getNorm()) <= toleranceMetres;
+    return Math.abs(currentLocation.getDistance(desiredLocation)) <= toleranceMetres;
   }
 }
