@@ -109,8 +109,8 @@ public interface RunnymedeSwerveDrive {
   }
 
   /**
-   * Get the current yaw of the robot, in degrees, directly from the gyro. This may, possibly,
-   * differ from the rotation returned from <code>getPose()</code> via odometry. Most of the time
+   * Get the current yaw of the robot, in degrees, from the gyro with zeroing/offset applied. This may,
+   * possibly, differ from the rotation returned from <code>getPose()</code> via odometry. Most of the time
    * they will align.
    *
    * <p>The default implementation returns 0.
@@ -118,6 +118,19 @@ public interface RunnymedeSwerveDrive {
    * @return the yaw of the robot, in degrees
    */
   default double getYaw() {
+    return 0;
+  }
+
+  /**
+   * Get the current raw yaw of the robot, in degrees, directly from the gyro. This may, possibly,
+   * differ from the rotation returned from <code>getPose()</code> via odometry. Most of the time
+   * they will align.
+   *
+   * <p>The default implementation returns 0.
+   *
+   * @return the yaw of the robot, in degrees
+   */
+  default double getYawRaw() {
     return 0;
   }
 

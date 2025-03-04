@@ -64,7 +64,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     SmartDashboard.putData(field);
 
     // Set up pose estimator
-    Rotation2d initialRotation = Rotation2d.fromDegrees(getYaw());
+    Rotation2d initialRotation = Rotation2d.fromDegrees(getYawRaw());
     SwerveModulePosition[] initialModulePositions = getSwerveModulePositions();
     System.out.println(
         "Initial module positions: "
@@ -120,7 +120,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     }
 
     // odometry
-    estimator.update(Rotation2d.fromDegrees(getYaw()), getSwerveModulePositions());
+    estimator.update(Rotation2d.fromDegrees(getYawRaw()), getSwerveModulePositions());
 
     // vision
     visionPoseEstimate = visionPoseCallback.getPoseEstimate(getPose(), getYaw(), getYawRate());
@@ -145,6 +145,14 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
         }
       }
     }
+  }
+
+  @Override
+  public synchronized void zeroGyro() {
+    super.zeroGyro();
+    Pose2d oldPose = estimator.getEstimatedPosition();
+    Pose2d newPose = new Pose2d(oldPose.getX(), oldPose.getY(), Rotation2d.fromDegrees(0));
+    estimator.resetPose(newPose);
   }
 
   public synchronized void resetOdometry(Pose2d pose) {

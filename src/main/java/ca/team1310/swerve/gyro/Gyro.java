@@ -38,6 +38,13 @@ public interface Gyro extends NTSendable {
   double getYaw();
 
   /**
+   * Get the raw yaw value from hardware, without any zeroing/offset, in degrees. Positive is CounterClockWise.
+   *
+   * @return the raw yaw of the robot, in degrees
+   */
+  double getYawRaw();
+
+  /**
    * Get the rate of yaw change of the robot, in degrees.
    *
    * @return the rate of rotation of the yaw of the robot, in degrees per second
