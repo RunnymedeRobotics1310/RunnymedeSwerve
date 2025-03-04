@@ -139,9 +139,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
         } else {
           Matrix<N3, N1> deviations = VecBuilder.fill(stddevs[0], stddevs[1], stddevs[2]);
           estimator.addVisionMeasurement(
-              visionPoseEstimate.getPose(),
-              visionPoseEstimate.getTimestampSeconds(),
-              deviations);
+              visionPoseEstimate.getPose(), visionPoseEstimate.getTimestampSeconds(), deviations);
         }
       }
     }
@@ -156,7 +154,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
   }
 
   public synchronized void resetOdometry(Pose2d pose) {
-    //setYaw(getPose().getRotation().getDegrees());
+    // setYaw(getPose().getRotation().getDegrees());
     estimator.resetPose(pose);
   }
 
