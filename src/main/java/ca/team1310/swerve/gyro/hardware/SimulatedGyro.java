@@ -26,7 +26,9 @@ public class SimulatedGyro implements Gyro {
     return this.yawRate;
   }
 
-  public double getYaw() {
+  public double getYaw() { return getYawRaw(); }
+
+  public double getYawRaw() {
     return normalizeDegrees(this.yaw);
   }
 
