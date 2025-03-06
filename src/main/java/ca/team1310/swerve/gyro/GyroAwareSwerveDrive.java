@@ -58,6 +58,14 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
     return gyro.getYaw();
   }
 
+  public synchronized double getYawRaw() {
+    if (gyro == null) {
+      System.out.println("Cannot get yaw, gyro is null");
+      return 0;
+    }
+    return gyro.getYawRaw();
+  }
+
   @Override
   public synchronized double getYawRate() {
     return gyro.getYawRate();

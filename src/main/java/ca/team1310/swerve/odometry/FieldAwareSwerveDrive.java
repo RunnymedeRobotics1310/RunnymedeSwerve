@@ -64,7 +64,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     SmartDashboard.putData(field);
 
     // Set up pose estimator
-    Rotation2d initialRotation = Rotation2d.fromDegrees(getYaw());
+    Rotation2d initialRotation = Rotation2d.fromDegrees(getYawRaw());
     SwerveModulePosition[] initialModulePositions = getSwerveModulePositions();
     System.out.println(
         "Initial module positions: "
@@ -120,7 +120,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     }
 
     // odometry
-    estimator.update(Rotation2d.fromDegrees(getYaw()), getSwerveModulePositions());
+    estimator.update(Rotation2d.fromDegrees(getYawRaw()), getSwerveModulePositions());
 
     // vision
     visionPoseEstimate = visionPoseCallback.getPoseEstimate(getPose(), getYaw(), getYawRate());
@@ -130,25 +130,30 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
             visionPoseEstimate.getPose(), visionPoseEstimate.getTimestampSeconds());
       } else {
         double[] stddevs = visionPoseEstimate.getStandardDeviations();
-
+        boolean isDisabled = DriverStation.isDisabled();
         if ((stddevs[0] <= VISION_HIGH_QUALITY_X
                 && stddevs[1] <= VISION_HIGH_QUALITY_Y
                 && stddevs[2] <= VISION_HIGH_QUALITY_HEADING)
-            || DriverStation.isDisabled()) {
+            || isDisabled) {
           resetOdometry(visionPoseEstimate.getPose());
         } else {
           Matrix<N3, N1> deviations = VecBuilder.fill(stddevs[0], stddevs[1], stddevs[2]);
           estimator.addVisionMeasurement(
-              visionPoseEstimate.getPose(),
-              visionPoseEstimate.getTimestampSeconds(),
-              deviations);
+              visionPoseEstimate.getPose(), visionPoseEstimate.getTimestampSeconds(), deviations);
         }
       }
     }
   }
 
+  @Override
+  public synchronized void zeroGyro() {
+    super.zeroGyro();
+    Pose2d oldPose = estimator.getEstimatedPosition();
+    Pose2d newPose = new Pose2d(oldPose.getX(), oldPose.getY(), Rotation2d.fromDegrees(0));
+    estimator.resetPose(newPose);
+  }
+
   public synchronized void resetOdometry(Pose2d pose) {
-    //setYaw(getPose().getRotation().getDegrees());
     estimator.resetPose(pose);
   }
 
