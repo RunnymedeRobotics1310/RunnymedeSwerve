@@ -135,7 +135,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
                 && stddevs[1] <= VISION_HIGH_QUALITY_Y
                 && stddevs[2] <= VISION_HIGH_QUALITY_HEADING)
             || isDisabled) {
-          resetOdometry(visionPoseEstimate.getPose(), isDisabled);
+          resetOdometry(visionPoseEstimate.getPose());
         } else {
           Matrix<N3, N1> deviations = VecBuilder.fill(stddevs[0], stddevs[1], stddevs[2]);
           estimator.addVisionMeasurement(
@@ -153,10 +153,8 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     estimator.resetPose(newPose);
   }
 
-  public synchronized void resetOdometry(Pose2d pose, boolean resetYaw) {
-    if (resetYaw) {
-      setYaw(getPose().getRotation().getDegrees());
-    }
+  public synchronized void resetOdometry(Pose2d pose) {
+    //     setYaw(getPose().getRotation().getDegrees());
     estimator.resetPose(pose);
   }
 
