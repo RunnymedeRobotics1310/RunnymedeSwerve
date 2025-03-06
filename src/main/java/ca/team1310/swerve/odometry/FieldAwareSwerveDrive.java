@@ -153,6 +153,14 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     estimator.resetPose(newPose);
   }
 
+  @Override
+  public synchronized void setYaw(double yaw) {
+    super.setYaw(yaw);
+    Pose2d oldPose = estimator.getEstimatedPosition();
+    Pose2d newPose = new Pose2d(oldPose.getX(), oldPose.getY(), Rotation2d.fromDegrees(yaw));
+    estimator.resetPose(newPose);
+  }
+
   public synchronized void resetOdometry(Pose2d pose) {
     estimator.resetPose(pose);
   }
