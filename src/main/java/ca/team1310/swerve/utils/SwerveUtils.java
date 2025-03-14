@@ -11,24 +11,6 @@ public final class SwerveUtils {
   private SwerveUtils() {}
 
   /**
-   * Ensure that rotation error is between -pi and pi radians.
-   *
-   * @param radians the rotation to normalize
-   * @return the normalized rotation
-   */
-  public static double normalizeRotation(double radians) {
-    radians = radians % (2 * Math.PI);
-
-    if (radians > Math.PI) {
-      radians -= (2 * Math.PI);
-    } else if (radians < -Math.PI) {
-      radians += (2 * Math.PI);
-    }
-
-    return radians;
-  }
-
-  /**
    * Normalize the degrees measurement to between -180 and 180
    *
    * @param degrees input degrees any size
@@ -64,17 +46,24 @@ public final class SwerveUtils {
   /**
    * Returns true when the robot heading is within <code>tolerance</code> of the desired location.
    *
-   * <p>Note that the tolerance needs to be realistically achievable.
-   *
-   * @param measured the current heading of the robot from the pose
-   * @param target the heading you would like to face
-   * @param tolerance - the tolerance to use for the comparison
+   * @param measuredDegrees the current heading of the robot from the pose
+   * @param targetDegrees the heading you would like to face
+   * @param toleranceDegrees - the tolerance to use for the comparison
    * @return true if the robot is within the tolerance of the desired heading
    * @throws IllegalArgumentException if no tolerance is specified
    */
-  public static boolean isCloseEnough(double measured, double target, double tolerance) {
-    double delta = target - measured;
-    return Math.abs(delta) <= tolerance;
+  public static boolean isCloseEnough(
+      double measuredDegrees, double targetDegrees, double toleranceDegrees) {
+
+    // normalize to positive value
+    measuredDegrees = measuredDegrees % 360;
+    measuredDegrees = (measuredDegrees + 360) % 360;
+    targetDegrees = targetDegrees % 360;
+    targetDegrees = (targetDegrees + 360) % 360;
+
+    double delta = targetDegrees - measuredDegrees;
+    delta = normalizeDegrees(delta);
+    return Math.abs(delta) <= toleranceDegrees;
   }
 
   /**
