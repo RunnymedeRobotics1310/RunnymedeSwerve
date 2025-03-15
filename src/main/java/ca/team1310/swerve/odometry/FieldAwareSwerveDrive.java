@@ -119,7 +119,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
    *
    * @param visionPoseEstimate the pose estimate from vision
    */
-  public synchronized void addVisionEstimate(VisionPoseEstimate visionPoseEstimate) {
+  public synchronized void addVisionMeasurement(VisionPoseEstimate visionPoseEstimate) {
     this.visionPoseEstimate = visionPoseEstimate;
     if (visionPoseEstimate != null) {
       if (visionPoseEstimate.getStandardDeviations() == null) {
