@@ -58,6 +58,12 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
     return gyro.getYaw();
   }
 
+  /**
+   * Get the raw yaw value from hardware, without any zeroing/offset, in degrees. Positive is
+   * CounterClockWise.
+   *
+   * @return the raw yaw of the robot, in degrees
+   */
   public synchronized double getYawRaw() {
     if (gyro == null) {
       System.out.println("Cannot get yaw, gyro is null");
