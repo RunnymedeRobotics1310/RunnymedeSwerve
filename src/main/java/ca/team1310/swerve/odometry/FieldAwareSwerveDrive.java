@@ -7,8 +7,7 @@ import ca.team1310.swerve.core.ModuleState;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
 import ca.team1310.swerve.gyro.GyroAwareSwerveDrive;
 import ca.team1310.swerve.utils.Coordinates;
-import ca.team1310.swerve.vision.PoseEstimate;
-import ca.team1310.swerve.vision.VisionPoseCallback;
+import ca.team1310.swerve.vision.VisionPoseEstimate;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -35,8 +34,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     new SwerveModulePosition(),
     new SwerveModulePosition()
   };
-  private final VisionPoseCallback visionPoseCallback;
-  private PoseEstimate visionPoseEstimate;
+  private VisionPoseEstimate visionPoseEstimate = null;
 
   private final Notifier odometryUpdater;
   private static final int UPDATE_ODOMETRY_EVERY_MILLIS = 20;
@@ -50,11 +48,9 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
    * allow the drive to use vision data for odometry.
    *
    * @param cfg the core configuration for the swerve drive
-   * @param callback the vision pose callback
    */
-  public FieldAwareSwerveDrive(CoreSwerveConfig cfg, VisionPoseCallback callback) {
+  public FieldAwareSwerveDrive(CoreSwerveConfig cfg) {
     super(cfg);
-    this.visionPoseCallback = callback == null ? new VisionPoseCallback() {} : callback;
     this.field = new Field2d();
     SmartDashboard.putData(field);
 
@@ -116,16 +112,24 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
 
     // odometry
     estimator.update(Rotation2d.fromDegrees(getYawRaw()), getSwerveModulePositions());
+  }
 
-    // vision
-    visionPoseEstimate = visionPoseCallback.getPoseEstimate(getPose(), getYaw(), getYawRate());
+  /**
+   * Take an update from Vision on pose and pass to PoseEstimator
+   *
+   * @param visionPoseEstimate the pose estimate from vision
+   */
+  public synchronized void addVisionMeasurement(VisionPoseEstimate visionPoseEstimate) {
+    this.visionPoseEstimate = visionPoseEstimate;
     if (visionPoseEstimate != null) {
       if (visionPoseEstimate.getStandardDeviations() == null) {
         estimator.addVisionMeasurement(
             visionPoseEstimate.getPose(), visionPoseEstimate.getTimestampSeconds());
       } else {
         estimator.addVisionMeasurement(
-            visionPoseEstimate.getPose(), visionPoseEstimate.getTimestampSeconds(), visionPoseEstimate.getStandardDeviations());
+            visionPoseEstimate.getPose(),
+            visionPoseEstimate.getTimestampSeconds(),
+            visionPoseEstimate.getStandardDeviations());
       }
     }
   }
