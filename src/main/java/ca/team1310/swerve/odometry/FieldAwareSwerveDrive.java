@@ -34,7 +34,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     new SwerveModulePosition(),
     new SwerveModulePosition()
   };
-  private VisionPoseEstimate visionPoseEstimate;
+  private VisionPoseEstimate visionPoseEstimate = null;
 
   private final Notifier odometryUpdater;
   private static final int UPDATE_ODOMETRY_EVERY_MILLIS = 20;
@@ -120,6 +120,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
    * @param visionPoseEstimate the pose estimate from vision
    */
   public synchronized void addVisionEstimate(VisionPoseEstimate visionPoseEstimate) {
+    this.visionPoseEstimate = visionPoseEstimate;
     if (visionPoseEstimate != null) {
       if (visionPoseEstimate.getStandardDeviations() == null) {
         estimator.addVisionMeasurement(
