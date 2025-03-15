@@ -11,7 +11,7 @@ import edu.wpi.first.math.numbers.N3;
  * @author Tony Field
  * @since 2025-02-15 13:01
  */
-public interface PoseEstimate {
+public interface VisionPoseEstimate {
   /**
    * Get the robot pose as determined by vision.
    *
