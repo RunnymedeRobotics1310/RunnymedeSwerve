@@ -33,5 +33,5 @@ public interface PoseEstimate {
    *
    * @return matrix containing standard deviations, or null if no changes have occurred
    */
-  double[] getStandardDeviations();
+  Matrix<N3, N1> getStandardDeviations();
 }
