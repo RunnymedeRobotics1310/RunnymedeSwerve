@@ -108,6 +108,8 @@ public final class SwerveTelemetry {
   /** Whether the swerve advantage scope constants have been posted to SmartDashboard */
   private boolean advantageScopeConstantsPosted = false;
 
+  public boolean hasVisPose = false;
+
   /**
    * Create and initialize a new swerve telemetry object
    *
@@ -128,6 +130,8 @@ public final class SwerveTelemetry {
 
   /** Post all telemetry data to SmartDashboard */
   public void post() {
+    SmartDashboard.putBoolean("swerve/hasVisPose", hasVisPose);
+
     if (level == INPUT || level == CALCULATED || level == VERBOSE) {
       postConstants();
       postInput();

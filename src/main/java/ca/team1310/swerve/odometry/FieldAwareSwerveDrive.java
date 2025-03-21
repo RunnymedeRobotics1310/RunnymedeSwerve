@@ -7,7 +7,6 @@ import ca.team1310.swerve.core.ModuleState;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
 import ca.team1310.swerve.gyro.GyroAwareSwerveDrive;
 import ca.team1310.swerve.utils.Coordinates;
-import ca.team1310.swerve.vision.VisionPoseEstimate;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -34,7 +33,6 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     new SwerveModulePosition(),
     new SwerveModulePosition()
   };
-  private VisionPoseEstimate visionPoseEstimate = null;
 
   private final Notifier odometryUpdater;
   private static final int UPDATE_ODOMETRY_EVERY_MILLIS = 20;
@@ -104,7 +102,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     return modulePosition;
   }
 
-  private synchronized void updateOdometry() {
+  protected synchronized void updateOdometry() {
     if (this.estimator == null) {
       System.out.println("Cannot update odometry - estimator is null");
       return;
@@ -114,24 +112,8 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     estimator.update(Rotation2d.fromDegrees(getYawRaw()), getSwerveModulePositions());
   }
 
-  /**
-   * Take an update from Vision on pose and pass to PoseEstimator
-   *
-   * @param visionPoseEstimate the pose estimate from vision
-   */
-  public synchronized void addVisionMeasurement(VisionPoseEstimate visionPoseEstimate) {
-    this.visionPoseEstimate = visionPoseEstimate;
-    if (visionPoseEstimate != null) {
-      if (visionPoseEstimate.getStandardDeviations() == null) {
-        estimator.addVisionMeasurement(
-            visionPoseEstimate.getPose(), visionPoseEstimate.getTimestampSeconds());
-      } else {
-        estimator.addVisionMeasurement(
-            visionPoseEstimate.getPose(),
-            visionPoseEstimate.getTimestampSeconds(),
-            visionPoseEstimate.getStandardDeviations());
-      }
-    }
+  protected SwerveDrivePoseEstimator getPoseEstimator() {
+    return estimator;
   }
 
   @Override
@@ -172,16 +154,6 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
         telemetry.poseMetresX = pose.getTranslation().getX();
         telemetry.poseMetresY = pose.getTranslation().getY();
         telemetry.poseHeadingDegrees = pose.getRotation().getDegrees();
-
-        if (visionPoseEstimate != null) {
-          telemetry.visionPoseX = visionPoseEstimate.getPose().getX();
-          telemetry.visionPoseY = visionPoseEstimate.getPose().getY();
-          telemetry.visionPoseHeading = visionPoseEstimate.getPose().getRotation().getDegrees();
-        } else {
-          telemetry.visionPoseX = 0;
-          telemetry.visionPoseY = 0;
-          telemetry.visionPoseHeading = 0;
-        }
       }
 
       var states = getModuleStates();
