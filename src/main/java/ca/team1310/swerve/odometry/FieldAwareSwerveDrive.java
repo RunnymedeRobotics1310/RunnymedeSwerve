@@ -102,6 +102,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     return modulePosition;
   }
 
+  /** Update the odometry of the swerve drive. */
   protected synchronized void updateOdometry() {
     if (this.estimator == null) {
       System.out.println("Cannot update odometry - estimator is null");
@@ -112,6 +113,11 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     estimator.update(Rotation2d.fromDegrees(getYawRaw()), getSwerveModulePositions());
   }
 
+  /**
+   * Get the pose estimator for the swerve drive.
+   *
+   * @return the pose estimator
+   */
   protected SwerveDrivePoseEstimator getPoseEstimator() {
     return estimator;
   }

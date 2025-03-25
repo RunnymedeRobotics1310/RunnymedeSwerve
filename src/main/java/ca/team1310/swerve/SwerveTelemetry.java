@@ -108,6 +108,7 @@ public final class SwerveTelemetry {
   /** Whether the swerve advantage scope constants have been posted to SmartDashboard */
   private boolean advantageScopeConstantsPosted = false;
 
+  /** Whether the robot has a visual pose */
   public boolean hasVisPose = false;
 
   /**

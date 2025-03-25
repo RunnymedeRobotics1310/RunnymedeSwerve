@@ -13,6 +13,10 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.networktables.*;
 
+/**
+ * A swerve drive that is aware of the Limelight vision system. This drive will use the Limelight to
+ * update the robot's pose estimator with vision data.
+ */
 public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
 
   private static final int OFFSET_POSE_X = 0;
@@ -36,6 +40,14 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
   // Data for telemetry publishing
   private Pose2d visPose = null;
 
+  /**
+   * Create a new Limelight-aware swerve drive.
+   *
+   * @param config the core configuration for the swerve drive
+   * @param limelightName the name of the limelight to use
+   * @param fieldExtentX the extent of the field in the X direction
+   * @param fieldExtentY the extent of the field in the Y direction
+   */
   public LimelightAwareSwerveDrive(
       CoreSwerveConfig config, String limelightName, double fieldExtentX, double fieldExtentY) {
     super(config);
@@ -63,7 +75,7 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
     long timestampMicros = megaTagAtomic.timestamp;
 
     // Check for valid data
-    if (megaTagData != null && megaTagData.length >= 11) {
+    if (megaTagData != null && megaTagData.length >= 12) {
 
       // Extract the pose data & latency
       Pose2d botPose =
@@ -74,10 +86,10 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
       double totalLatencyMillis = megaTagData[OFFSET_TOTAL_LATENCY];
 
       // Ensure pose is on field
-      if (botPose.getX() >= 0
-          && botPose.getY() >= 0
-          && botPose.getX() <= fieldExtentX
-          && botPose.getY() <= fieldExtentY) {
+      if (botPose.getX() > 0
+          && botPose.getY() > 0
+          && botPose.getX() < fieldExtentX
+          && botPose.getY() < fieldExtentY) {
 
         // Good data, let's update the pose estimator
         double latencySeconds = (timestampMicros / 1000000.0) - (totalLatencyMillis / 1000.0);
