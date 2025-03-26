@@ -36,7 +36,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
     this.maxSpeedMps = maxAttainableModuleSpeedMps;
     SparkFlexConfig config = new SparkFlexConfig();
     config.inverted(cfg.inverted());
-    config.idleMode(SparkBaseConfig.IdleMode.kBrake);
+    config.idleMode(SparkBaseConfig.IdleMode.kCoast);
     config.voltageCompensation(cfg.nominalVoltage());
     config.smartCurrentLimit(cfg.currentLimitAmps());
     config.closedLoopRampRate(cfg.rampRateSecondsZeroToFull());
