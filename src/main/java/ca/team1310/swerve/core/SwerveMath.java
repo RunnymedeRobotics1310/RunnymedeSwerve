@@ -463,6 +463,11 @@ public class SwerveMath {
    *     the update period
    */
   public static double[] discretize(double vx, double vy, double w, double dt) {
+    return discretize_OP(vx, vy, w, dt);
+    //    return discretize_WPILIB(vx, vy, w, dt);
+  }
+
+  private static double[] discretize_OP(double vx, double vy, double w, double dt) {
 
     // The following implementation is a port of OP's own implementation of the discretize function.
     // It is an approximation that requires much less calculation than WPILIB's
@@ -504,37 +509,23 @@ public class SwerveMath {
     return output;
   }
 
-  private static class XYVector {
-    double x;
-    double y;
-    double magnitude;
-    double angleRadians;
+  private static double[] discretize_WPILIB(double vx, double vy, double w, double dt) {
+    // This is a port of the WPILib implementation of discretize
 
-    XYVector(double x, double y) {
-      this.x = x;
-      this.y = y;
-      magnitude = Math.hypot(x, y);
-      angleRadians = Math.atan2(y, x);
-    }
+    // Construct the desired pose after a timestep, relative to the current pose. The desired pose
+    // has decoupled translation and rotation.
+    Pose2d desiredDeltaPose = new Pose2d(vx * dt, vy * dt, w * dt);
 
-    void add(XYVector v) {
-      x += v.x;
-      y += v.y;
-      angleRadians = Math.atan2(y, x);
-      magnitude = Math.hypot(x, y);
-    }
+    // Find the chassis translation/rotation deltas in the robot frame that move the robot from its
+    // current pose to the desired pose
+    Twist2d twist = Pose2d.ZERO.log(desiredDeltaPose);
 
-    void rotate(double radians) {
-      angleRadians += radians;
-      x = magnitude * Math.cos(angleRadians);
-      y = magnitude * Math.sin(angleRadians);
-    }
-
-    void scale(double factor) {
-      x *= factor;
-      y *= factor;
-      magnitude = Math.hypot(x, y);
-    }
+    // Turn the chassis translation/rotation deltas into average velocities
+    double[] output = new double[3];
+    output[0] = twist.dx / dt;
+    output[1] = twist.dy / dt;
+    output[2] = twist.dtheta / dt;
+    return output;
   }
 
   /**
@@ -741,5 +732,259 @@ public class SwerveMath {
     double x = right_vert - w * trackWidthOverFrameDiagonal;
 
     return new double[] {x, y, w};
+  }
+
+  private static class Translation2d {
+    final double x;
+    final double y;
+
+    Translation2d(double x, double y) {
+      this.x = x;
+      this.y = y;
+    }
+
+    Translation2d plus(Translation2d other) {
+      return new Translation2d(x + other.x, y + other.y);
+    }
+
+    Translation2d minus(Translation2d other) {
+      return new Translation2d(x - other.x, y - other.y);
+    }
+
+    Translation2d rotate(Rotation2d other) {
+      return new Translation2d(x * other.cos - y * other.sin, x * other.sin + y * other.cos);
+    }
+
+    Translation2d times(double scalar) {
+      return new Translation2d(x * scalar, y * scalar);
+    }
+  }
+
+  private static class Rotation2d {
+    final double radians;
+    final double cos;
+    final double sin;
+
+    Rotation2d(double radians) {
+      this.radians = radians;
+      cos = Math.cos(radians);
+      sin = Math.sin(radians);
+    }
+
+    Rotation2d(double x, double y) {
+      double magnitude = Math.hypot(x, y);
+      if (magnitude > 1e-6) {
+        cos = x / magnitude;
+        sin = y / magnitude;
+      } else {
+        cos = 1.0;
+        sin = 0.0;
+      }
+      radians = Math.atan2(sin, cos);
+    }
+
+    Rotation2d unaryMinus() {
+      return new Rotation2d(-radians);
+    }
+
+    Rotation2d rotate(Rotation2d other) {
+      return new Rotation2d(cos * other.cos - sin * other.sin, cos * other.sin + sin * other.cos);
+    }
+
+    Rotation2d minus(Rotation2d other) {
+      return rotate(other.unaryMinus());
+    }
+
+    Rotation2d plus(Rotation2d other) {
+      return rotate(other);
+    }
+  }
+
+  private static class Pose2d {
+    static final Pose2d ZERO = new Pose2d(0, 0, 0);
+    final Translation2d translation;
+    final Rotation2d rotation;
+
+    Pose2d(Translation2d translation, Rotation2d rotation) {
+      this.translation = translation;
+      this.rotation = rotation;
+    }
+
+    Pose2d(double x, double y, double radians) {
+      this.translation = new Translation2d(x, y);
+      this.rotation = new Rotation2d(radians);
+    }
+
+    /**
+     * Transforms the pose by the given transformation and returns the new pose. See + operator for
+     * the matrix multiplication performed.
+     *
+     * @param other The transform to transform the pose by.
+     * @return The transformed pose.
+     */
+    Pose2d transformBy(Transform2d other) {
+      return new Pose2d(
+          translation.plus(other.translation.rotate(rotation)), other.rotation.plus(rotation));
+    }
+
+    /**
+     * Returns the current pose relative to the given pose.
+     *
+     * <p>This function can often be used for trajectory tracking or pose stabilization algorithms
+     * to get the error between the reference and the current pose.
+     *
+     * @param other The pose that is the origin of the new coordinate frame that the current pose
+     *     will be converted into.
+     * @return The current pose relative to the new origin pose.
+     */
+    Pose2d relativeTo(Pose2d other) {
+      var transform = new Transform2d(other, this);
+      return new Pose2d(transform.translation, transform.rotation);
+    }
+
+    /**
+     * Transforms the pose by the given transformation and returns the new transformed pose.
+     *
+     * <pre>
+     * [x_new]    [cos, -sin, 0][transform.x]
+     * [y_new] += [sin,  cos, 0][transform.y]
+     * [t_new]    [  0,    0, 1][transform.t]
+     * </pre>
+     *
+     * @param other The transform to transform the pose by.
+     * @return The transformed pose.
+     */
+    Pose2d plus(Transform2d other) {
+      return transformBy(other);
+    }
+
+    /**
+     * Obtain a new Pose2d from a (constant curvature) velocity.
+     *
+     * <p>See <a href="https://file.tavsys.net/control/controls-engineering-in-frc.pdf">Controls
+     * Engineering in the FIRST Robotics Competition</a> section 10.2 "Pose exponential" for a
+     * derivation.
+     *
+     * <p>The twist is a change in pose in the robot's coordinate frame since the previous pose
+     * update. When the user runs exp() on the previous known field-relative pose with the argument
+     * being the twist, the user will receive the new field-relative pose.
+     *
+     * <p>"Exp" represents the pose exponential, which is solving a differential equation moving the
+     * pose forward in time.
+     *
+     * @param twist The change in pose in the robot's coordinate frame since the previous pose
+     *     update. For example, if a non-holonomic robot moves forward 0.01 meters and changes angle
+     *     by 0.5 degrees since the previous pose update, the twist would be Twist2d(0.01, 0.0,
+     *     Units.degreesToRadians(0.5)).
+     * @return The new pose of the robot.
+     */
+    Pose2d exp(Twist2d twist) {
+      double dx = twist.dx;
+      double dy = twist.dy;
+      double dtheta = twist.dtheta;
+
+      double sinTheta = Math.sin(dtheta);
+      double cosTheta = Math.cos(dtheta);
+
+      double s;
+      double c;
+      if (Math.abs(dtheta) < 1E-9) {
+        s = 1.0 - 1.0 / 6.0 * dtheta * dtheta;
+        c = 0.5 * dtheta;
+      } else {
+        s = sinTheta / dtheta;
+        c = (1 - cosTheta) / dtheta;
+      }
+      var transform =
+          new Transform2d(
+              new Translation2d(dx * s - dy * c, dx * c + dy * s),
+              new Rotation2d(cosTheta, sinTheta));
+
+      return this.plus(transform);
+    }
+
+    /**
+     * Returns a Twist2d that maps this pose to the end pose.
+     *
+     * <p>If c is the output of {@code a.Log(b)}, then {@code a.Exp(c)} would yield b.
+     *
+     * @param end The end pose for the transformation.
+     * @return The twist that maps this to end.
+     */
+    Twist2d log(Pose2d end) {
+      final var transform = end.relativeTo(this);
+      final var dtheta = transform.rotation.radians;
+      final var halfDtheta = dtheta / 2.0;
+      final var cosMinusOne = transform.rotation.cos - 1.0;
+      final var halfThetaByTanOfHalfDtheta =
+          (Math.abs(cosMinusOne) < 1E-9)
+              ? 1.0 - 1.0 / 12.0 * dtheta * dtheta
+              : -(halfDtheta * transform.rotation.sin) / cosMinusOne;
+      final Translation2d translationPart =
+          transform
+              .translation
+              .rotate(new Rotation2d(halfThetaByTanOfHalfDtheta, -halfDtheta))
+              .times(Math.hypot(halfThetaByTanOfHalfDtheta, halfDtheta));
+      return new Twist2d(translationPart.x, translationPart.y, dtheta);
+    }
+  }
+
+  private static class Twist2d {
+    final double dx, dy, dtheta;
+
+    Twist2d(double dx, double dy, double dtheta) {
+      this.dx = dx;
+      this.dy = dy;
+      this.dtheta = dtheta;
+    }
+  }
+
+  private static class Transform2d {
+    final Translation2d translation;
+    final Rotation2d rotation;
+
+    Transform2d(Translation2d translation, Rotation2d rotation) {
+      this.translation = translation;
+      this.rotation = rotation;
+    }
+
+    Transform2d(Pose2d initial, Pose2d last) {
+      translation =
+          last.translation.minus(initial.translation).rotate(initial.rotation.unaryMinus());
+      rotation = last.rotation.minus(initial.rotation);
+    }
+  }
+
+  private static class XYVector {
+    double x;
+    double y;
+    double magnitude;
+    double angleRadians;
+
+    XYVector(double x, double y) {
+      this.x = x;
+      this.y = y;
+      magnitude = Math.hypot(x, y);
+      angleRadians = Math.atan2(y, x);
+    }
+
+    void add(XYVector v) {
+      x += v.x;
+      y += v.y;
+      angleRadians = Math.atan2(y, x);
+      magnitude = Math.hypot(x, y);
+    }
+
+    void rotate(double radians) {
+      angleRadians += radians;
+      x = magnitude * Math.cos(angleRadians);
+      y = magnitude * Math.sin(angleRadians);
+    }
+
+    void scale(double factor) {
+      x *= factor;
+      y *= factor;
+      magnitude = Math.hypot(x, y);
+    }
   }
 }
