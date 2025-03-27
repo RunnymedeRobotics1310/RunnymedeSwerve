@@ -331,9 +331,10 @@ public class SwerveMath {
     double bls = Math.hypot(rear_horiz, left_vert);
     double brs = Math.hypot(rear_horiz, right_vert);
 
-    // normalize wheel speeds (cannot go faster than 1.0)
+    // desaturate wheel speeds (cannot go faster than 1.0)
     double max = Math.max(frs, Math.max(fls, Math.max(bls, brs)));
     if (max > 1.0) {
+      System.out.println("Desaturating wheel speeds - max: " + max);
       frs /= max;
       fls /= max;
       bls /= max;
