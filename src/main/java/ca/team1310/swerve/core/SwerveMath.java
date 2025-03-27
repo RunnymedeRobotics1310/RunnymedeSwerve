@@ -44,6 +44,22 @@ package ca.team1310.swerve.core;
  *     s: 4, a: 5 ------ s: 6, a: 7
  * </code>
  *
+ * <p>There are 4 corrections that typically need to be applied to swerve drive code, as far as we
+ * know:
+ *
+ * <ol>
+ *   <li>optimize wheel angles - if a wheel needs to turn more than 180 degrees, reverse it and turn
+ *       the other way
+ *   <li>desaturate wheel speeds - after computing module velocities, ensure that a motor is not
+ *       being asked to turn faster than it can go
+ *   <li>cosine compensator - if a wheel is pointing in a direction that is not the direction it
+ *       needs to be at that instant, give it less power so that the robot doesn't go off the
+ *       planned trajectory
+ *   <li>discretize - compensate for the fact that the robot will drive off the desired path during
+ *       the interval between one set of instructions and the next set of instructions - made
+ *       increasingly important based on the update interval
+ * </ol>
+ *
  * @author Tony Field
  * @author Quentin Field
  * @since 2025-02-01 19:20
@@ -331,7 +347,7 @@ public class SwerveMath {
     double bls = Math.hypot(rear_horiz, left_vert);
     double brs = Math.hypot(rear_horiz, right_vert);
 
-    // desaturate wheel speeds (cannot go faster than 1.0)
+    // Correction #2 - desaturate wheel speeds
     double max = Math.max(frs, Math.max(fls, Math.max(bls, brs)));
     if (max > 1.0) {
       System.out.println("Desaturating wheel speeds - max: " + max);
