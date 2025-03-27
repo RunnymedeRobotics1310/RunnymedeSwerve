@@ -142,8 +142,23 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
   }
 
   public final synchronized void drive(double x, double y, double w) {
+
+    // if below minimum speed just stop rotating
     w = Math.abs(w) < MINIMUM_OMEGA_VALUE_RAD_PER_SEC ? 0 : w;
+
+    // discretize
     double[] discretized = SwerveMath.discretize(x, y, w, robotPeriodSeconds);
+
+    // TODO: explore what the drive() input param robotYComp is in OP's code. It looks like this:
+    //    if (robotYComp != 0) {
+    //      robotYComp -= vy;
+    //    }
+    //    if (vx < 0) {
+    //      robotYComp = 0;
+    //    }
+    //    vy += robotYComp;
+
+    // set desired speeds
     desiredVx = discretized[0];
     desiredVy = discretized[1];
     desiredOmega = discretized[2];

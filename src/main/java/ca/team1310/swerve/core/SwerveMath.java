@@ -433,8 +433,8 @@ public class SwerveMath {
    * direction of travel that can occur when modules change directions. This results in smoother
    * driving.
    *
-   * @param desiredState
-   * @param currentHeadingDeg
+   * @param desiredState The input module directive - altered in place
+   * @param currentHeadingDeg the current heading of the module.
    */
   public static void cosineCompensator(ModuleDirective desiredState, double currentHeadingDeg) {
     double angleError = desiredState.getAngle() - currentHeadingDeg;
@@ -463,8 +463,78 @@ public class SwerveMath {
    *     the update period
    */
   public static double[] discretize(double vx, double vy, double w, double dt) {
-    return new double[] {vx, vy, w}; // todo: implement discretize - consider
-    // https://github.com/tfield/OPPublicCodeBank/blob/849c1c6b43f04b4ef59483044885ef77d0a48b9c/src/main/cpp/Subsystems/OPRDriveBase.cpp#L261
+
+    // The following implementation is a port of OP's own implementation of the discretize function.
+    // It is an approximation that requires much less calculation than WPILIB's
+    // ChassisSpeeds.discretize().  However, it has some magical constants that need to be
+    // understood.
+    //
+    // It adding a normal (perpendicular) vector of a calculated magnitude to the<code>vx,vy</code>
+    // velocity vector with a very specially calculated magnitude.
+
+    XYVector input = new XYVector(vx, vy);
+
+    // set up the normal (perpendicular) vector
+    XYVector normal = new XYVector(vx, vy);
+    normal.rotate(-Math.PI / 2);
+
+    // scale it to a very special value
+    // todo: understand these scale factors.
+    // What about dt - can we use this?
+    // Orig units were inches - does this matter?
+    // Why are there three separate scale factors?
+    double transScale = 0.5;
+    double rotScale = 1.0;
+    double normalScale = 0.65;
+    double normalMagnitude = normalScale * ((transScale * input.magnitude) * (rotScale * w));
+    normal.scale(normalMagnitude);
+
+    // add it to the result
+    XYVector corrected = new XYVector(vx, vy);
+    corrected.add(normal);
+
+    // scale it back to the original speed
+    corrected.scale(input.magnitude);
+
+    // package and return
+    double[] output = new double[3];
+    output[0] = corrected.x;
+    output[1] = corrected.y;
+    output[2] = w;
+    return output;
+  }
+
+  private static class XYVector {
+    double x;
+    double y;
+    double magnitude;
+    double angleRadians;
+
+    XYVector(double x, double y) {
+      this.x = x;
+      this.y = y;
+      magnitude = Math.hypot(x, y);
+      angleRadians = Math.atan2(y, x);
+    }
+
+    void add(XYVector v) {
+      x += v.x;
+      y += v.y;
+      angleRadians = Math.atan2(y, x);
+      magnitude = Math.hypot(x, y);
+    }
+
+    void rotate(double radians) {
+      angleRadians += radians;
+      x = magnitude * Math.cos(angleRadians);
+      y = magnitude * Math.sin(angleRadians);
+    }
+
+    void scale(double factor) {
+      x *= factor;
+      y *= factor;
+      magnitude = Math.hypot(x, y);
+    }
   }
 
   /**
