@@ -7,7 +7,6 @@ import ca.team1310.swerve.core.hardware.rev.neospark.NSFDriveMotor;
 import ca.team1310.swerve.core.hardware.rev.neospark.NSMAngleMotor;
 import ca.team1310.swerve.core.hardware.rev.neospark.NSMDriveMotor;
 import ca.team1310.swerve.utils.Coordinates;
-import ca.team1310.swerve.utils.SwerveUtils;
 import edu.wpi.first.wpilibj.Notifier;
 
 class SwerveModuleImpl implements SwerveModule {
@@ -106,40 +105,10 @@ class SwerveModuleImpl implements SwerveModule {
   public synchronized void setDesiredState(ModuleDirective desiredState) {
     this.desiredState = desiredState;
 
-    /*
-     * Optimize the reference state to avoid spinning further than 90 degrees
-     *
-     * Start by figuring out if the module is currently within 90 degrees of the desired angle.
-     * Then if it is, flip the heading and reverse the motor
-     */
     double currentHeadingDeg = angleMotor.getPosition();
-    double angleError = Math.abs(desiredState.getAngle() - currentHeadingDeg);
-    if (angleError > 90 && angleError < 270) {
-      double optimal =
-          currentHeadingDeg < 0 ? desiredState.getAngle() + 180 : desiredState.getAngle() - 180;
-      optimal = SwerveUtils.normalizeDegrees(optimal);
-      desiredState.set(-desiredState.getSpeed(), optimal);
-    }
+    SwerveMath.optimizeWheelAngles(desiredState, currentHeadingDeg);
+    SwerveMath.cosineCompensator(desiredState, currentHeadingDeg);
 
-    /*
-     * Scale down speed when wheels aren't facing the right direction
-     *
-     * If the angle error is close to 0 degrees, we are aligned properly, so we can apply
-     * full power to drive wheels. If the angle error is close to 90 degrees, driving in
-     * any direction does not help.
-     *
-     * Scale speed by cosine of angle error. This scales down movement perpendicular to the
-     * desired direction of travel that can occur when modules change directions. This results
-     * in smoother driving.
-     */
-    angleError = desiredState.getAngle() - currentHeadingDeg;
-    double cosineScalar = Math.cos(Math.toRadians(angleError));
-    desiredState.set(
-        desiredState.getSpeed() * (cosineScalar < 0 ? 0 : cosineScalar), desiredState.getAngle());
-
-    /*
-     * Set the reference velocity and angle for the motors
-     */
     driveMotor.setReferenceVelocity(desiredState.getSpeed());
     angleMotor.setReferenceAngle(desiredState.getAngle());
   }

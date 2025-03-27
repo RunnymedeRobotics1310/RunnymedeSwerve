@@ -1,5 +1,6 @@
 package ca.team1310.swerve.utils;
 
+import ca.team1310.swerve.core.SwerveMath;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -17,15 +18,7 @@ public final class SwerveUtils {
    * @return a value between -180 and 180
    */
   public static double normalizeDegrees(double degrees) {
-    // reduce the angle
-    degrees = degrees % 360;
-
-    // force it to be the positive remainder, so that 0 <= angle < 360
-    degrees = (degrees + 360) % 360;
-
-    // force into the minimum absolute value residue class, so that -180 < angle <= 180
-    if (degrees > 180) degrees -= 360;
-    return degrees;
+    return SwerveMath.normalizeDegrees(degrees);
   }
 
   /**

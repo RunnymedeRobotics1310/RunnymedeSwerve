@@ -403,6 +403,71 @@ public class SwerveMath {
   }
 
   /**
+   * Correction #1 - Optimize wheel angles. If a wheel needs to pivot more than 180 degrees, reverse
+   * it and turn the other way.
+   *
+   * @param desiredState The desired module state - note - altered in place
+   * @param currentWheelAngleDegrees The current angle of the wheel, in degrees.
+   */
+  public static void optimizeWheelAngles(
+      ModuleDirective desiredState, double currentWheelAngleDegrees) {
+    double angleError = Math.abs(desiredState.getAngle() - currentWheelAngleDegrees);
+    if (angleError > 90 && angleError < 270) {
+      double optimal =
+          currentWheelAngleDegrees < 0
+              ? desiredState.getAngle() + 180
+              : desiredState.getAngle() - 180;
+      optimal = normalizeDegrees(optimal);
+      desiredState.set(-desiredState.getSpeed(), optimal);
+    }
+  }
+
+  /**
+   * Correction #3 - Cosine Compensator. Slow down wheels that aren't facing the right direction.
+   *
+   * <p>If the angle error is close to 0 degrees, we are aligned properly, so we can apply full
+   * power to drive wheels. If the angle error is close to 90 degrees, driving in any direction does
+   * not help.
+   *
+   * <p>Scale speed by cosine of angle error. This scales down movement perpendicular to the desired
+   * direction of travel that can occur when modules change directions. This results in smoother
+   * driving.
+   *
+   * @param desiredState
+   * @param currentHeadingDeg
+   */
+  public static void cosineCompensator(ModuleDirective desiredState, double currentHeadingDeg) {
+    double angleError = desiredState.getAngle() - currentHeadingDeg;
+    double cosineScalar = Math.cos(Math.toRadians(angleError));
+    desiredState.set(
+        desiredState.getSpeed() * (cosineScalar < 0 ? 0 : cosineScalar), desiredState.getAngle());
+  }
+
+  /**
+   * Correction #4 - Discretize. Compensate for the fact that the robot will drive off the desired
+   * path during the interval between one set of instructions and the next set of instructions.
+   *
+   * <p>See <a
+   * href="https://www.chiefdelphi.com/t/looking-for-an-explanation-of-chassisspeeds-discretize/462069">explanation
+   * here</a>.
+   *
+   * <p>Basically, change the translation vector so that it points wo where the robot should be at
+   * the start of the next timestep, not where it should be at the given instant this is called.
+   *
+   * @param vx the speed in the x direction - units don't matter
+   * @param vy the speed in the y direction - units don't matter
+   * @param w the speed of rotation - radians per second
+   * @param dt the time interval to the next time direction is calculated (typically the robot
+   *     period) - in seconds
+   * @return an array consisting of vx, vy, w in the same units above, but optimized to account for
+   *     the update period
+   */
+  public static double[] discretize(double vx, double vy, double w, double dt) {
+    return new double[] {vx, vy, w}; // todo: implement discretize - consider
+    // https://github.com/tfield/OPPublicCodeBank/blob/849c1c6b43f04b4ef59483044885ef77d0a48b9c/src/main/cpp/Subsystems/OPRDriveBase.cpp#L261
+  }
+
+  /**
    * Convert a vector from field-oriented to robot-oriented coordinates.
    *
    * @param fieldOrientedX the x component of the vector (forward is positive, units don't matter)
@@ -448,6 +513,24 @@ public class SwerveMath {
     result[0] = x * cos - y * sin;
     result[1] = x * sin + y * cos;
     return result;
+  }
+
+  /**
+   * Normalize the degrees measurement to between -180 and 180
+   *
+   * @param degrees input degrees any size
+   * @return a value between -180 and 180
+   */
+  public static double normalizeDegrees(double degrees) {
+    // reduce the angle
+    degrees = degrees % 360;
+
+    // force it to be the positive remainder, so that 0 <= angle < 360
+    degrees = (degrees + 360) % 360;
+
+    // force into the minimum absolute value residue class, so that -180 < angle <= 180
+    if (degrees > 180) degrees -= 360;
+    return degrees;
   }
 
   /**
