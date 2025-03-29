@@ -33,4 +33,11 @@ public interface AngleMotor {
    *     positive)
    */
   void setEncoderPosition(double actualAngleDegrees);
+
+  /**
+   * Are there any active faults on this motor
+   *
+   * @return true if there are active faults
+   */
+  boolean hasFaults();
 }

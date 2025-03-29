@@ -5,6 +5,7 @@ import static ca.team1310.swerve.utils.SwerveUtils.normalizeDegrees;
 import ca.team1310.swerve.gyro.Gyro;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
+import edu.wpi.first.wpilibj.Alert;
 
 /** A gyro that uses the NavX MXP to get the robot's orientation. */
 public class MXPNavX implements Gyro {
@@ -14,6 +15,9 @@ public class MXPNavX implements Gyro {
   private double rollOffset;
   private double pitchOffset;
   private double yawOffset;
+
+  private final Alert navxNotPresent =
+      new Alert("NaxV Not Detected.  Odometry will be wrong!", Alert.AlertType.kError);
 
   /** Create a new MXPNavX gyro */
   public MXPNavX() {
@@ -27,7 +31,7 @@ public class MXPNavX implements Gyro {
 
   @Override
   public void setYaw(double yaw) {
-    yawOffset = (-navx.getYaw())-yaw;
+    yawOffset = (-navx.getYaw()) - yaw;
   }
 
   @Override
@@ -59,5 +63,11 @@ public class MXPNavX implements Gyro {
   @Override
   public double getYawRate() {
     return navx.getRate();
+  }
+
+  public boolean isConnected() {
+    boolean connected = navx.isConnected();
+    navxNotPresent.set(!connected);
+    return connected;
   }
 }

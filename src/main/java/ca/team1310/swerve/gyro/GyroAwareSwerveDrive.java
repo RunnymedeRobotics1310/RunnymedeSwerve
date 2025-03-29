@@ -2,6 +2,7 @@ package ca.team1310.swerve.gyro;
 
 import static ca.team1310.swerve.SwerveTelemetry.PREFIX;
 
+import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.CoreSwerveDrive;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
 import ca.team1310.swerve.gyro.hardware.MXPNavX;
@@ -75,6 +76,13 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
   @Override
   public synchronized double getYawRate() {
     return gyro.getYawRate();
+  }
+
+  @Override
+  public synchronized void updateTelemetry(SwerveTelemetry telemetry) {
+    gyro.isConnected();
+
+    super.updateTelemetry(telemetry);
   }
 
   @Override

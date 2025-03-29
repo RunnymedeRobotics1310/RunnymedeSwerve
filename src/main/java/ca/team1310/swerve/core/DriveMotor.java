@@ -32,4 +32,11 @@ public interface DriveMotor {
    * @return the output power of the motor
    */
   double getMeasuredVoltage();
+
+  /**
+   * Are there any active faults on this motor
+   *
+   * @return true if there are active faults
+   */
+  boolean hasFaults();
 }

@@ -59,4 +59,13 @@ public abstract class NSBase<T extends SparkBase> {
     }
     DriverStation.reportWarning("Failure communicating with motor " + spark.getDeviceId(), true);
   }
+
+  /**
+   * Are there any active faults on this motor
+   *
+   * @return true if there are active faults
+   */
+  public boolean hasFaults() {
+    return spark.hasActiveFault();
+  }
 }
