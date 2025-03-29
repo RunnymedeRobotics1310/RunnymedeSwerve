@@ -11,4 +11,11 @@ public interface AbsoluteAngleEncoder {
    * @return The absolute location of the encoder in degrees, from 0 to 360. Returns -1 on error.
    */
   double getPosition();
+
+  /**
+   * Are there any active faults on this motor
+   *
+   * @return true if there are active faults
+   */
+  boolean hasFaults();
 }
