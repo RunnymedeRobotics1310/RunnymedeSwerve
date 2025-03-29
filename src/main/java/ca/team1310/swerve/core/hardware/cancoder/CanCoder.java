@@ -83,7 +83,7 @@ public class CanCoder implements AbsoluteAngleEncoder {
         new Alert(
             "Encoders",
             "CANCoder " + encoder.getDeviceID() + " reading was faulty.",
-            Alert.AlertType.kWarning);
+            Alert.AlertType.kError);
     readingIgnored =
         new Alert(
             "Encoders",

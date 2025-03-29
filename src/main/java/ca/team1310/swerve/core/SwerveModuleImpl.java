@@ -7,6 +7,7 @@ import ca.team1310.swerve.core.hardware.rev.neospark.NSFDriveMotor;
 import ca.team1310.swerve.core.hardware.rev.neospark.NSMAngleMotor;
 import ca.team1310.swerve.core.hardware.rev.neospark.NSMDriveMotor;
 import ca.team1310.swerve.utils.Coordinates;
+import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Notifier;
 
 class SwerveModuleImpl implements SwerveModule {
@@ -22,6 +23,9 @@ class SwerveModuleImpl implements SwerveModule {
   private final ModuleState measuredState = new ModuleState();
   private final Notifier encoderSynchronizer = new Notifier(this::syncAngleEncoder);
 
+  private final Alert driveMotorFaultPresent;
+  private final Alert angleMotorFaultPresent;
+
   SwerveModuleImpl(ModuleConfig cfg, double maxAttainableModuleSpeedMps, int robotPeriodMillis) {
     this.name = cfg.name();
     this.location = cfg.location();
@@ -31,6 +35,11 @@ class SwerveModuleImpl implements SwerveModule {
     this.angleEncoder = getAbsoluteAngleEncoder(cfg);
     encoderSynchronizer.setName("RunnymedeSwerve Angle Encoder Sync " + name);
     encoderSynchronizer.startPeriodic(ANGLE_ENCODER_SYNC_PERIOD_SECONDS);
+
+    driveMotorFaultPresent =
+        new Alert("Swerve Drive Motor [" + name + "] Fault Present", Alert.AlertType.kError);
+    angleMotorFaultPresent =
+        new Alert("Swerve Angle Motor [" + name + "] Fault Present", Alert.AlertType.kError);
   }
 
   @Override
@@ -111,5 +120,20 @@ class SwerveModuleImpl implements SwerveModule {
 
     driveMotor.setReferenceVelocity(desiredState.getSpeed());
     angleMotor.setReferenceAngle(desiredState.getAngle());
+  }
+
+  /**
+   * Check for active faults, manage alerts for them, and return status.
+   *
+   * @return true if there are active faults
+   */
+  public boolean checkFaults() {
+    boolean driveFaults = driveMotor.hasFaults();
+    boolean angleFaults = angleMotor.hasFaults();
+
+    driveMotorFaultPresent.set(driveFaults);
+    angleMotorFaultPresent.set(angleFaults);
+
+    return driveFaults | angleFaults;
   }
 }

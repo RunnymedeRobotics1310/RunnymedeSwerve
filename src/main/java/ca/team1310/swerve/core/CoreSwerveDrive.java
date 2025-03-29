@@ -197,10 +197,6 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     this.modules[1].readState(odometry, telemetry);
     this.modules[2].readState(odometry, telemetry);
     this.modules[3].readState(odometry, telemetry);
-
-    if (telemetry) {
-      updateTelemetry(this.telemetry);
-    }
   }
 
   /**
@@ -305,6 +301,8 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     }
 
     for (int i = 0; i < modules.length; i++) {
+      modules[i].checkFaults();
+
       ModuleState state = modules[i].getState();
 
       if (telemetry.level == INPUT || telemetry.level == CALCULATED || telemetry.level == VERBOSE) {

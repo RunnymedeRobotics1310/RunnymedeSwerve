@@ -38,7 +38,8 @@ public interface Gyro extends NTSendable {
   double getYaw();
 
   /**
-   * Get the raw yaw value from hardware, without any zeroing/offset, in degrees. Positive is CounterClockWise.
+   * Get the raw yaw value from hardware, without any zeroing/offset, in degrees. Positive is
+   * CounterClockWise.
    *
    * @return the raw yaw of the robot, in degrees
    */
@@ -50,6 +51,13 @@ public interface Gyro extends NTSendable {
    * @return the rate of rotation of the yaw of the robot, in degrees per second
    */
   double getYawRate();
+
+  /**
+   * Return if the Gyro is connected or not
+   *
+   * @return true if connected
+   */
+  boolean isConnected();
 
   @Override
   default void initSendable(NTSendableBuilder builder) {

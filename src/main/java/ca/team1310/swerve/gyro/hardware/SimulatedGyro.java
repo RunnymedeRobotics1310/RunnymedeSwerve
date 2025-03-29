@@ -26,7 +26,9 @@ public class SimulatedGyro implements Gyro {
     return this.yawRate;
   }
 
-  public double getYaw() { return getYawRaw(); }
+  public double getYaw() {
+    return getYawRaw();
+  }
 
   public double getYawRaw() {
     return normalizeDegrees(this.yaw);
@@ -37,7 +39,7 @@ public class SimulatedGyro implements Gyro {
   }
 
   @Override
-  public void setYaw(double yaw) { }
+  public void setYaw(double yaw) {}
 
   @Override
   public void zeroGyro() {
@@ -46,6 +48,11 @@ public class SimulatedGyro implements Gyro {
 
   public double getRoll() {
     return this.roll;
+  }
+
+  @Override
+  public boolean isConnected() {
+    return true;
   }
 
   /**

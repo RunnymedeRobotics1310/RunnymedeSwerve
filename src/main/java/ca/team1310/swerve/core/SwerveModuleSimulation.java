@@ -54,4 +54,13 @@ class SwerveModuleSimulation implements SwerveModule {
     this.currentState.setAbsoluteEncoderAngle(desiredState.getAngle());
     this.currentState.setDriveOutputPower(0);
   }
+
+  /**
+   * Check for active faults, manage alerts for them, and return status.
+   *
+   * @return true if there are active faults
+   */
+  public boolean checkFaults() {
+    return false;
+  }
 }

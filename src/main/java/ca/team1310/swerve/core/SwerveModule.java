@@ -48,4 +48,11 @@ public interface SwerveModule {
    * @return the current state of the module
    */
   ModuleState getState();
+
+  /**
+   * Are there any active faults on this motor
+   *
+   * @return true if there are active faults
+   */
+  boolean checkFaults();
 }
