@@ -31,7 +31,8 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
   private final DoubleArrayPublisher llRobotOrientation;
 
   // MegaTags
-  private final DoubleArraySubscriber llMegaTag;
+  private final DoubleArraySubscriber llMegaTag1;
+  private final DoubleArraySubscriber llMegaTag2;
 
   // Field Extent for tag validity
   private final double fieldExtentX;
@@ -39,6 +40,8 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
 
   // Data for telemetry publishing
   private Pose2d visPose = null;
+
+  private boolean firstRun = true;
 
   /**
    * Create a new Limelight-aware swerve drive.
@@ -59,18 +62,30 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
         NetworkTableInstance.getDefault().getTable("limelight-" + limelightName);
 
     llRobotOrientation = limelightNT.getDoubleArrayTopic("robot_orientation_set").publish();
-    llMegaTag = limelightNT.getDoubleArrayTopic("botpose_orb_wpiblue").subscribe(new double[0]);
+    llMegaTag1 = limelightNT.getDoubleArrayTopic("botpose_wpiblue").subscribe(new double[0]);
+    llMegaTag2 = limelightNT.getDoubleArrayTopic("botpose_orb_wpiblue").subscribe(new double[0]);
   }
 
   @Override
   protected synchronized void updateOdometry() {
     super.updateOdometry();
 
+    // Try to use MT1 pose yaw if it's present,
+    if (firstRun) {
+      double[] mt1Data = llMegaTag1.get();
+      if (mt1Data != null && mt1Data.length >= 12) {
+        double yaw = mt1Data[OFFSET_POSE_ROTATION_YAW];
+        setYaw(yaw);
+      }
+      llMegaTag1.close();
+      firstRun = false;
+    }
+
     // Update the robot orientation
     llRobotOrientation.set(new double[] {getYaw(), 0, 0, 0, 0, 0});
 
     // Get the MegaTag data
-    TimestampedDoubleArray megaTagAtomic = llMegaTag.getAtomic();
+    TimestampedDoubleArray megaTagAtomic = llMegaTag2.getAtomic();
     double[] megaTagData = megaTagAtomic.value;
     long timestampMicros = megaTagAtomic.timestamp;
 
