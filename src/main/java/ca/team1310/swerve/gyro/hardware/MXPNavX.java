@@ -3,9 +3,9 @@ package ca.team1310.swerve.gyro.hardware;
 import static ca.team1310.swerve.utils.SwerveUtils.normalizeDegrees;
 
 import ca.team1310.swerve.gyro.Gyro;
-import com.studica.frc.AHRS;
-import com.studica.frc.AHRS.NavXComType;
 import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.SPI;
+import frc.robot.NavX.AHRS;
 
 /** A gyro that uses the NavX MXP to get the robot's orientation. */
 public class MXPNavX implements Gyro {
@@ -21,7 +21,7 @@ public class MXPNavX implements Gyro {
 
   /** Create a new MXPNavX gyro */
   public MXPNavX() {
-    this.navx = new AHRS(NavXComType.kMXP_SPI, AHRS.NavXUpdateRate.k100Hz);
+    this.navx = new AHRS(SPI.Port.kMXP, (byte) 100);
     this.rollOffset = navx.getRoll();
 
     this.pitchOffset = navx.getPitch();
