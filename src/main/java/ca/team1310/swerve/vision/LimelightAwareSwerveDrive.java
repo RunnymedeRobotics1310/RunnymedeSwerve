@@ -118,6 +118,16 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
     visPose = null;
   }
 
+  /**
+   * Get the pose of the robot as determined by the vision system.
+   *
+   * @return the pose of the robot as determined by the vision system. Null if no vision pose is
+   *     currently available.
+   */
+  public synchronized Pose2d getVisionPose() {
+    return visPose;
+  }
+
   @Override
   public synchronized void updateTelemetry(SwerveTelemetry telemetry) {
     super.updateTelemetry(telemetry);
