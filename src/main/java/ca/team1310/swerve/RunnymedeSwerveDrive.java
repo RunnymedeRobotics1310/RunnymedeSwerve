@@ -30,6 +30,13 @@ public interface RunnymedeSwerveDrive {
   void drive(double vx, double vy, double omega);
 
   /**
+   * Obtain the robot relative velocity vX, vY, vR
+   *
+   * @return A double[] with {vX, vY, vR}
+   */
+  double[] getMeasuredRobotVelocity();
+
+  /**
    * Lock the swerve drive to prevent it from moving. This can only be called when the robot is
    * nearly stationary.
    *

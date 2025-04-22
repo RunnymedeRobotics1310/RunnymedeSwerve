@@ -30,6 +30,7 @@ public class CanCoder implements AbsoluteAngleEncoder {
 
   private final StatusSignal<MagnetHealthValue> magnetHealth;
   private final StatusSignal<Angle> angle;
+  private final StatusSignal<Integer> faults;
 
   private final Alert magnetFieldLessThanIdeal;
   private final Alert readingFaulty;
@@ -89,6 +90,8 @@ public class CanCoder implements AbsoluteAngleEncoder {
             "Encoders",
             "CANCoder " + encoder.getDeviceID() + " reading was faulty, ignoring.",
             Alert.AlertType.kWarning);
+
+    faults = encoder.getFaultField();
   }
 
   @Override
@@ -124,5 +127,14 @@ public class CanCoder implements AbsoluteAngleEncoder {
     }
 
     return ((angle.getValue().in(Degrees) - absoluteEncoderOffset) + 360) % 360;
+  }
+
+  /**
+   * Are there any active faults on this motor
+   *
+   * @return true if there are active faults
+   */
+  public boolean hasFaults() {
+    return faults.getValue() != 0;
   }
 }

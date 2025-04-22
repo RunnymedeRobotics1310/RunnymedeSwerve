@@ -231,7 +231,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
    * @return an array of the robot's velocity in the form [vx, vy, omega], where vx and vy are in
    *     m/s and omega is in rad/s (counter-clockwise is positive).
    */
-  protected double[] getMeasuredRobotVelocity() {
+  public double[] getMeasuredRobotVelocity() {
     return math.calculateRobotVelocity(
         moduleStates[0].getSpeed(),
         moduleStates[0].getAngle(),

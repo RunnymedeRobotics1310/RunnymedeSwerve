@@ -25,6 +25,7 @@ class SwerveModuleImpl implements SwerveModule {
 
   private final Alert driveMotorFaultPresent;
   private final Alert angleMotorFaultPresent;
+  private final Alert angleEncoderFaultPresent;
 
   SwerveModuleImpl(ModuleConfig cfg, double maxAttainableModuleSpeedMps, int robotPeriodMillis) {
     this.name = cfg.name();
@@ -40,6 +41,8 @@ class SwerveModuleImpl implements SwerveModule {
         new Alert("Swerve Drive Motor [" + name + "] Fault Present", Alert.AlertType.kError);
     angleMotorFaultPresent =
         new Alert("Swerve Angle Motor [" + name + "] Fault Present", Alert.AlertType.kError);
+    angleEncoderFaultPresent =
+        new Alert("Swerve Angle Encoder [" + name + "] Fault Present!", Alert.AlertType.kError);
   }
 
   @Override
@@ -130,10 +133,12 @@ class SwerveModuleImpl implements SwerveModule {
   public boolean checkFaults() {
     boolean driveFaults = driveMotor.hasFaults();
     boolean angleFaults = angleMotor.hasFaults();
+    boolean angleEncoderFaults = angleEncoder.hasFaults();
 
     driveMotorFaultPresent.set(driveFaults);
     angleMotorFaultPresent.set(angleFaults);
+    angleEncoderFaultPresent.set(angleEncoderFaults);
 
-    return driveFaults | angleFaults;
+    return driveFaults | angleFaults | angleEncoderFaults;
   }
 }
