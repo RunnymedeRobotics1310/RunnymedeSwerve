@@ -467,21 +467,7 @@ public class SwerveMath {
       double bla,
       double brs,
       double bra) {
-    // scale down units to -1 - 1
-    frs /= maxSpeedMps;
-    fls /= maxSpeedMps;
-    bls /= maxSpeedMps;
-    brs /= maxSpeedMps;
-
-    double[] velocities =
-        calculateRobotVelocity(moduleX, moduleY, frs, fra, fls, fla, bls, bla, brs, bra);
-
-    // scale units to m/s and rad/s
-    velocities[0] *= maxSpeedMps;
-    velocities[1] *= maxSpeedMps;
-    velocities[2] *= maxOmegaRadPerSec;
-
-    return velocities;
+    return calculateRobotVelocity(moduleX, moduleY, frs, fra, fls, fla, bls, bla, brs, bra);
   }
 
   /**
