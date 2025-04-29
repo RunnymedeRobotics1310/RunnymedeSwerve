@@ -51,7 +51,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
   private int moduleStateUpdateCount = 0;
 
   private final Notifier telemetryThread = new Notifier(this::updateTelemetry);
-  private static final int TELEMETRY_UPDATE_PERIOD = 500; // milliseconds
+  private static final int TELEMETRY_UPDATE_PERIOD = 20; // milliseconds
 
   /**
    * Construct a new CoreSwerveDrive object with the specified configuration.
@@ -215,13 +215,13 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
   public double[] getMeasuredRobotVelocity() {
     return math.calculateRobotVelocity(
         moduleStates[0].getSpeed(),
-        moduleStates[0].getAngle(),
+        Math.toRadians(moduleStates[0].getAngle()),
         moduleStates[1].getSpeed(),
-        moduleStates[1].getAngle(),
+        Math.toRadians(moduleStates[1].getAngle()),
         moduleStates[2].getSpeed(),
-        moduleStates[2].getAngle(),
+        Math.toRadians(moduleStates[2].getAngle()),
         moduleStates[3].getSpeed(),
-        moduleStates[3].getAngle());
+        Math.toRadians(moduleStates[3].getAngle()));
   }
 
   @Override
@@ -288,13 +288,13 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
       if (telemetry.level == INPUT || telemetry.level == CALCULATED || telemetry.level == VERBOSE) {
         // desired states
-        telemetry.moduleDesiredStates[i * 2] = state.getDesiredAngle();
+        telemetry.moduleDesiredStates[i * 2] = Math.toRadians(state.getDesiredAngle());
         telemetry.moduleDesiredStates[i * 2 + 1] = state.getDesiredSpeed();
       }
 
       if (telemetry.level == CALCULATED || telemetry.level == VERBOSE) {
         // measured states
-        telemetry.moduleMeasuredStates[i * 2] = state.getPosition();
+        telemetry.moduleMeasuredStates[i * 2] = Math.toRadians(state.getAngle());
         telemetry.moduleMeasuredStates[i * 2 + 1] = state.getSpeed();
 
         // location information

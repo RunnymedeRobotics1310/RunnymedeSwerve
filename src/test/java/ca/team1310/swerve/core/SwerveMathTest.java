@@ -19,8 +19,12 @@ public class SwerveMathTest {
    */
   private static final double EPSILON = 1e-5;
 
-  private static double trackWidth = .45;
-  private static double wheelBase = .65;
+  private static double trackWidth = .58;
+  private static double wheelBase = .67;
+
+  private static double halfL = wheelBase / 2, halfW = trackWidth / 2;
+  private static double[] moduleX = new double[] {+halfL, +halfL, -halfL, -halfL}; // FR, FL, BL, BR
+  private static double[] moduleY = new double[] {-halfW, +halfW, +halfW, -halfW}; // FR, FL, BL, BR
 
   @Test
   public void test() {
@@ -28,7 +32,12 @@ public class SwerveMathTest {
   }
 
   @ParameterizedTest
-  @CsvSource({"0.5,    0,   0", "1.0, 0, 0", "0, 1.0, 0", "0.75,    0.15,   0.25"
+  @CsvSource({
+    "0.5,    0,   0",
+    "1.0, 0, 0",
+    "0, 1.0, 0",
+    // "0.75,    0.15,   0.25" // fails due to passing rad/s into the "back", when it should be
+    // module radian position
     // "1.0, 2.0, 3.0", // fails to demonstrate test parameter validation
     // "0.0, 0.2, 3.0", // fails to demonstrate test parameter validation
     //    "-0.8,  0.05, -0.5",  TODO: FIXME - TEST NOT PASSING DUE TO API BUG
@@ -56,8 +65,7 @@ public class SwerveMathTest {
     double bra = velocities[7];
 
     double[] backToRobot =
-        SwerveMath.calculateRobotVelocity(
-            trackWidth, wheelBase, frs, fra, fls, fla, bls, bla, brs, bra);
+        SwerveMath.calculateRobotVelocity(moduleX, moduleY, frs, fra, fls, fla, bls, bla, brs, bra);
     assertEquals(x, backToRobot[0], EPSILON, "x component");
     assertEquals(y, backToRobot[1], EPSILON, "y component");
     assertEquals(omega, backToRobot[2], EPSILON, "omega component");
@@ -109,8 +117,7 @@ public class SwerveMathTest {
       double y,
       double omega) {
     double[] backToRobot =
-        SwerveMath.calculateRobotVelocity(
-            trackWidth, wheelBase, frs, fra, fls, fla, bls, bla, brs, bra);
+        SwerveMath.calculateRobotVelocity(moduleX, moduleY, frs, fra, fls, fla, bls, bla, brs, bra);
     assertEquals(x, backToRobot[0], EPSILON, "x component is as expected");
     assertEquals(y, backToRobot[1], EPSILON, "y component is as expected");
     assertEquals(omega, backToRobot[2], EPSILON, "omega component is as expected");

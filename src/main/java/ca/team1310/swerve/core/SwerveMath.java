@@ -50,10 +50,15 @@ package ca.team1310.swerve.core;
  */
 public class SwerveMath {
 
+  private final double wheelBase;
+  private final double trackWidth;
   private final double wheelBaseOverFrameDiagonal;
   private final double trackWidthOverFrameDiagonal;
   private final double maxSpeedMps;
   private final double maxOmegaRadPerSec;
+
+  double[] moduleX;
+  double[] moduleY;
 
   private final ModuleDirective fr;
   private final ModuleDirective fl;
@@ -74,7 +79,9 @@ public class SwerveMath {
    */
   SwerveMath(double wheelBase, double trackWidth, double maxSpeedMps, double maxOmegaRadPerSec) {
     double frameDiagonal = Math.hypot(wheelBase, trackWidth);
+    this.wheelBase = wheelBase;
     this.wheelBaseOverFrameDiagonal = wheelBase / frameDiagonal;
+    this.trackWidth = trackWidth;
     this.trackWidthOverFrameDiagonal = trackWidth / frameDiagonal;
     this.maxSpeedMps = maxSpeedMps;
     this.maxOmegaRadPerSec = maxOmegaRadPerSec;
@@ -82,6 +89,10 @@ public class SwerveMath {
     this.fl = new ModuleDirective();
     this.bl = new ModuleDirective();
     this.br = new ModuleDirective();
+
+    double halfL = wheelBase / 2, halfW = trackWidth / 2;
+    moduleX = new double[] {+halfL, +halfL, -halfL, -halfL}; // FR, FL, BL, BR
+    moduleY = new double[] {-halfW, +halfW, +halfW, -halfW}; // FR, FL, BL, BR
   }
 
   /**
@@ -458,26 +469,12 @@ public class SwerveMath {
       double bra) {
     // scale down units to -1 - 1
     frs /= maxSpeedMps;
-    fra /= maxOmegaRadPerSec;
     fls /= maxSpeedMps;
-    fla /= maxOmegaRadPerSec;
     bls /= maxSpeedMps;
-    bla /= maxOmegaRadPerSec;
     brs /= maxSpeedMps;
-    bra /= maxOmegaRadPerSec;
 
     double[] velocities =
-        _calculateRobotVelocity(
-            wheelBaseOverFrameDiagonal,
-            trackWidthOverFrameDiagonal,
-            frs,
-            fra,
-            fls,
-            fla,
-            bls,
-            bla,
-            brs,
-            bra);
+        calculateRobotVelocity(moduleX, moduleY, frs, fra, fls, fla, bls, bla, brs, bra);
 
     // scale units to m/s and rad/s
     velocities[0] *= maxSpeedMps;
@@ -490,10 +487,8 @@ public class SwerveMath {
   /**
    * Compute the robot's velocity (vX, vY omega) given the velocities of the four swerve modules.
    *
-   * @param trackWidth the track width of the drivetrain (i.e. from the left to the right of the
-   *     robot). Units are not relevant.
-   * @param wheelBase the wheelbase of the drivetrain, (i.e. from the front to the back of the
-   *     robot). Units are not relevant.
+   * @param moduleX Location of swerve modules on frame to X
+   * @param moduleY Location of swerve modules on frame to Y
    * @param frs front right module speed (from -1.0 to 1.0)
    * @param fra front right module angle (from -1.0 to 1.0)
    * @param fls front left module speed (from -1.0 to 1.0)
@@ -506,8 +501,8 @@ public class SwerveMath {
    *     -1.0 to 1.0.
    */
   public static double[] calculateRobotVelocity(
-      double trackWidth,
-      double wheelBase,
+      double[] moduleX,
+      double[] moduleY,
       double frs,
       double fra,
       double fls,
@@ -516,60 +511,40 @@ public class SwerveMath {
       double bla,
       double brs,
       double bra) {
-    double hypot = Math.hypot(wheelBase, trackWidth);
-    double wheelBaseOverFrameDiagonal = wheelBase / hypot;
-    double trackWidthOverFrameDiagonal = trackWidth / hypot;
-    return _calculateRobotVelocity(
-        wheelBaseOverFrameDiagonal,
-        trackWidthOverFrameDiagonal,
-        frs,
-        fra,
-        fls,
-        fla,
-        bls,
-        bla,
-        brs,
-        bra);
-  }
 
-  /**
-   * Compute the robot's velocity (vX, vY omega) given the velocities of the four swerve modules.
-   *
-   * @param wheelBaseOverFrameDiagonal the ratio of the wheelbase to the diagonal of the robot
-   * @param trackWidthOverFrameDiagonal the ratio of the track width to the diagonal of the robot
-   * @param frs front right module speed (from -1.0 to 1.0)
-   * @param fra front right module angle (from -1.0 to 1.0)
-   * @param fls front left module speed (from -1.0 to 1.0)
-   * @param fla front left module angle (from -1.0 to 1.0)
-   * @param bls back left module speed (from -1.0 to 1.0)
-   * @param bla back left module angle (from -1.0 to 1.0)
-   * @param brs back right module speed (from -1.0 to 1.0)
-   * @param bra back right module angle (from -1.0 to 1.0)
-   * @return an array containing the x, y, and omega components of the robot's velocity each from
-   *     -1.0 to 1.0.
-   */
-  private static double[] _calculateRobotVelocity(
-      double wheelBaseOverFrameDiagonal,
-      double trackWidthOverFrameDiagonal,
-      double frs,
-      double fra,
-      double fls,
-      double fla,
-      double bls,
-      double bla,
-      double brs,
-      double bra) {
-    // Compute the horiz and vert components of the wheel vectors
-    double rear_horiz = bls * Math.sin(bla); // cos  a
-    double front_horiz = frs * Math.sin(fra); //     b
-    double right_vert = frs * Math.cos(fra); // sin  c
-    double left_vert = bls * Math.cos(bla); //       d
+    // 1) turn each wheel's polar (speed,angle) into Cartesian
+    double[] vix = new double[4];
+    double[] viy = new double[4];
 
-    // Compute the x, y, and omega
-    double w = (front_horiz - rear_horiz) / (2 * wheelBaseOverFrameDiagonal);
-    double y = front_horiz - w * wheelBaseOverFrameDiagonal;
-    double x = right_vert - w * trackWidthOverFrameDiagonal;
+    vix[0] = frs * Math.cos(fra);
+    viy[0] = frs * Math.sin(fra);
+    vix[1] = fls * Math.cos(fla);
+    viy[1] = fls * Math.sin(fla);
+    vix[2] = bls * Math.cos(bla);
+    viy[2] = bls * Math.sin(bla);
+    vix[3] = brs * Math.cos(bra);
+    viy[3] = brs * Math.sin(bra);
 
-    return new double[] {x, y, w};
+    // 2) compute ω numerator = Σ (x_i * v_i_y – y_i * v_i_x)
+    //    and denominator = Σ (x_i² + y_i²)
+    double num = 0, den = 0;
+    for (int i = 0; i < 4; i++) {
+      num += (moduleX[i] * viy[i]) - (moduleY[i] * vix[i]);
+      den += (moduleX[i] * moduleX[i]) + (moduleY[i] * moduleY[i]);
+    }
+    double omega = num / den;
+
+    // 3) now that ω is known, back out Vx, Vy by averaging:
+    //    v_i_x = Vx – ω * y_i  ⇒  Vx = v_i_x + ω * y_i
+    //    v_i_y = Vy + ω * x_i  ⇒  Vy = v_i_y – ω * x_i
+    double sumVx = 0, sumVy = 0;
+    for (int i = 0; i < 4; i++) {
+      sumVx += vix[i] + (omega * moduleY[i]);
+      sumVy += viy[i] - (omega * moduleX[i]);
+    }
+    double Vx = sumVx / 4;
+    double Vy = sumVy / 4;
+
+    return new double[] {Vx, Vy, omega};
   }
 }
