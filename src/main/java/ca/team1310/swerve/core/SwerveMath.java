@@ -44,6 +44,22 @@ package ca.team1310.swerve.core;
  *     s: 4, a: 5 ------ s: 6, a: 7
  * </code>
  *
+ * <p>There are 4 corrections that typically need to be applied to swerve drive code, as far as we
+ * know:
+ *
+ * <ol>
+ *   <li>optimize wheel angles - if a wheel needs to turn more than 180 degrees, reverse it and turn
+ *       the other way
+ *   <li>desaturate wheel speeds - after computing module velocities, ensure that a motor is not
+ *       being asked to turn faster than it can go
+ *   <li>cosine compensator - if a wheel is pointing in a direction that is not the direction it
+ *       needs to be at that instant, give it less power so that the robot doesn't go off the
+ *       planned trajectory
+ *   <li>discretize - compensate for the fact that the robot will drive off the desired path during
+ *       the interval between one set of instructions and the next set of instructions - made
+ *       increasingly important based on the update interval
+ * </ol>
+ *
  * @author Tony Field
  * @author Quentin Field
  * @since 2025-02-01 19:20
@@ -342,7 +358,7 @@ public class SwerveMath {
     double bls = Math.hypot(rear_horiz, left_vert);
     double brs = Math.hypot(rear_horiz, right_vert);
 
-    // normalize wheel speeds (cannot go faster than 1.0)
+    // Correction #2 - desaturate wheel speeds
     double max = Math.max(frs, Math.max(fls, Math.max(bls, brs)));
     if (max > 1.0) {
       frs /= max;
@@ -394,6 +410,47 @@ public class SwerveMath {
    */
   ModuleDirective getBackRight() {
     return br;
+  }
+
+  /**
+   * Correction #1 - Optimize wheel angles. If a wheel needs to pivot more than 180 degrees, reverse
+   * it and turn the other way.
+   *
+   * @param desiredState The desired module state - note - altered in place
+   * @param currentWheelAngleDegrees The current angle of the wheel, in degrees.
+   */
+  public static void optimizeWheelAngles(
+      ModuleDirective desiredState, double currentWheelAngleDegrees) {
+    double angleError = Math.abs(desiredState.getAngle() - currentWheelAngleDegrees);
+    if (angleError > 90 && angleError < 270) {
+      double optimal =
+          currentWheelAngleDegrees < 0
+              ? desiredState.getAngle() + 180
+              : desiredState.getAngle() - 180;
+      optimal = normalizeDegrees(optimal);
+      desiredState.set(-desiredState.getSpeed(), optimal);
+    }
+  }
+
+  /**
+   * Correction #3 - Cosine Compensator. Slow down wheels that aren't facing the right direction.
+   *
+   * <p>If the angle error is close to 0 degrees, we are aligned properly, so we can apply full
+   * power to drive wheels. If the angle error is close to 90 degrees, driving in any direction does
+   * not help.
+   *
+   * <p>Scale speed by cosine of angle error. This scales down movement perpendicular to the desired
+   * direction of travel that can occur when modules change directions. This results in smoother
+   * driving.
+   *
+   * @param desiredState The input module directive - altered in place
+   * @param currentHeadingDeg the current heading of the module.
+   */
+  public static void cosineCompensator(ModuleDirective desiredState, double currentHeadingDeg) {
+    double angleError = desiredState.getAngle() - currentHeadingDeg;
+    double cosineScalar = Math.cos(Math.toRadians(angleError));
+    desiredState.set(
+        desiredState.getSpeed() * (cosineScalar < 0 ? 0 : cosineScalar), desiredState.getAngle());
   }
 
   /**
@@ -527,6 +584,24 @@ public class SwerveMath {
     result[0] = x * cos - y * sin;
     result[1] = x * sin + y * cos;
     return result;
+  }
+
+  /**
+   * Normalize the degrees measurement to between -180 and 180
+   *
+   * @param degrees input degrees any size
+   * @return a value between -180 and 180
+   */
+  public static double normalizeDegrees(double degrees) {
+    // reduce the angle
+    degrees = degrees % 360;
+
+    // force it to be the positive remainder, so that 0 <= angle < 360
+    degrees = (degrees + 360) % 360;
+
+    // force into the minimum absolute value residue class, so that -180 < angle <= 180
+    if (degrees > 180) degrees -= 360;
+    return degrees;
   }
 
   /**
