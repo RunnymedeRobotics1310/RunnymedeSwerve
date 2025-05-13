@@ -25,7 +25,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
   private final double robotPeriodSeconds;
 
-  private final SwerveMath math;
+  private final SwerveKinematics math;
 
   private double desiredVx;
   private double desiredVy;
@@ -101,7 +101,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     this.moduleStates[3] = modules[3].getState();
 
     this.math =
-        new SwerveMath(
+        new SwerveKinematics(
             cfg.wheelBaseMetres(),
             cfg.trackWidthMetres(),
             cfg.maxAttainableTranslationSpeedMetresPerSecond(),
