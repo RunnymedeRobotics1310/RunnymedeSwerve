@@ -23,6 +23,8 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
   private final SwerveModule[] modules;
   private final ModuleState[] moduleStates;
 
+  private final double robotPeriodSeconds;
+
   private final SwerveMath math;
 
   private double desiredVx;
@@ -61,7 +63,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
   protected CoreSwerveDrive(CoreSwerveConfig cfg) {
     System.out.println("Initializing RunnymedeSwerve CoreSwerveDrive.");
     // order matters in case we want to use AdvantageScope
-    double dt = cfg.robotPeriodSeconds();
+    robotPeriodSeconds = cfg.robotPeriodSeconds();
     this.modules = new SwerveModule[4];
     this.isSimulation = RobotBase.isSimulation();
     if (isSimulation) {
@@ -74,22 +76,22 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
           new SwerveModuleImpl(
               cfg.frontRightModuleConfig(),
               cfg.maxAttainableModuleSpeedMetresPerSecond(),
-              (int) (dt * 1000));
+              (int) (robotPeriodSeconds * 1000));
       this.modules[1] =
           new SwerveModuleImpl(
               cfg.frontLeftModuleConfig(),
               cfg.maxAttainableModuleSpeedMetresPerSecond(),
-              (int) (dt * 1000));
+              (int) (robotPeriodSeconds * 1000));
       this.modules[2] =
           new SwerveModuleImpl(
               cfg.backLeftModuleConfig(),
               cfg.maxAttainableModuleSpeedMetresPerSecond(),
-              (int) (dt * 1000));
+              (int) (robotPeriodSeconds * 1000));
       this.modules[3] =
           new SwerveModuleImpl(
               cfg.backRightModuleConfig(),
               cfg.maxAttainableModuleSpeedMetresPerSecond(),
-              (int) (dt * 1000));
+              (int) (robotPeriodSeconds * 1000));
     }
 
     this.moduleStates = new ModuleState[4];
@@ -140,9 +142,26 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
   }
 
   public final synchronized void drive(double x, double y, double w) {
-    desiredVx = x;
-    desiredVy = y;
-    desiredOmega = Math.abs(w) < MINIMUM_OMEGA_VALUE_RAD_PER_SEC ? 0 : w;
+
+    // if below minimum speed just stop rotating
+    w = Math.abs(w) < MINIMUM_OMEGA_VALUE_RAD_PER_SEC ? 0 : w;
+
+    // discretize
+    double[] discretized = SwerveMath.discretize(x, y, w, robotPeriodSeconds);
+
+    // TODO: explore what the drive() input param robotYComp is in OP's code. It looks like this:
+    //    if (robotYComp != 0) {
+    //      robotYComp -= vy;
+    //    }
+    //    if (vx < 0) {
+    //      robotYComp = 0;
+    //    }
+    //    vy += robotYComp;
+
+    // set desired speeds
+    desiredVx = discretized[0];
+    desiredVy = discretized[1];
+    desiredOmega = discretized[2];
   }
 
   /*
