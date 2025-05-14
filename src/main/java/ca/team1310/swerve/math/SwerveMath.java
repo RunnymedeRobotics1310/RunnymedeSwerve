@@ -355,19 +355,34 @@ public class SwerveMath {
    *     the update period
    */
   public static double[] discretize(double vx, double vy, double w, double dt) {
-    return discretize_OP(vx, vy, w, dt);
-    //    return discretize_WPILIB(vx, vy, w, dt);
+    //    return discretize_OP(vx, vy, w, 0.5, 1, 0.65);
+    return discretize_WPILIB(vx, vy, w, dt);
   }
 
-  private static double[] discretize_OP(double vx, double vy, double w, double dt) {
-
-    // The following implementation is a port of OP's own implementation of the discretize function.
-    // It is an approximation that requires much less calculation than WPILIB's
-    // ChassisSpeeds.discretize().  However, it has some magical constants that need to be
-    // understood.
-    //
-    // It adding a normal (perpendicular) vector of a calculated magnitude to the<code>vx,vy</code>
-    // velocity vector with a very specially calculated magnitude.
+  /**
+   * Correct for drift away from the desired velocity due to high values of omega.
+   *
+   * <p>A normal vector is added to the input vector, scaled by a magnitude computed by this formula
+   * <code>normalScale * ((translationScale * input.magnitude) * (rotationScale * w))</code>
+   *
+   * <p>This calculation is very efficient (especially compared to WPILib's <code>
+   * ChassisSpeeds.discretize()</code> function, but it requires the three scale factors to be
+   * manually tuned.
+   *
+   * <p>The tuning process is made clear by incorporating a translation element, a rotation element,
+   * and an overall element, all of which combine with the angular velocity to create the correction
+   * vector.
+   *
+   * @param vx The robot's x velocity
+   * @param vy The robot's y velocity
+   * @param w The robot's angular velocity in radians per second
+   * @param transScale The scale factor for the translation contribution to the normal vector
+   * @param rotScale The scale factor for the rotation contribution to the normal vector
+   * @param normalScale An overall scale factor for the normal vector
+   * @return An array of the robot's x, y, and angular velocities
+   */
+  private static double[] discretize_OP(
+      double vx, double vy, double w, double transScale, double rotScale, double normalScale) {
 
     XYVector input = new XYVector(vx, vy);
 
@@ -375,14 +390,7 @@ public class SwerveMath {
     XYVector normal = new XYVector(vx, vy);
     normal.rotate(-Math.PI / 2);
 
-    // scale it to a very special value
-    // todo: understand these scale factors.
-    // What about dt - can we use this?
-    // Orig units were inches - does this matter?
-    // Why are there three separate scale factors?
-    double transScale = 0.5;
-    double rotScale = 1.0;
-    double normalScale = 0.65;
+    // Scale the normal vector.
     double normalMagnitude = normalScale * ((transScale * input.magnitude) * (rotScale * w));
     normal.scale(normalMagnitude);
 
@@ -402,15 +410,15 @@ public class SwerveMath {
   }
 
   private static double[] discretize_WPILIB(double vx, double vy, double w, double dt) {
-    // This is a port of the WPILib implementation of discretize
+    // This is a port of the WPILib implementation of discretize()
 
-    // Construct the desired pose after a timestep, relative to the current pose. The desired pose
+    // Construct the desired pose after dt, relative to the current pose. The desired pose
     // has decoupled translation and rotation.
-    RRPose2d desiredDeltaPose = new RRPose2d(vx * dt, vy * dt, w * dt);
+    RRPose2d desiredEndPose = new RRPose2d(vx * dt, vy * dt, w * dt);
 
     // Find the chassis translation/rotation deltas in the robot frame that move the robot from its
     // current pose to the desired pose
-    RRTwist2d twist = RRPose2d.ZERO.log(desiredDeltaPose);
+    RRTwist2d twist = RRPose2d.ZERO.log(desiredEndPose);
 
     // Turn the chassis translation/rotation deltas into average velocities
     double[] output = new double[3];
