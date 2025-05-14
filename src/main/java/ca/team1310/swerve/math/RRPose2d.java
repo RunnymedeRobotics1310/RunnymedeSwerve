@@ -118,11 +118,11 @@ class RRPose2d {
    * @return The twist that maps this to end.
    */
   RRTwist2d log(RRPose2d end) {
-    final var transform = end.relativeTo(this);
-    final var dtheta = transform.rotation.radians;
-    final var halfDtheta = dtheta / 2.0;
-    final var cosMinusOne = transform.rotation.cos - 1.0;
-    final var halfThetaByTanOfHalfDtheta =
+    final RRPose2d transform = end.relativeTo(this);
+    final double dtheta = transform.rotation.radians;
+    final double halfDtheta = dtheta / 2.0;
+    final double cosMinusOne = transform.rotation.cos - 1.0;
+    final double halfThetaByTanOfHalfDtheta =
         (Math.abs(cosMinusOne) < 1E-9)
             ? 1.0 - 1.0 / 12.0 * dtheta * dtheta
             : -(halfDtheta * transform.rotation.sin) / cosMinusOne;
