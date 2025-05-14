@@ -1,7 +1,5 @@
 package ca.team1310.swerve.core;
 
-import static ca.team1310.swerve.math.SwerveMath.calculateModuleVelocities;
-
 import ca.team1310.swerve.math.SwerveMath;
 
 /**
@@ -71,7 +69,8 @@ public class SwerveKinematics {
     w /= maxOmegaRadPerSec;
 
     var result =
-        calculateModuleVelocities(wheelBaseOverFrameDiagonal, trackWidthOverFrameDiagonal, x, y, w);
+        SwerveMath.calculateModuleVelocities(
+            wheelBaseOverFrameDiagonal, trackWidthOverFrameDiagonal, x, y, w);
 
     // convert from -1.0 - 1.0 into to m/s
     result[0] *= maxSpeedMps;
