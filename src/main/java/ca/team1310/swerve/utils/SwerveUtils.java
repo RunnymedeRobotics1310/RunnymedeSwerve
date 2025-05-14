@@ -1,6 +1,6 @@
 package ca.team1310.swerve.utils;
 
-import ca.team1310.swerve.core.SwerveMath;
+import ca.team1310.swerve.math.SwerveMath;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;

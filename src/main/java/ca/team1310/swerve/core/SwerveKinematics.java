@@ -1,6 +1,8 @@
 package ca.team1310.swerve.core;
 
-import static ca.team1310.swerve.core.SwerveMath.calculateModuleVelocities;
+import static ca.team1310.swerve.math.SwerveMath.calculateModuleVelocities;
+
+import ca.team1310.swerve.math.SwerveMath;
 
 /**
  * @author Tony Field

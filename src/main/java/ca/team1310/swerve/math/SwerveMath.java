@@ -1,4 +1,6 @@
-package ca.team1310.swerve.core;
+package ca.team1310.swerve.math;
+
+import ca.team1310.swerve.core.ModuleDirective;
 
 /**
  * Essential math utilities for swerve drive calculations.
