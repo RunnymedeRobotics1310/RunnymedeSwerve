@@ -106,9 +106,9 @@ public class SwerveMath {
    * <p>This is the core worker function for these calculations. It takes pre-calculated ratios as
    * input to avoid making unnecessary calculations that are constant for any given robot.
    *
-   * <h1>Detailed Explanation of the Math</h1>
+   * <h4>Detailed Explanation of the Math</h4>
    *
-   * <h2>Introduction</h2>
+   * <h5>Introduction</h5>
    *
    * <p>Given desired robot velocity described as x (forward/backward motion with forward positive),
    * y (left/right motion with right positive), and w (i.e. omega) (rotation with clockwise
@@ -120,7 +120,7 @@ public class SwerveMath {
    * between the front and back wheels) and track width (distance between left and right wheels) is
    * provided. The wheel configuration is assumed to be a rectangle with wheels at the corners.
    *
-   * <h2>Approach</h2>
+   * <h5>Approach</h5>
    *
    * <p>We need to determine the wheel speed and angle for each wheel. This shall be the sum of two
    * vectors: the x,y translation vector + the tangential vector contributed by the rotation
@@ -134,7 +134,7 @@ public class SwerveMath {
    * <p>Once we have these vectors, we use basic trigonometry to compute the magnitude (i.e. module
    * speed) and angle (i.e. the individual module heading) for each wheel.
    *
-   * <h2>Setup</h2>
+   * <h5>Setup</h5>
    *
    * <p>Given, x (forward/backward motion, forward positive), y (left/right motion, left positive),
    * and w (rotation, counter-clockwise positive), we define a cartesian coordinate system with the
@@ -161,7 +161,7 @@ public class SwerveMath {
    *   <li>vy = w * r * sin(alpha)
    * </ul>
    *
-   * <h2>Calculations</h2>
+   * <h5>Calculations</h5>
    *
    * <p>We will calculate the wheel motion vectors by x and y components. As such, the x component
    * of the front-left wheel is defined as the input x value plus the x component of the tangential
@@ -209,7 +209,7 @@ public class SwerveMath {
    *
    * <p>We now have the x and y components of all 4 of our wheel vectors! We are almost done.
    *
-   * <h2>Wheel Speeds</h2>
+   * <h5>Wheel Speeds</h5>
    *
    * <p>The wheels speeds are simply the magnitude of the corresponding wheel vectors. These are:
    *
@@ -226,7 +226,7 @@ public class SwerveMath {
    *
    * <p>That's it - wheel speed calculations done!
    *
-   * <h2>Wheel Angles</h2>
+   * <h5>Wheel Angles</h5>
    *
    * <p>To compute the angles for each wheel, we need the value in polar coordinates (ccw positive)
    * of the angle, which can be achieved using the arctan function as follows:
@@ -240,7 +240,7 @@ public class SwerveMath {
    *
    * <p>The output value is in radians. That's it, we are done!
    *
-   * <h2>Return Values</h2>
+   * <h5>Return Values</h5>
    *
    * <p>To keep performance at a maximum, all 8 components of the module velocities are returned in
    * a single array in the format [frs, fra, fls, fla, bls, bla, brs, bra].
