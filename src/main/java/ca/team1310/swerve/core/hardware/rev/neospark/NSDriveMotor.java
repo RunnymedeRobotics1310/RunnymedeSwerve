@@ -59,12 +59,12 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
     // drive motor signals
     config
         .signals
-        .appliedOutputPeriodMs(robotPeriodMillis / 2) // todo: for debugging only????????
+        .appliedOutputPeriodMs(robotPeriodMillis)
         .faultsPeriodMs(robotPeriodMillis) // default is 250ms
         .primaryEncoderVelocityAlwaysOn(true)
-        .primaryEncoderVelocityPeriodMs(robotPeriodMillis / 2) // default is 20ms
+        .primaryEncoderVelocityPeriodMs(2) // default is 20ms
         .primaryEncoderPositionAlwaysOn(true)
-        .primaryEncoderPositionPeriodMs(robotPeriodMillis / 2); // default is 20ms
+        .primaryEncoderPositionPeriodMs(2); // default is 20ms
 
     // Drive motor
     final double positionConversionfactor = (2 * Math.PI * wheelRadiusMetres) / cfg.gearRatio();
@@ -73,8 +73,8 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
     // report in metres per second not rotations per minute
     config.encoder.velocityConversionFactor(positionConversionfactor / 60);
     // reduce measurement lag --> read encoders every 5ms and use last 4 measurements for computing
-    // velocity
-    config.encoder.quadratureMeasurementPeriod(5).quadratureAverageDepth(4);
+    // velocity.  Default value is 100ms with a depth of 64
+    config.encoder.quadratureMeasurementPeriod(2).quadratureAverageDepth(4);
 
     // configure PID controller
     config
@@ -112,8 +112,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
 
   private double asPower(double velocity) {
     // this fixes a bug in the controller.setReference
-    // which does not seem to operate correctly in
-    // velocity mode.
+    // which does not seem to properly obey the conversion factor
     return velocity / maxSpeedMps * 20;
   }
 
