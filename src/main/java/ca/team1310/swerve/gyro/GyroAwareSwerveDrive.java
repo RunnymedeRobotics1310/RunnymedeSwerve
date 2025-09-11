@@ -5,7 +5,9 @@ import static ca.team1310.swerve.SwerveTelemetry.PREFIX;
 import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.CoreSwerveDrive;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
+import ca.team1310.swerve.core.config.GyroConfig;
 import ca.team1310.swerve.gyro.hardware.MXPNavX;
+import ca.team1310.swerve.gyro.hardware.Pigeon2;
 import ca.team1310.swerve.gyro.hardware.SimulatedGyro;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -26,8 +28,25 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
    */
   public GyroAwareSwerveDrive(CoreSwerveConfig cfg) {
     super(cfg);
-    this.gyro = RobotBase.isSimulation() ? new SimulatedGyro() : new MXPNavX();
+    this.gyro = createGyro(cfg.gyroConfig());
     SmartDashboard.putData(PREFIX + "Gyro", this.gyro);
+  }
+
+  /**
+   * Create a gyro instance based on the configuration.
+   *
+   * @param gyroConfig the gyro configuration
+   * @return the appropriate gyro instance
+   */
+  private Gyro createGyro(GyroConfig gyroConfig) {
+    if (RobotBase.isSimulation()) {
+      return new SimulatedGyro();
+    }
+
+    return switch (gyroConfig.type()) {
+      case NAVX -> new MXPNavX();
+      case PIGEON2 -> new Pigeon2(gyroConfig.canBusId(), gyroConfig.onlyYaw());
+    };
   }
 
   @Override
