@@ -54,11 +54,11 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
     // angle motor signals
     config
         .signals
-        .appliedOutputPeriodMs(robotPeriodMillis / 2) // todo: for debugging only????????
+        .appliedOutputPeriodMs(robotPeriodMillis)
         .faultsPeriodMs(robotPeriodMillis) // report faults as they happen
         .primaryEncoderVelocityAlwaysOn(false)
         .primaryEncoderPositionAlwaysOn(true)
-        .primaryEncoderPositionPeriodMs(robotPeriodMillis / 2);
+        .primaryEncoderPositionPeriodMs(2); // default 20ms
 
     // Angle motor
     final double angleConversionFactor = 360 / cfg.gearRatio();
