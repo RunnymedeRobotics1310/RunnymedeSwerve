@@ -15,7 +15,7 @@ public class ModuleDirective {
    * @param speed in m/s
    * @param angle in degrees (ccw positive)
    */
-  void set(double speed, double angle) {
+  public void set(double speed, double angle) {
     this.speed = speed;
     this.angle = angle;
   }
