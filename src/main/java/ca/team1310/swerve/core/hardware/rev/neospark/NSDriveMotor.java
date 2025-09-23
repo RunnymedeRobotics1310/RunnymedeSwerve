@@ -114,6 +114,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
     // this fixes a bug in the controller.setReference
     // which does not seem to operate correctly in
     // velocity mode.
+    // todo: figure out this api call
     return velocity / maxSpeedMps * 20;
   }
 
