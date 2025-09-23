@@ -1,4 +1,4 @@
-package ca.team1310.swerve.core.config;
+package ca.team1310.swerve.gyro.config;
 
 /**
  * Configuration for the gyro used by the swerve drive.

@@ -6,6 +6,7 @@ import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.ModuleState;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
 import ca.team1310.swerve.gyro.GyroAwareSwerveDrive;
+import ca.team1310.swerve.gyro.config.GyroConfig;
 import ca.team1310.swerve.utils.Coordinates;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -47,8 +48,8 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
    *
    * @param cfg the core configuration for the swerve drive
    */
-  public FieldAwareSwerveDrive(CoreSwerveConfig cfg) {
-    super(cfg);
+  public FieldAwareSwerveDrive(CoreSwerveConfig cfg, GyroConfig gyroConfig) {
+    super(cfg, gyroConfig);
     this.field = new Field2d();
     SmartDashboard.putData(field);
 

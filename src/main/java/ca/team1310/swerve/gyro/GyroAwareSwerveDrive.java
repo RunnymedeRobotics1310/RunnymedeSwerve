@@ -5,7 +5,7 @@ import static ca.team1310.swerve.SwerveTelemetry.PREFIX;
 import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.CoreSwerveDrive;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
-import ca.team1310.swerve.core.config.GyroConfig;
+import ca.team1310.swerve.gyro.config.GyroConfig;
 import ca.team1310.swerve.gyro.hardware.MXPNavX;
 import ca.team1310.swerve.gyro.hardware.Pigeon2;
 import ca.team1310.swerve.gyro.hardware.SimulatedGyro;
@@ -26,9 +26,9 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
    *
    * @param cfg the core configuration for the swerve drive
    */
-  public GyroAwareSwerveDrive(CoreSwerveConfig cfg) {
+  public GyroAwareSwerveDrive(CoreSwerveConfig cfg, GyroConfig gyroConfig) {
     super(cfg);
-    this.gyro = createGyro(cfg.gyroConfig());
+    this.gyro = createGyro(gyroConfig);
     SmartDashboard.putData(PREFIX + "Gyro", this.gyro);
   }
 

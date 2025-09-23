@@ -4,7 +4,9 @@ import static ca.team1310.swerve.core.config.TelemetryLevel.VERBOSE;
 
 import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
+import ca.team1310.swerve.gyro.config.GyroConfig;
 import ca.team1310.swerve.odometry.FieldAwareSwerveDrive;
+import ca.team1310.swerve.vision.config.LimelightConfig;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -47,19 +49,17 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
    * Create a new Limelight-aware swerve drive.
    *
    * @param config the core configuration for the swerve drive
-   * @param limelightName the name of the limelight to use
-   * @param fieldExtentX the extent of the field in the X direction
-   * @param fieldExtentY the extent of the field in the Y direction
    */
   public LimelightAwareSwerveDrive(
-      CoreSwerveConfig config, String limelightName, double fieldExtentX, double fieldExtentY) {
-    super(config);
+      CoreSwerveConfig config, GyroConfig gyroConfig, LimelightConfig limelightConfig) {
 
-    this.fieldExtentX = fieldExtentX;
-    this.fieldExtentY = fieldExtentY;
+    super(config, gyroConfig);
+
+    this.fieldExtentX = limelightConfig.fieldExtentX();
+    this.fieldExtentY = limelightConfig.fieldExtentY();
 
     final NetworkTable limelightNT =
-        NetworkTableInstance.getDefault().getTable("limelight-" + limelightName);
+        NetworkTableInstance.getDefault().getTable("limelight-" + limelightConfig.limelightName());
 
     llRobotOrientation = limelightNT.getDoubleArrayTopic("robot_orientation_set").publish();
     llMegaTag1 = limelightNT.getDoubleArrayTopic("botpose_wpiblue").subscribe(new double[0]);

@@ -1,4 +1,4 @@
-package ca.team1310.swerve.core.config;
+package ca.team1310.swerve.gyro.config;
 
 /**
  * Enum representing the type of gyro to use for the swerve drive.
