@@ -17,7 +17,6 @@ package ca.team1310.swerve.core.config;
  * @param frontRightModuleConfig specify the configuration of the front right module
  * @param backLeftModuleConfig specify the configuration of the back left module
  * @param backRightModuleConfig specify the configuration of the back right module
- * @param gyroConfig specify the configuration of the gyro
  * @param telemetryLevel the swerve telemetry level
  */
 public record CoreSwerveConfig(
@@ -32,5 +31,4 @@ public record CoreSwerveConfig(
     ModuleConfig frontRightModuleConfig,
     ModuleConfig backLeftModuleConfig,
     ModuleConfig backRightModuleConfig,
-    GyroConfig gyroConfig,
     TelemetryLevel telemetryLevel) {}
