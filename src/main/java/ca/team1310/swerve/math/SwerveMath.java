@@ -348,7 +348,7 @@ public class SwerveMath {
    *
    * @param vx the speed in the x direction - units don't matter
    * @param vy the speed in the y direction - units don't matter
-   * @param w the speed of rotation - radians per second
+   * @param w the speed of rotation - radians per second (ccw+)
    * @param dt the time interval to the next time direction is calculated (typically the robot
    *     period) - in seconds
    * @return an array consisting of vx, vy, w in the same units above, but optimized to account for
@@ -356,7 +356,50 @@ public class SwerveMath {
    */
   public static double[] discretize(double vx, double vy, double w, double dt) {
     //    return discretize_OP(vx, vy, w, 0.5, 1, 0.65);
+    //    return discretize_RR(vx, vy, w, dt);
     return discretize_WPILIB(vx, vy, w, dt);
+  }
+
+  /**
+   * Correct for drift away from the desired velocity due to high values of omega.
+   *
+   * <p>A normal vector is added to the input vector, scaled by a magnitude computed by this formula
+   * <code>dt * omega</code>
+   *
+   * <p>This calculation is very efficient but does not account for or allow compensation for
+   * changing omega values
+   *
+   * @param vx The robot's x velocity
+   * @param vy The robot's y velocity
+   * @param w The robot's angular velocity in radians per second (ccw+)
+   * @param dt the time interval to the next time direction is calculated (typically the robot
+   *     period) - in seconds
+   * @return An array of the robot's x, y, and angular velocities
+   */
+  private static double[] discretize_RR(double vx, double vy, double w, double dt) {
+
+    XYVector input = new XYVector(vx, vy);
+
+    // set up the normal (perpendicular) vector
+    XYVector normal = new XYVector(vx, vy);
+    normal.rotate(-Math.PI / 2);
+
+    // Scale the normal vector.
+    normal.scale(w * dt);
+
+    // add it to the result
+    XYVector corrected = new XYVector(vx, vy);
+    corrected.add(normal);
+
+    // scale it back to the original speed
+    corrected.scale(input.magnitude);
+
+    // package and return
+    double[] output = new double[3];
+    output[0] = corrected.x;
+    output[1] = corrected.y;
+    output[2] = w;
+    return output;
   }
 
   /**
