@@ -13,7 +13,6 @@ import com.revrobotics.spark.config.SparkFlexConfig;
  */
 public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implements DriveMotor {
 
-  private final double maxSpeedMps;
   private double prevTarget = 0;
 
   /**
@@ -33,7 +32,6 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
       double maxAttainableModuleSpeedMps,
       int robotPeriodMillis) {
     super(spark);
-    this.maxSpeedMps = maxAttainableModuleSpeedMps;
     SparkFlexConfig config = new SparkFlexConfig();
     config.inverted(cfg.inverted());
     config.idleMode(SparkBaseConfig.IdleMode.kBrake);
@@ -76,13 +74,13 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
     // velocity
     config.encoder.quadratureMeasurementPeriod(5).quadratureAverageDepth(4);
 
-    // configure PID controller
+    // configure PID controller - we want to speak in m/s
     config
         .closedLoop
         .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
         .pidf(cfg.p(), cfg.i(), cfg.d(), cfg.ff())
         .iZone(cfg.izone())
-        .outputRange(-1, 1)
+        .outputRange(-maxAttainableModuleSpeedMps, maxAttainableModuleSpeedMps)
         .positionWrappingEnabled(false);
 
     // send them to the motor
@@ -101,21 +99,11 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
 
   @Override
   public void setReferenceVelocity(double targetVelocityMPS) {
-    // don't set if already set
-    double target = asPower(targetVelocityMPS);
-    if (Math.abs(target - prevTarget) < 1E-9) {
+    if (Math.abs(targetVelocityMPS - prevTarget) < 1E-9) {
       return;
     }
-    prevTarget = target;
-    doWithRetry(() -> controller.setReference(target, SparkBase.ControlType.kVelocity));
-  }
-
-  private double asPower(double velocity) {
-    // this fixes a bug in the controller.setReference
-    // which does not seem to operate correctly in
-    // velocity mode.
-    // todo: figure out this api call
-    return velocity / maxSpeedMps * 20;
+    prevTarget = targetVelocityMPS;
+    doWithRetry(() -> controller.setReference(targetVelocityMPS, SparkBase.ControlType.kVelocity));
   }
 
   @Override
