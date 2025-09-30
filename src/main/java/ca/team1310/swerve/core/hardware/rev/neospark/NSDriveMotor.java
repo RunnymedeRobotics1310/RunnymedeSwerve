@@ -14,8 +14,8 @@ import com.revrobotics.spark.config.SparkFlexConfig;
 public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implements DriveMotor {
 
   private double prevTargetMPS = 0;
-  private final double positionConversionFactor;
   private final double velocityConversionFactor;
+  private final double maxAttainableModuleSpeedMps;
 
   /**
    * Construct a properly configured drive motor.
@@ -34,6 +34,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
       double maxAttainableModuleSpeedMps,
       int robotPeriodMillis) {
     super(spark);
+    this.maxAttainableModuleSpeedMps = maxAttainableModuleSpeedMps;
     SparkFlexConfig config = new SparkFlexConfig();
     config.inverted(cfg.inverted());
     config.idleMode(SparkBaseConfig.IdleMode.kBrake);
@@ -67,7 +68,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
         .primaryEncoderPositionPeriodMs(robotPeriodMillis / 2); // default is 20ms
 
     // Drive motor
-    positionConversionFactor = (2 * Math.PI * wheelRadiusMetres) / cfg.gearRatio();
+    double positionConversionFactor = (2 * Math.PI * wheelRadiusMetres) / cfg.gearRatio();
     // report in metres not rotations
     config.encoder.positionConversionFactor(positionConversionFactor);
     // report in metres per second not rotations per minute
