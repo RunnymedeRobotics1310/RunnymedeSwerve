@@ -13,7 +13,9 @@ import com.revrobotics.spark.config.SparkFlexConfig;
  */
 public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implements DriveMotor {
 
-  private double prevTarget = 0;
+  private double prevTargetMPS = 0;
+  private final double positionConversionFactor;
+  private final double velocityConversionFactor;
 
   /**
    * Construct a properly configured drive motor.
@@ -65,11 +67,12 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
         .primaryEncoderPositionPeriodMs(robotPeriodMillis / 2); // default is 20ms
 
     // Drive motor
-    final double positionConversionfactor = (2 * Math.PI * wheelRadiusMetres) / cfg.gearRatio();
+    positionConversionFactor = (2 * Math.PI * wheelRadiusMetres) / cfg.gearRatio();
     // report in metres not rotations
-    config.encoder.positionConversionFactor(positionConversionfactor);
+    config.encoder.positionConversionFactor(positionConversionFactor);
     // report in metres per second not rotations per minute
-    config.encoder.velocityConversionFactor(positionConversionfactor / 60);
+    velocityConversionFactor = positionConversionFactor / 60;
+    config.encoder.velocityConversionFactor(velocityConversionFactor);
     // reduce measurement lag --> read encoders every 5ms and use last 4 measurements for computing
     // velocity
     config.encoder.quadratureMeasurementPeriod(5).quadratureAverageDepth(4);
@@ -80,7 +83,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
         .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
         .pidf(cfg.p(), cfg.i(), cfg.d(), cfg.ff())
         .iZone(cfg.izone())
-        .outputRange(-maxAttainableModuleSpeedMps, maxAttainableModuleSpeedMps)
+        .outputRange(-1, 1)
         .positionWrappingEnabled(false);
 
     // send them to the motor
@@ -99,11 +102,14 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
 
   @Override
   public void setReferenceVelocity(double targetVelocityMPS) {
-    if (Math.abs(targetVelocityMPS - prevTarget) < 1E-9) {
+    if (Math.abs(targetVelocityMPS - prevTargetMPS) < 1E-9) {
       return;
     }
-    prevTarget = targetVelocityMPS;
-    doWithRetry(() -> controller.setReference(targetVelocityMPS, SparkBase.ControlType.kVelocity));
+    prevTargetMPS = targetVelocityMPS;
+    doWithRetry(
+        () ->
+            controller.setReference(
+                targetVelocityMPS / velocityConversionFactor, SparkBase.ControlType.kVelocity));
   }
 
   @Override
