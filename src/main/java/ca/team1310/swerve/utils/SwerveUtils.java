@@ -72,4 +72,16 @@ public final class SwerveUtils {
       Translation2d currentLocation, Translation2d desiredLocation, double toleranceMetres) {
     return Math.abs(currentLocation.getDistance(desiredLocation)) <= toleranceMetres;
   }
+
+  /**
+   * Constrains a value to lie between a specified minimum and maximum range.
+   *
+   * @param min the minimum allowable value
+   * @param value the input value to be clamped
+   * @param max the maximum allowable value
+   * @return the clamped value, which will be within the range [min, max]
+   */
+  public static double clamp(double min, double value, double max) {
+    return Math.max(min, Math.min(value, max));
+  }
 }

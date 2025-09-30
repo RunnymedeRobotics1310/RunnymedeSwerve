@@ -1,5 +1,7 @@
 package ca.team1310.swerve.core.hardware.rev.neospark;
 
+import static ca.team1310.swerve.utils.SwerveUtils.clamp;
+
 import ca.team1310.swerve.core.DriveMotor;
 import ca.team1310.swerve.core.config.MotorConfig;
 import com.revrobotics.spark.SparkBase;
@@ -15,7 +17,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
 
   private double prevTargetMPS = 0;
   private final double velocityConversionFactor;
-  private final double maxAttainableModuleSpeedMps;
+  private final double maxMps;
 
   /**
    * Construct a properly configured drive motor.
@@ -34,7 +36,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
       double maxAttainableModuleSpeedMps,
       int robotPeriodMillis) {
     super(spark);
-    this.maxAttainableModuleSpeedMps = maxAttainableModuleSpeedMps;
+    this.maxMps = maxAttainableModuleSpeedMps;
     SparkFlexConfig config = new SparkFlexConfig();
     config.inverted(cfg.inverted());
     config.idleMode(SparkBaseConfig.IdleMode.kBrake);
@@ -106,11 +108,10 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
     if (Math.abs(targetVelocityMPS - prevTargetMPS) < 1E-9) {
       return;
     }
+    targetVelocityMPS = clamp(-maxMps, targetVelocityMPS, maxMps);
     prevTargetMPS = targetVelocityMPS;
-    doWithRetry(
-        () ->
-            controller.setReference(
-                targetVelocityMPS / velocityConversionFactor, SparkBase.ControlType.kVelocity));
+    final double speedNegOneToOne = targetVelocityMPS / velocityConversionFactor;
+    doWithRetry(() -> controller.setReference(speedNegOneToOne, SparkBase.ControlType.kVelocity));
   }
 
   @Override
