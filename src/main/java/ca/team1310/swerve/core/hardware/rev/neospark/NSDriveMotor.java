@@ -1,5 +1,7 @@
 package ca.team1310.swerve.core.hardware.rev.neospark;
 
+import static ca.team1310.swerve.utils.SwerveUtils.clamp;
+
 import ca.team1310.swerve.core.DriveMotor;
 import ca.team1310.swerve.core.config.MotorConfig;
 import com.revrobotics.spark.SparkBase;
@@ -13,8 +15,9 @@ import com.revrobotics.spark.config.SparkFlexConfig;
  */
 public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implements DriveMotor {
 
-  private final double maxSpeedMps;
-  private double prevTarget = 0;
+  private double prevTargetMPS = 0;
+  private final double velocityConversionFactor;
+  private final double maxMps;
 
   /**
    * Construct a properly configured drive motor.
@@ -33,10 +36,10 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
       double maxAttainableModuleSpeedMps,
       int robotPeriodMillis) {
     super(spark);
-    this.maxSpeedMps = maxAttainableModuleSpeedMps;
+    this.maxMps = maxAttainableModuleSpeedMps;
     SparkFlexConfig config = new SparkFlexConfig();
     config.inverted(cfg.inverted());
-    config.idleMode(SparkBaseConfig.IdleMode.kCoast);
+    config.idleMode(SparkBaseConfig.IdleMode.kBrake);
     config.voltageCompensation(cfg.nominalVoltage());
     config.smartCurrentLimit(cfg.currentLimitAmps());
     config.closedLoopRampRate(cfg.rampRateSecondsZeroToFull());
@@ -67,16 +70,17 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
         .primaryEncoderPositionPeriodMs(2); // default is 20ms
 
     // Drive motor
-    final double positionConversionfactor = (2 * Math.PI * wheelRadiusMetres) / cfg.gearRatio();
+    double positionConversionFactor = (2 * Math.PI * wheelRadiusMetres) / cfg.gearRatio();
     // report in metres not rotations
-    config.encoder.positionConversionFactor(positionConversionfactor);
+    config.encoder.positionConversionFactor(positionConversionFactor);
     // report in metres per second not rotations per minute
-    config.encoder.velocityConversionFactor(positionConversionfactor / 60);
+    velocityConversionFactor = positionConversionFactor / 60;
+    config.encoder.velocityConversionFactor(velocityConversionFactor);
     // reduce measurement lag --> read encoders every 2ms and use last 4 measurements for computing
     // velocity.  Default value is 100ms with a depth of 64
     config.encoder.quadratureMeasurementPeriod(2).quadratureAverageDepth(4);
 
-    // configure PID controller
+    // configure PID controller - we want to speak in m/s
     config
         .closedLoop
         .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
@@ -101,19 +105,13 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
 
   @Override
   public void setReferenceVelocity(double targetVelocityMPS) {
-    // don't set if already set
-    double target = asPower(targetVelocityMPS);
-    if (Math.abs(target - prevTarget) < 1E-9) {
+    if (Math.abs(targetVelocityMPS - prevTargetMPS) < 1E-9) {
       return;
     }
-    prevTarget = target;
-    doWithRetry(() -> controller.setReference(target, SparkBase.ControlType.kVelocity));
-  }
-
-  private double asPower(double velocity) {
-    // this fixes a bug in the controller.setReference
-    // which does not seem to properly obey the conversion factor
-    return velocity / maxSpeedMps * 20;
+    targetVelocityMPS = clamp(-maxMps, targetVelocityMPS, maxMps);
+    prevTargetMPS = targetVelocityMPS;
+    final double speedNegOneToOne = targetVelocityMPS / velocityConversionFactor;
+    doWithRetry(() -> controller.setReference(speedNegOneToOne, SparkBase.ControlType.kVelocity));
   }
 
   @Override
