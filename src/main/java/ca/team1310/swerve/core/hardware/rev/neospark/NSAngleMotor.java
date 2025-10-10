@@ -63,7 +63,7 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
 
         // used for control and odometry
         .primaryEncoderPositionAlwaysOn(true)
-        .primaryEncoderPositionPeriodMs(2) // default 20ms
+        .primaryEncoderPositionPeriodMs(5) // default 20ms
 
         // not used but exposed via API.
         // Per javadoc for this method, status frames are only enabled when a signal is requested
