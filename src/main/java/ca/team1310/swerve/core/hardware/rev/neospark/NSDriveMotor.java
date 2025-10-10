@@ -105,13 +105,14 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
 
   @Override
   public void setReferenceVelocity(double targetVelocityMPS) {
-    if (Math.abs(targetVelocityMPS - prevTargetMPS) < 1E-9) {
+    final double targetVelocityMPSClamped = clamp(-maxMps, targetVelocityMPS, maxMps);
+    if (Math.abs(targetVelocityMPSClamped - prevTargetMPS) < 1E-9) {
       return;
     }
-    targetVelocityMPS = clamp(-maxMps, targetVelocityMPS, maxMps);
-    prevTargetMPS = targetVelocityMPS;
-    final double speedNegOneToOne = targetVelocityMPS / velocityConversionFactor;
-    doWithRetry(() -> controller.setReference(speedNegOneToOne, SparkBase.ControlType.kVelocity));
+    prevTargetMPS = targetVelocityMPSClamped;
+    //    final double speedNegOneToOne = targetVelocityMPS / velocityConversionFactor;
+    doWithRetry(
+        () -> controller.setReference(targetVelocityMPSClamped, SparkBase.ControlType.kVelocity));
   }
 
   @Override
