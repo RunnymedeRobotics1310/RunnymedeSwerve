@@ -38,6 +38,7 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
     config.openLoopRampRate(cfg.rampRateSecondsZeroToFull());
 
     // Configure what the spark sends over CAN. Keep usage low.
+    // https://www.revrobotics.com/development-spark-max-users-manual/#section-3-3-2-1
     config
         .signals
         .absoluteEncoderPositionAlwaysOn(false)
@@ -54,11 +55,22 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
     // angle motor signals
     config
         .signals
+        // report faults as they happen
+        .faultsPeriodMs(robotPeriodMillis)
+
+        // applied output is used for diagnostics only
         .appliedOutputPeriodMs(robotPeriodMillis)
-        .faultsPeriodMs(robotPeriodMillis) // report faults as they happen
-        .primaryEncoderVelocityAlwaysOn(false)
+
+        // used for control and odometry
         .primaryEncoderPositionAlwaysOn(true)
-        .primaryEncoderPositionPeriodMs(2); // default 20ms
+        .primaryEncoderPositionPeriodMs(2) // default 20ms
+
+        // not used but exposed via API.
+        // Per javadoc for this method, status frames are only enabled when a signal is requested
+        // via its respective getter method, and there may be a small period of time where the
+        // signal's data is unavailable due to waiting for the SPARK to receive the command to
+        // enable the status frame. Use this method to enable the status frame at all times.
+        .primaryEncoderVelocityAlwaysOn(false);
 
     // Angle motor
     final double angleConversionFactor = 360 / cfg.gearRatio();

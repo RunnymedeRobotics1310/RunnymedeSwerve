@@ -46,6 +46,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
     config.openLoopRampRate(cfg.rampRateSecondsZeroToFull());
 
     // Configure what the spark sends over CAN. Keep usage low.
+    // https://www.revrobotics.com/development-spark-max-users-manual/#section-3-3-2-1
     config
         .signals
         .absoluteEncoderPositionAlwaysOn(false)
@@ -62,12 +63,18 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
     // drive motor signals
     config
         .signals
-        .appliedOutputPeriodMs(robotPeriodMillis)
         .faultsPeriodMs(robotPeriodMillis) // default is 250ms
-        .primaryEncoderVelocityAlwaysOn(true)
-        .primaryEncoderVelocityPeriodMs(2) // default is 20ms
+
+        // applied output is used for diagnostics only
+        .appliedOutputPeriodMs(robotPeriodMillis) // default 10ms
+
+        // position is used for odometry
         .primaryEncoderPositionAlwaysOn(true)
-        .primaryEncoderPositionPeriodMs(2); // default is 20ms
+        .primaryEncoderPositionPeriodMs(2) // default is 20ms
+
+        // velocity is used for telemetry and diagnostics
+        .primaryEncoderVelocityAlwaysOn(true) // always on to prevent lag
+        .primaryEncoderVelocityPeriodMs(2); // default is 20ms
 
     // Drive motor
     double positionConversionFactor = (2 * Math.PI * wheelRadiusMetres) / cfg.gearRatio();
@@ -110,7 +117,6 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
       return;
     }
     prevTargetMPS = targetVelocityMPSClamped;
-    //    final double speedNegOneToOne = targetVelocityMPS / velocityConversionFactor;
     doWithRetry(
         () -> controller.setReference(targetVelocityMPSClamped, SparkBase.ControlType.kVelocity));
   }
