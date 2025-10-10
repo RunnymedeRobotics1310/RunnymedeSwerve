@@ -70,11 +70,11 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
 
         // position is used for odometry
         .primaryEncoderPositionAlwaysOn(true)
-        .primaryEncoderPositionPeriodMs(2) // default is 20ms
+        .primaryEncoderPositionPeriodMs(5) // default is 20ms
 
         // velocity is used for telemetry and diagnostics
         .primaryEncoderVelocityAlwaysOn(true) // always on to prevent lag
-        .primaryEncoderVelocityPeriodMs(2); // default is 20ms
+        .primaryEncoderVelocityPeriodMs(robotPeriodMillis); // default is 20ms
 
     // Drive motor
     double positionConversionFactor = (2 * Math.PI * wheelRadiusMetres) / cfg.gearRatio();
