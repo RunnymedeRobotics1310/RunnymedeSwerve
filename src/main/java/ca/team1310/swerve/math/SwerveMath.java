@@ -97,7 +97,7 @@ public class SwerveMath {
     double wheelBaseOverFrameDiagonal = wheelBase / hypot;
     double trackWidthOverFrameDiagonal = trackWidth / hypot;
     return calculateModuleVelocitiesOpt(
-        wheelBaseOverFrameDiagonal, trackWidthOverFrameDiagonal, x, y, w);
+        trackWidthOverFrameDiagonal, wheelBaseOverFrameDiagonal, x, y, w);
   }
 
   /**
@@ -245,8 +245,8 @@ public class SwerveMath {
    * <p>To keep performance at a maximum, all 8 components of the module velocities are returned in
    * a single array in the format [frs, fra, fls, fla, bls, bla, brs, bra].
    *
-   * @param wheelBaseOverFrameDiagonal the ratio of the wheelbase to the diagonal of the robot
    * @param trackWidthOverFrameDiagonal the ratio of the track width to the diagonal of the robot
+   * @param wheelBaseOverFrameDiagonal the ratio of the wheelbase to the diagonal of the robot
    * @param x desired forward velocity, from -1.0 to 1.0 where -1.0 is the minimum achievable value
    *     and 1.0 is the maximum achievable value. (forward is positive)
    * @param y desired sideways velocity from -1.0 to 1.0 where -1.0 is the minimum achievable value
@@ -259,8 +259,8 @@ public class SwerveMath {
    * @see <a href="#array-indices">Array Indices</a>
    */
   public static double[] calculateModuleVelocitiesOpt(
-      double wheelBaseOverFrameDiagonal,
       double trackWidthOverFrameDiagonal,
+      double wheelBaseOverFrameDiagonal,
       double x,
       double y,
       double w) {
@@ -298,8 +298,8 @@ public class SwerveMath {
   /**
    * Correction #2 - desaturate wheel speeds
    *
-   * @param wheelBaseOverFrameDiagonal the ratio of the wheelbase to the diagonal of the robot
    * @param trackWidthOverFrameDiagonal the ratio of the track width to the diagonal of the robot
+   * @param wheelBaseOverFrameDiagonal the ratio of the wheelbase to the diagonal of the robot
    * @param x desired forward velocity, from -1.0 to 1.0 where -1.0 is the minimum achievable value
    *     and 1.0 is the maximum achievable value. (forward is positive)
    * @param y desired sideways velocity from -1.0 to 1.0 where -1.0 is the minimum achievable value
@@ -309,8 +309,8 @@ public class SwerveMath {
    * @return the fastest module speed
    */
   public static double getScaleFactor(
-      double wheelBaseOverFrameDiagonal,
       double trackWidthOverFrameDiagonal,
+      double wheelBaseOverFrameDiagonal,
       double x,
       double y,
       double w) {
@@ -590,8 +590,8 @@ public class SwerveMath {
    * @return array containing vX (m/s), vY (m/s), and w (rad/s)
    */
   public static double[] calculateRobotVelocity(
-      double wheelBase,
       double trackWidth,
+      double wheelBase,
       double frs,
       double fra,
       double fls,
@@ -604,8 +604,8 @@ public class SwerveMath {
     double wheelBaseOverFrameDiagonal = wheelBase / frameDiagonal;
     double trackWidthOverFrameDiagonal = trackWidth / frameDiagonal;
     return calculateRobotVelocityOpt(
-        wheelBaseOverFrameDiagonal,
         trackWidthOverFrameDiagonal,
+        wheelBaseOverFrameDiagonal,
         frs,
         fra,
         fls,
@@ -630,8 +630,8 @@ public class SwerveMath {
    * <p>Each component has 2 equations that give us the result, so we average them in case of
    * errors.
    *
-   * @param wheelBaseOverFrameDiagonal the ratio of the wheelbase to the diagonal of the robot
    * @param trackWidthOverFrameDiagonal the ratio of the track width to the diagonal of the robot
+   * @param wheelBaseOverFrameDiagonal the ratio of the wheelbase to the diagonal of the robot
    * @param frs module speed (-1 to 1)
    * @param fra module angle (-Pi to Pi)
    * @param fls module speed (-1 to 1)
@@ -643,8 +643,8 @@ public class SwerveMath {
    * @return array containing vX (m/s), vY (m/s), and w (rad/s)
    */
   public static double[] calculateRobotVelocityOpt(
-      double wheelBaseOverFrameDiagonal,
       double trackWidthOverFrameDiagonal,
+      double wheelBaseOverFrameDiagonal,
       double frs,
       double fra,
       double fls,

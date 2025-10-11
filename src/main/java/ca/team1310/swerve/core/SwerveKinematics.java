@@ -60,8 +60,8 @@ public class SwerveKinematics {
     // correction #2: desaturate wheel speeds
     double sf =
         SwerveMath.getScaleFactor(
-            wheelBaseOverFrameDiagonal,
             trackWidthOverFrameDiagonal,
+            wheelBaseOverFrameDiagonal,
             x / maxSpeedMps,
             y / maxSpeedMps,
             w / maxOmegaRadPerSec);
@@ -79,8 +79,8 @@ public class SwerveKinematics {
     // if needed, desaturate and discretize again
     double sf2 =
         SwerveMath.getScaleFactor(
-            wheelBaseOverFrameDiagonal,
             trackWidthOverFrameDiagonal,
+            wheelBaseOverFrameDiagonal,
             discretized[0] / maxSpeedMps,
             discretized[1] / maxSpeedMps,
             discretized[2] / maxOmegaRadPerSec);
@@ -94,8 +94,8 @@ public class SwerveKinematics {
 
     var result =
         SwerveMath.calculateModuleVelocitiesOpt(
-            wheelBaseOverFrameDiagonal,
             trackWidthOverFrameDiagonal,
+            wheelBaseOverFrameDiagonal,
             discretized[0] / maxSpeedMps,
             discretized[1] / maxSpeedMps,
             discretized[2] / maxOmegaRadPerSec);
@@ -179,8 +179,8 @@ public class SwerveKinematics {
       double brs,
       double bra) {
     return SwerveMath.calculateRobotVelocityOpt(
-        wheelBaseOverFrameDiagonal,
         trackWidthOverFrameDiagonal,
+        wheelBaseOverFrameDiagonal,
         frs,
         fra,
         fls,

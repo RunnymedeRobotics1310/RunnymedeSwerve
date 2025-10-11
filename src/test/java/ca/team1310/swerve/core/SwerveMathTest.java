@@ -72,7 +72,7 @@ public class SwerveMathTest {
 
     double[] backToRobot =
         SwerveMath.calculateRobotVelocity(
-            wheelBase, trackWidth, frs, fra, fls, fla, bls, bla, brs, bra);
+            trackWidth, wheelBase, frs, fra, fls, fla, bls, bla, brs, bra);
     System.out.println("Expected: " + x + ", " + y + ", " + omega);
     System.out.println(
         "Actual: " + backToRobot[0] + ", " + backToRobot[1] + ", " + backToRobot[2] + "\n");
@@ -136,7 +136,7 @@ public class SwerveMathTest {
     //    assertEquals(omega, backToRobot[2], EPSILON, "omega component is as expected");
     double[] backToRobot =
         SwerveMath.calculateRobotVelocity(
-            wheelBase, trackWidth, frs, fra, fls, fla, bls, bla, brs, bra);
+            trackWidth, wheelBase, frs, fra, fls, fla, bls, bla, brs, bra);
     assertEquals(x, backToRobot[0], EPSILON, "x component is as expected");
     assertEquals(y, backToRobot[1], EPSILON, "y component is as expected");
     assertEquals(omega, backToRobot[2], EPSILON, "omega component is as expected");
