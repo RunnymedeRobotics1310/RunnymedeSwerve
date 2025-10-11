@@ -96,8 +96,40 @@ This will publish the library to your local maven repository, which you can then
 your project must include the `mavenLocal()` repository. WPILIB projects do not include this by default (they look for a
 maven repository in a different location).
 
-_### Code Formatting
-This library uses prettier java code formatting. [Be sure to follow the instructions here](https://github.com/jhipster/prettier-java/blob/main/docs/advanced_usage.md)._
+### Code Formatting
+
+This project uses [Google Java Format](https://github.com/google/google-java-format) to format code. Please install the
+appropriate plugin for your IDE:
+
+* IntelliJ IDEA: [google-java-format](https://plugins.jetbrains.com/plugin/8527-google-java-format)
+    * And Add the following to your VM options (In `Help | Edit Custom VM Options`):
+```
+--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED
+--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED
+--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED
+--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED
+--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED
+--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
+```
+* VSCode: [google-java-format](https://marketplace.visualstudio.com/items?itemName=JoseVSeb.google-java-format-for-vs-code)
+    * This will be suggested in `Extensions` when you open the project in VSCode.
+* Eclipse: [google-java-format](https://marketplace.eclipse.org/content/google-java-format)
+
+#### Automated Format Checking
+
+This project includes a pre-commit git hook that automatically checks code formatting before each commit. The hook works on both Mac and Windows.
+
+To manually check formatting:
+```bash
+./gradlew spotlessCheck
+```
+
+To automatically fix formatting issues:
+```bash
+./gradlew spotlessApply
+```
+
+The git hook is automatically installed when you run `./gradlew build`. If a commit is blocked due to formatting issues, simply run `./gradlew spotlessApply` to fix the formatting, then stage and commit your changes again.
 
 ## Publishing Maven Package
 

@@ -3,6 +3,7 @@ plugins {
     id "edu.wpi.first.GradleRIO" version "2025.3.2"
     id "maven-publish"
     id "org.jreleaser" version "1.15.0"
+    id "com.diffplug.spotless" version "6.25.0"
 }
 
 java {
@@ -14,7 +15,7 @@ java {
 }
 
 // set a valid semver version
-version = '3.3.5'
+version = '3.3.8'
 
 repositories {
     mavenCentral()
@@ -49,6 +50,24 @@ tasks.register('sourcesJar', Jar) {
     archiveClassifier.set('sources')
     from sourceSets.main.allSource
 }
+
+// Google Java Format configuration
+spotless {
+    java {
+        target 'src/**/*.java'
+        googleJavaFormat()
+    }
+}
+
+// Task to install git pre-commit hook
+tasks.register('installGitHooks', Copy) {
+    from new File(projectDir, 'scripts/pre-commit')
+    into new File(projectDir, '.git/hooks')
+    fileMode 0755
+}
+
+// Automatically install git hooks on build
+build.dependsOn installGitHooks
 
 publishing {
     publications {

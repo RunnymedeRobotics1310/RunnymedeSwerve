@@ -122,8 +122,12 @@ class SwerveModuleImpl implements SwerveModule {
     SwerveMath.optimizeWheelAngles(desiredState, currentHeadingDeg);
     SwerveMath.cosineCompensator(desiredState, currentHeadingDeg);
 
+    // set drive motor speed
     driveMotor.setReferenceVelocity(desiredState.getSpeed());
-    angleMotor.setReferenceAngle(desiredState.getAngle());
+    // update angle if drive speed > 0
+    if (Math.abs(desiredState.getSpeed()) > 1E-9) {
+      angleMotor.setReferenceAngle(desiredState.getAngle());
+    }
   }
 
   /**

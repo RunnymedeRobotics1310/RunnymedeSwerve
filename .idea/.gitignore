@@ -1,10 +1,11 @@
-# Default ignored files
-/shelf/
-/workspace.xml
-# Editor-based HTTP Client requests
-/httpRequests/
-# Datasource local storage ignored files
-/dataSources/
-/dataSources.local.xml
-.aws.xml
-aws.xml
+# Ignore everything...
+
+*
+
+# except for the few settings we want defined everywhere
+
+!.gitignore
+!modules/RunnymedeSwerve.test.iml
+!compiler.xml
+!google-java-format.xml
+!vcs.xml
