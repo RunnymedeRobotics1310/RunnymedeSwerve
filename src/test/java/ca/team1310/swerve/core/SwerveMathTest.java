@@ -20,8 +20,11 @@ public class SwerveMathTest {
    */
   private static final double EPSILON = 1e-5;
 
-  private static double trackWidth = .58;
-  private static double wheelBase = .67;
+  private static final double trackWidth = .58;
+  private static final double wheelBase = .67;
+  private static final double hypot = Math.hypot(wheelBase, trackWidth);
+  private static final double wheelBaseOverFrameDiagonal = wheelBase / hypot;
+  private static final double trackWidthOverFrameDiagonal = trackWidth / hypot;
 
   @Test
   public void test() {
@@ -55,7 +58,9 @@ public class SwerveMathTest {
     assertTrue(
         omega >= -1, "omega must be between -1 and 1 - invalid test parameter - fix the test.");
 
-    double[] velocities = SwerveMath.calculateModuleVelocities(trackWidth, wheelBase, x, y, omega);
+    double[] velocities =
+        SwerveMath.calculateModuleVelocitiesOpt(
+            trackWidthOverFrameDiagonal, wheelBaseOverFrameDiagonal, x, y, omega);
 
     double frs = velocities[0];
     double fra = velocities[1];
@@ -67,8 +72,17 @@ public class SwerveMathTest {
     double bra = velocities[7];
 
     double[] backToRobot =
-        SwerveMath.calculateRobotVelocity(
-            trackWidth, wheelBase, frs, fra, fls, fla, bls, bla, brs, bra);
+        SwerveMath.calculateRobotVelocityOpt(
+            trackWidthOverFrameDiagonal,
+            wheelBaseOverFrameDiagonal,
+            frs,
+            fra,
+            fls,
+            fla,
+            bls,
+            bla,
+            brs,
+            bra);
     System.out.println("Expected: " + x + ", " + y + ", " + omega);
     System.out.println(
         "Actual: " + backToRobot[0] + ", " + backToRobot[1] + ", " + backToRobot[2] + "\n");
@@ -98,7 +112,9 @@ public class SwerveMathTest {
       double expectedBla,
       double expectedBrs,
       double expectedBra) {
-    double[] velocities = SwerveMath.calculateModuleVelocities(trackWidth, wheelBase, x, y, omega);
+    double[] velocities =
+        SwerveMath.calculateModuleVelocitiesOpt(
+            trackWidthOverFrameDiagonal, wheelBaseOverFrameDiagonal, x, y, omega);
 
     assertEquals(expectedFrs, velocities[0], EPSILON, "frs");
     assertEquals(expectedFra, velocities[1], EPSILON, "fra");
@@ -125,8 +141,17 @@ public class SwerveMathTest {
       double expectedY,
       double expectedOmega) {
     double[] backToRobot =
-        SwerveMath.calculateRobotVelocity(
-            trackWidth, wheelBase, frs, fra, fls, fla, bls, bla, brs, bra);
+        SwerveMath.calculateRobotVelocityOpt(
+            trackWidthOverFrameDiagonal,
+            wheelBaseOverFrameDiagonal,
+            frs,
+            fra,
+            fls,
+            fla,
+            bls,
+            bla,
+            brs,
+            bra);
     assertEquals(expectedX, backToRobot[0], EPSILON, "x component is as expected");
     assertEquals(expectedY, backToRobot[1], EPSILON, "y component is as expected");
     assertEquals(expectedOmega, backToRobot[2], EPSILON, "omega component is as expected");

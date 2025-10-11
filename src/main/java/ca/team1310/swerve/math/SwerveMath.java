@@ -73,36 +73,6 @@ public class SwerveMath {
   /**
    * Calculate the module velocities for the swerve drive when operating in robot-oriented mode.
    *
-   * <p>Units for x, y, and w are from -1.0 to 1.0, where 1.0 represents the maximum speed of the
-   * for each type of movement.
-   *
-   * @param trackWidth the track width of the drivetrain (i.e. from the left to the right of the
-   *     robot). Units are not relevant.
-   * @param wheelBase the wheelbase of the drivetrain, (i.e. from the front to the back of the
-   *     robot). Units are not relevant.
-   * @param x desired forward velocity, from -1.0 to 1.0 where -1.0 is the minimum achievable value
-   *     and 1.0 is the maximum achievable value. (forward is positive)
-   * @param y desired sideways velocity from -1.0 to 1.0 where -1.0 is the minimum achievable value
-   *     and 1.0 is the maximum achievable value. (left is positive)
-   * @param w desired angular velocity from -1.0 to 1.0 where -1.0 is the minimum achievable value
-   *     and 1.0 is the maximum achievable value. (counter-clockwise positive)
-   * @return an array of the calculated module setpoints, in the format [frs, fra, fls, fla, bls,
-   *     bla, brs, bra] where frs is the front right wheel speed from -1 to 1, fra is the front
-   *     right wheel angle, from -PI to PI, etc.
-   * @see <a href="#array-indices">Array Indices</a>
-   */
-  public static double[] calculateModuleVelocities(
-      double trackWidth, double wheelBase, double x, double y, double w) {
-    double hypot = Math.hypot(wheelBase, trackWidth);
-    double wheelBaseOverFrameDiagonal = wheelBase / hypot;
-    double trackWidthOverFrameDiagonal = trackWidth / hypot;
-    return calculateModuleVelocitiesOpt(
-        trackWidthOverFrameDiagonal, wheelBaseOverFrameDiagonal, x, y, w);
-  }
-
-  /**
-   * Calculate the module velocities for the swerve drive when operating in robot-oriented mode.
-   *
    * <p>This is the core worker function for these calculations. It takes pre-calculated ratios as
    * input to avoid making unnecessary calculations that are constant for any given robot.
    *
@@ -326,8 +296,7 @@ public class SwerveMath {
     double bls = Math.hypot(rear_horiz, left_vert);
     double brs = Math.hypot(rear_horiz, right_vert);
 
-    double scaleFactor = Math.max(frs, Math.max(fls, Math.max(bls, brs)));
-    return scaleFactor;
+    return Math.max(frs, Math.max(fls, Math.max(bls, brs)));
   }
 
   /**
@@ -574,46 +543,6 @@ public class SwerveMath {
     // force into the minimum absolute value residue class, so that -180 < angle <= 180
     if (degrees > 180) degrees -= 360;
     return degrees;
-  }
-
-  /**
-   * @param wheelBase robot length between wheels in m.
-   * @param trackWidth robot width between wheels in m.
-   * @param frs module speed (-1 to 1)
-   * @param fra module angle (-Pi to Pi)
-   * @param fls module speed (-1 to 1)
-   * @param fla module angle (-Pi to Pi)
-   * @param bls module speed (-1 to 1)
-   * @param bla module angle (-Pi to Pi)
-   * @param brs module speed (-1 to 1)
-   * @param bra module angle (-Pi to Pi)
-   * @return array containing vX (m/s), vY (m/s), and w (rad/s)
-   */
-  public static double[] calculateRobotVelocity(
-      double trackWidth,
-      double wheelBase,
-      double frs,
-      double fra,
-      double fls,
-      double fla,
-      double bls,
-      double bla,
-      double brs,
-      double bra) {
-    double frameDiagonal = Math.hypot(trackWidth, wheelBase);
-    double wheelBaseOverFrameDiagonal = wheelBase / frameDiagonal;
-    double trackWidthOverFrameDiagonal = trackWidth / frameDiagonal;
-    return calculateRobotVelocityOpt(
-        trackWidthOverFrameDiagonal,
-        wheelBaseOverFrameDiagonal,
-        frs,
-        fra,
-        fls,
-        fla,
-        bls,
-        bla,
-        brs,
-        bra);
   }
 
   /**
