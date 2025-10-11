@@ -565,7 +565,7 @@ public class SwerveMath {
     double frameDiagonal = Math.hypot(trackWidth, wheelBase);
     double trackWidthOverFrameDiagonal = trackWidth / frameDiagonal;
     double wheelBaseOverFrameDiagonal = wheelBase / frameDiagonal;
-    return calculateRobotVelocity(
+    return calculateRobotVelocityOpt(
         trackWidthOverFrameDiagonal,
         wheelBaseOverFrameDiagonal,
         frs,
