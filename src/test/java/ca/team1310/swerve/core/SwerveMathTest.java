@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import java.util.Arrays;
+
 /**
  * @author Tony Field
  * @since 2025-02-19 21:14
@@ -34,14 +36,19 @@ public class SwerveMathTest {
 
   @ParameterizedTest
   @CsvSource({
-    "0.5,    0,   0",
+    // "1.0, 2.0, 3.0", // deliberately fails to demonstrate test parameter validation
+    // "0.0, 0.2, 3.0", // deliberately fails to demonstrate test parameter validation
+    // "-0.8,  0.05, -0.5", // deliberately fails - desaturated speeds not reversible
+    "0.5, 0, 0",
     "1.0, 0, 0",
     "0, 1.0, 0",
-    // "0.75,    0.15,   0.25" // fails due to passing rad/s into the "back", when it should be
-    // module radian position
-    // "1.0, 2.0, 3.0", // fails to demonstrate test parameter validation
-    // "0.0, 0.2, 3.0", // fails to demonstrate test parameter validation
-    //    "-0.8,  0.05, -0.5",  TODO: FIXME - TEST NOT PASSING DUE TO API BUG
+    "0.5, 0.5, 0",
+    ".6, .6, 0",
+    ".7, .7, 0",
+    ".8, .2, 0",
+    "0, 0, 0",
+    ".1, .1, 0",
+    "0.25, 0.15, .25",
   })
   public void testToModuleVelocitiesAndBack(double x, double y, double omega) {
     // validate test parameters
@@ -66,18 +73,24 @@ public class SwerveMathTest {
     double bra = velocities[7];
 
     double[] backToRobot =
-        SwerveMath.calculateRobotVelocity(moduleX, moduleY, frs, fra, fls, fla, bls, bla, brs, bra);
-    assertEquals(x, backToRobot[0], EPSILON, "x component");
-    assertEquals(y, backToRobot[1], EPSILON, "y component");
-    assertEquals(omega, backToRobot[2], EPSILON, "omega component");
+        SwerveMath.calculateRobotVelocity(
+            trackWidth, wheelBase, frs, fra, fls, fla, bls, bla, brs, bra);
+    System.out.println("Expected: " + x + ", " + y + ", " + omega);
+    System.out.println(
+        "Actual: " + backToRobot[0] + ", " + backToRobot[1] + ", " + backToRobot[2] + "\n");
+    assertEquals(omega, backToRobot[2], EPSILON, "omega power component");
+    assertEquals(y, backToRobot[1], EPSILON, "y power component");
+    assertEquals(x, backToRobot[0], EPSILON, "x power component");
   }
 
   @ParameterizedTest
   @CsvSource({
     "0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0.5, 0",
     "0,0,0,0,0,0,0,0,0,0,0",
-    "1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0"
-    // "0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1",  TODO: FIXME - TEST NOT PASSING DUE TO API BUG
+    "1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0",
+    "0, 1, 0, 1, 1.5707963268, 1, 1.5707963268, 1, 1.5707963268, 1, 1.5707963268",
+    "1, 1, 1, 1, 0.8151675871302798, 0.7417938611924496, 1.3765309341217336, 0.17529613185192702, 0.6147729285293413, 0.693159867086551, 0.1463848167086979",
+    "0, 1, 0, 1, 1.5707963267948966, 1, 1.5707963267948966, 1, 1.5707963267948966, 1, 1.5707963267948966", // TODO: FIXME - TEST NOT PASSING DUE TO API BUG
   })
   public void testToModuleVelocities(
       double x,
@@ -117,8 +130,15 @@ public class SwerveMathTest {
       double x,
       double y,
       double omega) {
+    //    double[] backToRobot =
+    //        SwerveMath.calculateRobotVelocity(moduleX, moduleY, frs, fra, fls, fla, bls, bla, brs,
+    // bra);
+    //    assertEquals(x, backToRobot[0], EPSILON, "x component is as expected");
+    //    assertEquals(y, backToRobot[1], EPSILON, "y component is as expected");
+    //    assertEquals(omega, backToRobot[2], EPSILON, "omega component is as expected");
     double[] backToRobot =
-        SwerveMath.calculateRobotVelocity(moduleX, moduleY, frs, fra, fls, fla, bls, bla, brs, bra);
+        SwerveMath.calculateRobotVelocity(
+            trackWidth, wheelBase, frs, fra, fls, fla, bls, bla, brs, bra);
     assertEquals(x, backToRobot[0], EPSILON, "x component is as expected");
     assertEquals(y, backToRobot[1], EPSILON, "y component is as expected");
     assertEquals(omega, backToRobot[2], EPSILON, "omega component is as expected");

@@ -48,6 +48,16 @@ public abstract class NSBase<T extends SparkBase> {
   /**
    * Perform an operation on the Spark motor controller, and retry it if there is a failure.
    *
+   * <p>Per Rev support 2025-10-01: setReference() will continuously send the setpoint to the
+   * controller in the background after being called. The period can be adjusted with
+   * setControlFramePeriodMs(), and the default value is 20ms. E.g. if the controller fails to
+   * receive the initial setpoint command, it will receive it again 20ms later and so on. This
+   * ensures the device gets the most up-to-date setpoint as soon as possible and that it is able to
+   * recover from events like brownouts. Also, since you mentioned it, in newer versions of REVLib
+   * (2025+), there are retry mechanisms and better error handling for failed configurations, so
+   * manually retrying a failed config is no longer needed. See setCANMaxRetries() and
+   * setCANTimeout().
+   *
    * @param sparkOperation The operation to perform
    */
   protected final void doWithRetry(Supplier<REVLibError> sparkOperation) {
@@ -55,6 +65,7 @@ public abstract class NSBase<T extends SparkBase> {
       if (sparkOperation.get() == REVLibError.kOk) {
         return;
       }
+      // on failure sleep 5ms then try again - faster than the default
       Timer.delay(Units.Milliseconds.of(5).in(Seconds));
     }
     DriverStation.reportWarning("Failure communicating with motor " + spark.getDeviceId(), true);

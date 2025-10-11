@@ -13,9 +13,6 @@ public class SwerveKinematics {
   private final double maxSpeedMps;
   private final double maxOmegaRadPerSec;
 
-  private final double[] moduleX;
-  private final double[] moduleY;
-
   private final ModuleDirective fr;
   private final ModuleDirective fl;
   private final ModuleDirective bl;
@@ -44,10 +41,6 @@ public class SwerveKinematics {
     this.fl = new ModuleDirective();
     this.bl = new ModuleDirective();
     this.br = new ModuleDirective();
-
-    double halfL = wheelBase / 2, halfW = trackWidth / 2;
-    moduleX = new double[] {+halfL, +halfL, -halfL, -halfL}; // FR, FL, BL, BR
-    moduleY = new double[] {-halfW, +halfW, +halfW, -halfW}; // FR, FL, BL, BR
   }
 
   /**
@@ -69,7 +62,7 @@ public class SwerveKinematics {
     w /= maxOmegaRadPerSec;
 
     var result =
-        SwerveMath.calculateModuleVelocities(
+        SwerveMath.calculateModuleVelocitiesOpt(
             wheelBaseOverFrameDiagonal, trackWidthOverFrameDiagonal, x, y, w);
 
     // convert from -1.0 - 1.0 into to m/s
@@ -150,7 +143,16 @@ public class SwerveKinematics {
       double bla,
       double brs,
       double bra) {
-    return SwerveMath.calculateRobotVelocity(
-        moduleX, moduleY, frs, fra, fls, fla, bls, bla, brs, bra);
+    return SwerveMath.calculateRobotVelocityOpt(
+        trackWidthOverFrameDiagonal,
+        wheelBaseOverFrameDiagonal,
+        frs,
+        fra,
+        fls,
+        fla,
+        bls,
+        bla,
+        brs,
+        bra);
   }
 }

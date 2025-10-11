@@ -96,7 +96,7 @@ public class SwerveMath {
     double hypot = Math.hypot(wheelBase, trackWidth);
     double wheelBaseOverFrameDiagonal = wheelBase / hypot;
     double trackWidthOverFrameDiagonal = trackWidth / hypot;
-    return _calculateModuleVelocities(
+    return calculateModuleVelocitiesOpt(
         wheelBaseOverFrameDiagonal, trackWidthOverFrameDiagonal, x, y, w);
   }
 
@@ -258,7 +258,7 @@ public class SwerveMath {
    *     right wheel angle, from -PI to PI, etc.
    * @see <a href="#array-indices">Array Indices</a>
    */
-  public static double[] _calculateModuleVelocities(
+  public static double[] calculateModuleVelocitiesOpt(
       double wheelBaseOverFrameDiagonal,
       double trackWidthOverFrameDiagonal,
       double x,
@@ -279,6 +279,7 @@ public class SwerveMath {
     // Correction #2 - desaturate wheel speeds
     double max = Math.max(frs, Math.max(fls, Math.max(bls, brs)));
     if (max > 1.0) {
+      //      System.out.println("Desaturating. Scale factor = " + max);
       frs /= max;
       fls /= max;
       bls /= max;
@@ -538,24 +539,74 @@ public class SwerveMath {
   }
 
   /**
-   * Compute the robot's velocity (vX, vY omega) given the velocities of the four swerve modules.
-   *
-   * @param moduleX Location of swerve modules on frame to X
-   * @param moduleY Location of swerve modules on frame to Y
-   * @param frs front right module speed (from -1.0 to 1.0)
-   * @param fra front right module angle (from -1.0 to 1.0)
-   * @param fls front left module speed (from -1.0 to 1.0)
-   * @param fla front left module angle (from -1.0 to 1.0)
-   * @param bls back left module speed (from -1.0 to 1.0)
-   * @param bla back left module angle (from -1.0 to 1.0)
-   * @param brs back right module speed (from -1.0 to 1.0)
-   * @param bra back right module angle (from -1.0 to 1.0)
-   * @return an array containing the x, y, and omega components of the robot's velocity each from
-   *     -1.0 to 1.0.
+   * @param trackWidth robot width between wheels in m.
+   * @param wheelBase robot length between wheels in m.
+   * @param frs module speed (-1 to 1)
+   * @param fra module angle (-Pi to Pi)
+   * @param fls module speed (-1 to 1)
+   * @param fla module angle (-Pi to Pi)
+   * @param bls module speed (-1 to 1)
+   * @param bla module angle (-Pi to Pi)
+   * @param brs module speed (-1 to 1)
+   * @param bra module angle (-Pi to Pi)
+   * @return array containing vX (m/s), vY (m/s), and w (rad/s)
    */
   public static double[] calculateRobotVelocity(
-      double[] moduleX,
-      double[] moduleY,
+      double trackWidth,
+      double wheelBase,
+      double frs,
+      double fra,
+      double fls,
+      double fla,
+      double bls,
+      double bla,
+      double brs,
+      double bra) {
+    double frameDiagonal = Math.hypot(trackWidth, wheelBase);
+    double trackWidthOverFrameDiagonal = trackWidth / frameDiagonal;
+    double wheelBaseOverFrameDiagonal = wheelBase / frameDiagonal;
+    return calculateRobotVelocity(
+        trackWidthOverFrameDiagonal,
+        wheelBaseOverFrameDiagonal,
+        frs,
+        fra,
+        fls,
+        fla,
+        bls,
+        bla,
+        brs,
+        bra);
+  }
+
+  /**
+   * This function returns the robot speed given the speed and angle of the wheels. It does so by
+   * reversing the equations from calculateModuleVelocitiesOpt().
+   *
+   * <p>First, the horizontal and vertical components of the vector corresponding to the motion of
+   * each module.
+   *
+   * <p>Each component is on 2 modules, so we average them in case of errors.
+   *
+   * <p>Next we find a system of equations to give us vX, vY, and w.
+   *
+   * <p>Each component has 2 equations that give us the result, so we average them in case of
+   * errors.
+   *
+   * @param wheelBaseOverFrameDiagonal the ratio of the wheelbase to the diagonal of the robot
+   * @param trackWidthOverFrameDiagonal the ratio of the track width to the diagonal of the robot
+   * @param frs module speed (-1 to 1)
+   * @param fra module angle (-Pi to Pi)
+   * @param fls module speed (-1 to 1)
+   * @param fla module angle (-Pi to Pi)
+   * @param bls module speed (-1 to 1)
+   * @param bla module angle (-Pi to Pi)
+   * @param brs module speed (-1 to 1)
+   * @param bra module angle (-Pi to Pi)
+   * @return array containing vX (m/s), vY (m/s), and w (rad/s)
+   */
+  public static double[] calculateRobotVelocityOpt(
+      double trackWidthOverFrameDiagonal,
+      double wheelBaseOverFrameDiagonal,
       double frs,
       double fra,
       double fls,
@@ -565,39 +616,62 @@ public class SwerveMath {
       double brs,
       double bra) {
 
-    // 1) turn each wheel's polar (speed,angle) into Cartesian
-    double[] vix = new double[4];
-    double[] viy = new double[4];
+    // average each component from the 2 modules
+    double rear_horiz = (bls * Math.sin(bla) + brs * Math.sin(bra)) / 2;
+    double front_horiz = (fls * Math.sin(fla) + frs * Math.sin(fra)) / 2;
+    double right_vert = (frs * Math.cos(fra) + brs * Math.cos(bra)) / 2;
+    double left_vert = (fls * Math.cos(fla) + bls * Math.cos(bla)) / 2;
 
-    vix[0] = frs * Math.cos(fra);
-    viy[0] = frs * Math.sin(fra);
-    vix[1] = fls * Math.cos(fla);
-    viy[1] = fls * Math.sin(fla);
-    vix[2] = bls * Math.cos(bla);
-    viy[2] = bls * Math.sin(bla);
-    vix[3] = brs * Math.cos(bra);
-    viy[3] = brs * Math.sin(bra);
+    /*
+     rearrange equations from calculateModuleVelocitiesOpt() to find x and y given all components
 
-    // 2) compute ω numerator = Σ (x_i * v_i_y – y_i * v_i_x)
-    //    and denominator = Σ (x_i² + y_i²)
-    double num = 0, den = 0;
-    for (int i = 0; i < 4; i++) {
-      num += (moduleX[i] * viy[i]) - (moduleY[i] * vix[i]);
-      den += (moduleX[i] * moduleX[i]) + (moduleY[i] * moduleY[i]);
-    }
-    double omega = num / den;
+     rear_horiz = y - w * wheelBaseOverFrameDiagonal
+     rear_horiz + w * wheelBaseOverFrameDiagonal = y
+     y = rear_horiz + w * wheelBaseOverFrameDiagonal
 
-    // 3) now that ω is known, back out Vx, Vy by averaging:
-    //    v_i_x = Vx – ω * y_i  ⇒  Vx = v_i_x + ω * y_i
-    //    v_i_y = Vy + ω * x_i  ⇒  Vy = v_i_y – ω * x_i
-    double sumVx = 0, sumVy = 0;
-    for (int i = 0; i < 4; i++) {
-      sumVx += vix[i] + (omega * moduleY[i]);
-      sumVy += viy[i] - (omega * moduleX[i]);
-    }
-    double Vx = sumVx / 4;
-    double Vy = sumVy / 4;
+     front_horiz = y + w * wheelBaseOverFrameDiagonal
+     y = front_horiz - w * wheelBaseOverFrameDiagonal
 
-    return new double[] {Vx, Vy, omega};
+     right_vert = x + w * trackWidthOverFrameDiagonal
+     x = right_vert - w * trackWidthOverFrameDiagonal
+
+     left_vert = x - w * trackWidthOverFrameDiagonal
+     x = left_vert + w * trackWidthOverFrameDiagonal
+
+     FINDING w
+     sub eq1 into eq2
+     front_horiz = y + w * wheelBaseOverFrameDiagonal
+     front_horiz = (rear_horiz + w * wheelBaseOverFrameDiagonal) + w * wheelBaseOverFrameDiagonal
+     front_horiz = rear_horiz + 2 * w * wheelBaseOverFrameDiagonal
+     front_horiz - rear_horiz = 2 * w * wheelBaseOverFrameDiagonal
+     w = (front_horiz - rear_horiz) / (2 * wheelBaseOverFrameDiagonal)
+
+     sub eqn 4 into eqn 3
+     right_vert = (left_vert + w * trackWidthOverFrameDiagonal) + w * trackWidthOverFrameDiagonal
+     right_vert = left_vert + 2 * w * trackWidthOverFrameDiagonal
+     right_vert - left_vert = 2 * w * trackWidthOverFrameDiagonal
+     w = (right_vert - left_vert) / (2 * trackWidthOverFrameDiagonal)
+    */
+
+    // average results of above eq'ns
+    double w = 0;
+    w += (front_horiz - rear_horiz) / (2 * wheelBaseOverFrameDiagonal);
+    //    System.out.println(w);
+    w += (right_vert - left_vert) / (2 * trackWidthOverFrameDiagonal);
+    //    System.out.println(w);
+    w /= 2;
+    //    System.out.println(w);
+
+    double x = 0;
+    x += right_vert - w * trackWidthOverFrameDiagonal;
+    x += left_vert + w * trackWidthOverFrameDiagonal;
+    x /= 2;
+
+    double y = 0;
+    y += rear_horiz + w * wheelBaseOverFrameDiagonal;
+    y += front_horiz - w * wheelBaseOverFrameDiagonal;
+    y /= 2;
+
+    return new double[] {x, y, w};
   }
 }
