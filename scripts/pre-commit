@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# Pre-commit hook to check Java code formatting with google-java-format
+# This hook works on both Mac and Windows (via Git Bash)
+#
+
+echo "Running code format check..."
+
+# Run spotless check
+if ./gradlew spotlessCheck --quiet; then
+    echo "✓ Code formatting check passed"
+    exit 0
+else
+    echo "✗ Code formatting check failed!"
+    echo ""
+    echo "Your code is not properly formatted with google-java-format."
+    echo "Please run the following command to fix formatting:"
+    echo ""
+    echo "  ./gradlew spotlessApply"
+    echo ""
+    echo "Then stage and commit your changes again."
+    exit 1
+fi
