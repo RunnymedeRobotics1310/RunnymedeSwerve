@@ -23,10 +23,6 @@ public class SwerveMathTest {
   private static double trackWidth = .58;
   private static double wheelBase = .67;
 
-  private static double halfL = wheelBase / 2, halfW = trackWidth / 2;
-  private static double[] moduleX = new double[] {+halfL, +halfL, -halfL, -halfL}; // FR, FL, BL, BR
-  private static double[] moduleY = new double[] {-halfW, +halfW, +halfW, -halfW}; // FR, FL, BL, BR
-
   @Test
   public void test() {
     assertTrue(true, "true is true");
@@ -88,34 +84,34 @@ public class SwerveMathTest {
     "1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0",
     "0, 1, 0, 1, 1.5707963268, 1, 1.5707963268, 1, 1.5707963268, 1, 1.5707963268",
     "1, 1, 1, 1, 0.8151675871302798, 0.7417938611924496, 1.3765309341217336, 0.17529613185192702, 0.6147729285293413, 0.693159867086551, 0.1463848167086979",
-    "0, 1, 0, 1, 1.5707963267948966, 1, 1.5707963267948966, 1, 1.5707963267948966, 1, 1.5707963267948966", // TODO: FIXME - TEST NOT PASSING DUE TO API BUG
+    "0, 1, 0, 1, 1.5707963267948966, 1, 1.5707963267948966, 1, 1.5707963267948966, 1, 1.5707963267948966",
   })
   public void testToModuleVelocities(
       double x,
       double y,
       double omega,
-      double frs,
-      double fra,
-      double fls,
-      double fla,
-      double bls,
-      double bla,
-      double brs,
-      double bra) {
+      double expectedFrs,
+      double expectedFra,
+      double expectedFls,
+      double expectedFla,
+      double expectedBls,
+      double expectedBla,
+      double expectedBrs,
+      double expectedBra) {
     double[] velocities = SwerveMath.calculateModuleVelocities(trackWidth, wheelBase, x, y, omega);
 
-    assertEquals(frs, velocities[0], EPSILON, "frs");
-    assertEquals(fra, velocities[1], EPSILON, "fra");
-    assertEquals(fls, velocities[2], EPSILON, "fls");
-    assertEquals(fla, velocities[3], EPSILON, "fla");
-    assertEquals(bls, velocities[4], EPSILON, "bls");
-    assertEquals(bla, velocities[5], EPSILON, "bla");
-    assertEquals(brs, velocities[6], EPSILON, "brs");
-    assertEquals(bra, velocities[7], EPSILON, "bra");
+    assertEquals(expectedFrs, velocities[0], EPSILON, "frs");
+    assertEquals(expectedFra, velocities[1], EPSILON, "fra");
+    assertEquals(expectedFls, velocities[2], EPSILON, "fls");
+    assertEquals(expectedFla, velocities[3], EPSILON, "fla");
+    assertEquals(expectedBls, velocities[4], EPSILON, "bls");
+    assertEquals(expectedBla, velocities[5], EPSILON, "bla");
+    assertEquals(expectedBrs, velocities[6], EPSILON, "brs");
+    assertEquals(expectedBra, velocities[7], EPSILON, "bra");
   }
 
   @ParameterizedTest
-  @CsvSource({"0.5, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0.5,    0,   0", "0,0,0,0,0,0,0,0,0,0,0"})
+  @CsvSource({"0.5, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0", "0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0"})
   public void testToRobotVelocity(
       double frs,
       double fra,
@@ -125,20 +121,14 @@ public class SwerveMathTest {
       double bla,
       double brs,
       double bra,
-      double x,
-      double y,
-      double omega) {
-    //    double[] backToRobot =
-    //        SwerveMath.calculateRobotVelocity(moduleX, moduleY, frs, fra, fls, fla, bls, bla, brs,
-    // bra);
-    //    assertEquals(x, backToRobot[0], EPSILON, "x component is as expected");
-    //    assertEquals(y, backToRobot[1], EPSILON, "y component is as expected");
-    //    assertEquals(omega, backToRobot[2], EPSILON, "omega component is as expected");
+      double expectedX,
+      double expectedY,
+      double expectedOmega) {
     double[] backToRobot =
         SwerveMath.calculateRobotVelocity(
             trackWidth, wheelBase, frs, fra, fls, fla, bls, bla, brs, bra);
-    assertEquals(x, backToRobot[0], EPSILON, "x component is as expected");
-    assertEquals(y, backToRobot[1], EPSILON, "y component is as expected");
-    assertEquals(omega, backToRobot[2], EPSILON, "omega component is as expected");
+    assertEquals(expectedX, backToRobot[0], EPSILON, "x component is as expected");
+    assertEquals(expectedY, backToRobot[1], EPSILON, "y component is as expected");
+    assertEquals(expectedOmega, backToRobot[2], EPSILON, "omega component is as expected");
   }
 }
