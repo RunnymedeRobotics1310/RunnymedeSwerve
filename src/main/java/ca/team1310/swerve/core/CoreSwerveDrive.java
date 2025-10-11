@@ -157,7 +157,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
    */
   private synchronized void updateModules() {
     // calculate desired states
-    math.calculateAndStoreModuleVelocities(desiredVx, desiredVy, desiredOmega, robotPeriodSeconds);
+    math.calculateModuleVelocities(desiredVx, desiredVy, desiredOmega, robotPeriodSeconds);
 
     // set the module states
     this.modules[0].setDesiredState(math.getFrontRight());

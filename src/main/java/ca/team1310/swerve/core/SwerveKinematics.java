@@ -49,15 +49,18 @@ public class SwerveKinematics {
    * getter methods. The individual wheel vectors are returned in metres per second and degrees,
    * counter-clockwise positive.
    *
+   * <p>Note that Correction 2 (desaturate wheel speeds) and Correction 4 (discretize) are both
+   * applied when performing these calculations.
+   *
    * @param x desired forward velocity, in m/s (forward is positive)
    * @param y desired sideways velocity from in m/s (left is positive)
    * @param w desired angular velocity from in rad/s, (counter-clockwise is positive)
    * @param dt robot period in seconds (used for discretize)
    */
-  void calculateAndStoreModuleVelocities(double x, double y, double w, double dt) {
-    double[] scaledSpeeds = {x, y, w};
+  void calculateModuleVelocities(double x, double y, double w, double dt) {
+    double[] scaled = {x, y, w};
 
-    // correction #2: desaturate wheel speeds
+    // Correction #2: desaturate wheel speeds
     double sf =
         SwerveMath.computeVelocityScaleFactor(
             trackWidthOverFrameDiagonal,
@@ -66,17 +69,17 @@ public class SwerveKinematics {
             y / maxSpeedMps,
             w / maxOmegaRadPerSec);
     if (sf > 1) {
-      scaledSpeeds[0] /= sf;
-      scaledSpeeds[1] /= sf;
-      scaledSpeeds[2] /= sf;
-      System.out.println("sf: " + sf);
+      scaled[0] /= sf;
+      scaled[1] /= sf;
+      scaled[2] /= sf;
+      System.out.println("sf1: " + sf);
     }
 
-    // discretize after desaturating speeds
-    double[] discretized =
-        SwerveMath.discretize(scaledSpeeds[0], scaledSpeeds[1], scaledSpeeds[2], dt);
+    // Correction #4 - discretize after desaturating speeds
+    double[] discretized = SwerveMath.discretize(scaled[0], scaled[1], scaled[2], dt);
 
-    // if needed, desaturate and discretize again
+    // After discretizing, we may have saturated wheel speeds again.
+    // Check, and desaturate again if necessary
     double sf2 =
         SwerveMath.computeVelocityScaleFactor(
             trackWidthOverFrameDiagonal,
@@ -85,10 +88,10 @@ public class SwerveKinematics {
             discretized[1] / maxSpeedMps,
             discretized[2] / maxOmegaRadPerSec);
     if (sf2 > 1) {
-      scaledSpeeds[0] /= sf2;
-      scaledSpeeds[1] /= sf2;
-      scaledSpeeds[2] /= sf2;
-      discretized = SwerveMath.discretize(scaledSpeeds[0], scaledSpeeds[1], scaledSpeeds[2], dt);
+      scaled[0] /= sf2;
+      scaled[1] /= sf2;
+      scaled[2] /= sf2;
+      discretized = SwerveMath.discretize(scaled[0], scaled[1], scaled[2], dt);
       System.out.println("sf2: " + sf2);
     }
 

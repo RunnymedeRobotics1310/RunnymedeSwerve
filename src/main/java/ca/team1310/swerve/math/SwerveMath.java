@@ -234,6 +234,7 @@ public class SwerveMath {
       double x,
       double y,
       double w) {
+
     // Compute the horiz and vert components of the wheel vectors
     double rear_horiz = y - w * wheelBaseOverFrameDiagonal;
     double front_horiz = y + w * wheelBaseOverFrameDiagonal;
@@ -249,7 +250,10 @@ public class SwerveMath {
     // Correction #2 - desaturate wheel speeds (this should already be done)
     double max = Math.max(frs, Math.max(fls, Math.max(bls, brs)));
     if (max > 1.0) {
-      System.out.println("Unexpected wheel speeds. Scale factor = " + max);
+      // This code path should never be reached, because scaling should be done
+      // before calling this method.
+      // See <code>SwerveKinematics.calculateModuleVelocities</code>.
+      System.out.println("ERROR: Unachievable module speeds. Scale factor: " + max);
       frs /= max;
       fls /= max;
       bls /= max;
