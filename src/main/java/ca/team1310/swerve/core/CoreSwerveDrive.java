@@ -25,7 +25,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
   private final double robotPeriodSeconds;
 
-  private final SwerveKinematics math;
+  private final SwerveKinematics kinematics;
 
   private double desiredVx;
   private double desiredVy;
@@ -100,7 +100,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     this.moduleStates[2] = modules[2].getState();
     this.moduleStates[3] = modules[3].getState();
 
-    this.math =
+    this.kinematics =
         new SwerveKinematics(
             cfg.wheelBaseMetres(),
             cfg.trackWidthMetres(),
@@ -157,13 +157,13 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
    */
   private synchronized void updateModules() {
     // calculate desired states
-    math.calculateModuleVelocities(desiredVx, desiredVy, desiredOmega, robotPeriodSeconds);
+    kinematics.calculateModuleVelocities(desiredVx, desiredVy, desiredOmega, robotPeriodSeconds);
 
     // set the module states
-    this.modules[0].setDesiredState(math.getFrontRight());
-    this.modules[1].setDesiredState(math.getFrontLeft());
-    this.modules[2].setDesiredState(math.getBackLeft());
-    this.modules[3].setDesiredState(math.getBackRight());
+    this.modules[0].setDesiredState(kinematics.getFrontRight());
+    this.modules[1].setDesiredState(kinematics.getFrontLeft());
+    this.modules[2].setDesiredState(kinematics.getBackLeft());
+    this.modules[3].setDesiredState(kinematics.getBackRight());
 
     if (isSimulation) {
       updateGyroForSimulation();
@@ -220,7 +220,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
    *     m/s and omega is in rad/s (counter-clockwise is positive).
    */
   public double[] getMeasuredRobotVelocity() {
-    return math.calculateRobotVelocity(
+    return kinematics.calculateRobotVelocity(
         moduleStates[0].getSpeed(),
         Math.toRadians(moduleStates[0].getAngle()),
         moduleStates[1].getSpeed(),
