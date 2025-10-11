@@ -59,7 +59,7 @@ public class SwerveMathTest {
         omega >= -1, "omega must be between -1 and 1 - invalid test parameter - fix the test.");
 
     double[] velocities =
-        SwerveMath.calculateModuleVelocitiesOpt(
+        SwerveMath.calculateModuleVelocities(
             trackWidthOverFrameDiagonal, wheelBaseOverFrameDiagonal, x, y, omega);
 
     double frs = velocities[0];
@@ -72,7 +72,7 @@ public class SwerveMathTest {
     double bra = velocities[7];
 
     double[] backToRobot =
-        SwerveMath.calculateRobotVelocityOpt(
+        SwerveMath.calculateRobotVelocity(
             trackWidthOverFrameDiagonal,
             wheelBaseOverFrameDiagonal,
             frs,
@@ -113,7 +113,7 @@ public class SwerveMathTest {
       double expectedBrs,
       double expectedBra) {
     double[] velocities =
-        SwerveMath.calculateModuleVelocitiesOpt(
+        SwerveMath.calculateModuleVelocities(
             trackWidthOverFrameDiagonal, wheelBaseOverFrameDiagonal, x, y, omega);
 
     assertEquals(expectedFrs, velocities[0], EPSILON, "frs");
@@ -141,7 +141,7 @@ public class SwerveMathTest {
       double expectedY,
       double expectedOmega) {
     double[] backToRobot =
-        SwerveMath.calculateRobotVelocityOpt(
+        SwerveMath.calculateRobotVelocity(
             trackWidthOverFrameDiagonal,
             wheelBaseOverFrameDiagonal,
             frs,

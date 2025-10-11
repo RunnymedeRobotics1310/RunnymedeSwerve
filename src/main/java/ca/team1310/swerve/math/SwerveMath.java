@@ -228,7 +228,7 @@ public class SwerveMath {
    *     right wheel angle, from -PI to PI, etc.
    * @see <a href="#array-indices">Array Indices</a>
    */
-  public static double[] calculateModuleVelocitiesOpt(
+  public static double[] calculateModuleVelocities(
       double trackWidthOverFrameDiagonal,
       double wheelBaseOverFrameDiagonal,
       double x,
@@ -266,7 +266,12 @@ public class SwerveMath {
   }
 
   /**
-   * Correction #2 - desaturate wheel speeds
+   * This method supports:
+   *
+   * <p>Correction #2 - desaturate wheel speeds
+   *
+   * <p>Compute the module wheel speeds and return the scale factor required to ensure that module
+   * speeds are actually achievable.
    *
    * @param trackWidthOverFrameDiagonal the ratio of the track width to the diagonal of the robot
    * @param wheelBaseOverFrameDiagonal the ratio of the wheelbase to the diagonal of the robot
@@ -276,9 +281,10 @@ public class SwerveMath {
    *     and 1.0 is the maximum achievable value. (left is positive)
    * @param w desired angular velocity from -1.0 to 1.0 where -1.0 is the minimum achievable value
    *     and 1.0 is the maximum achievable value. (counter-clockwise positive)
-   * @return the fastest module speed
+   * @return the fastest module speed on the scale of 0 to 1. If the returned value is > 1, the x,
+   *     y, w values need to be scaled down by this value.
    */
-  public static double getScaleFactor(
+  public static double computeVelocityScaleFactor(
       double trackWidthOverFrameDiagonal,
       double wheelBaseOverFrameDiagonal,
       double x,
@@ -342,7 +348,8 @@ public class SwerveMath {
 
   /**
    * Correction #4 - Discretize. Compensate for the fact that the robot will drive off the desired
-   * path during the interval between one set of instructions and the next set of instructions.
+   * path during the interval between one set of instructions and the next set of instructions,
+   * because it is pivoting while driving.
    *
    * <p>See <a
    * href="https://www.chiefdelphi.com/t/looking-for-an-explanation-of-chassisspeeds-discretize/462069">explanation
@@ -571,7 +578,7 @@ public class SwerveMath {
    * @param bra module angle (-Pi to Pi)
    * @return array containing vX (m/s), vY (m/s), and w (rad/s)
    */
-  public static double[] calculateRobotVelocityOpt(
+  public static double[] calculateRobotVelocity(
       double trackWidthOverFrameDiagonal,
       double wheelBaseOverFrameDiagonal,
       double frs,
