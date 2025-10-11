@@ -5,7 +5,6 @@ import static ca.team1310.swerve.core.config.TelemetryLevel.*;
 import ca.team1310.swerve.RunnymedeSwerveDrive;
 import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
-import ca.team1310.swerve.math.SwerveMath;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotBase;
 
@@ -147,13 +146,10 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     // if below minimum speed just stop rotating
     w = Math.abs(w) < MINIMUM_OMEGA_VALUE_RAD_PER_SEC ? 0 : w;
 
-    // discretize
-    double[] discretized = SwerveMath.discretize(x, y, w, robotPeriodSeconds);
-
     // set desired speeds
-    desiredVx = discretized[0];
-    desiredVy = discretized[1];
-    desiredOmega = discretized[2];
+    desiredVx = x;
+    desiredVy = y;
+    desiredOmega = w;
   }
 
   /*
@@ -161,7 +157,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
    */
   private synchronized void updateModules() {
     // calculate desired states
-    math.calculateAndStoreModuleVelocities(desiredVx, desiredVy, desiredOmega);
+    math.calculateAndStoreModuleVelocities(desiredVx, desiredVy, desiredOmega, robotPeriodSeconds);
 
     // set the module states
     this.modules[0].setDesiredState(math.getFrontRight());

@@ -15,7 +15,7 @@ java {
 }
 
 // set a valid semver version
-version = '3.3.8'
+version = '3.3.8-DISCRETIZE'
 
 repositories {
     mavenCentral()

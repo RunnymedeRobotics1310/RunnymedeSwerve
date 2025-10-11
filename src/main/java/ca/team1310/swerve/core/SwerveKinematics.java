@@ -52,18 +52,53 @@ public class SwerveKinematics {
    * @param x desired forward velocity, in m/s (forward is positive)
    * @param y desired sideways velocity from in m/s (left is positive)
    * @param w desired angular velocity from in rad/s, (counter-clockwise is positive)
+   * @param dt robot period in seconds (used for discretize)
    */
-  void calculateAndStoreModuleVelocities(double x, double y, double w) {
-    // convert from m/s to a scale of -1.0 to 1.0
-    x /= maxSpeedMps;
-    y /= maxSpeedMps;
+  void calculateAndStoreModuleVelocities(double x, double y, double w, double dt) {
+    double[] scaledSpeeds = {x, y, w};
 
-    // convert from rad/s to a scale of -1.0 to 1.0
-    w /= maxOmegaRadPerSec;
+    // correction #2: desaturate wheel speeds
+    double sf =
+        SwerveMath.getScaleFactor(
+            wheelBaseOverFrameDiagonal,
+            trackWidthOverFrameDiagonal,
+            x / maxSpeedMps,
+            y / maxSpeedMps,
+            w / maxOmegaRadPerSec);
+    if (sf > 1) {
+      scaledSpeeds[0] /= sf;
+      scaledSpeeds[1] /= sf;
+      scaledSpeeds[2] /= sf;
+      System.out.println("sf: " + sf);
+    }
+
+    // discretize after desaturating speeds
+    double[] discretized =
+        SwerveMath.discretize(scaledSpeeds[0], scaledSpeeds[1], scaledSpeeds[2], dt);
+
+    // if needed, desaturate and discretize again
+    double sf2 =
+        SwerveMath.getScaleFactor(
+            wheelBaseOverFrameDiagonal,
+            trackWidthOverFrameDiagonal,
+            discretized[0] / maxSpeedMps,
+            discretized[1] / maxSpeedMps,
+            discretized[2] / maxOmegaRadPerSec);
+    if (sf2 > 1) {
+      scaledSpeeds[0] /= sf2;
+      scaledSpeeds[1] /= sf2;
+      scaledSpeeds[2] /= sf2;
+      discretized = SwerveMath.discretize(scaledSpeeds[0], scaledSpeeds[1], scaledSpeeds[2], dt);
+      System.out.println("sf2: " + sf2);
+    }
 
     var result =
         SwerveMath.calculateModuleVelocitiesOpt(
-            wheelBaseOverFrameDiagonal, trackWidthOverFrameDiagonal, x, y, w);
+            wheelBaseOverFrameDiagonal,
+            trackWidthOverFrameDiagonal,
+            discretized[0] / maxSpeedMps,
+            discretized[1] / maxSpeedMps,
+            discretized[2] / maxOmegaRadPerSec);
 
     // convert from -1.0 - 1.0 into to m/s
     result[0] *= maxSpeedMps;
@@ -144,8 +179,8 @@ public class SwerveKinematics {
       double brs,
       double bra) {
     return SwerveMath.calculateRobotVelocityOpt(
-        trackWidthOverFrameDiagonal,
         wheelBaseOverFrameDiagonal,
+        trackWidthOverFrameDiagonal,
         frs,
         fra,
         fls,

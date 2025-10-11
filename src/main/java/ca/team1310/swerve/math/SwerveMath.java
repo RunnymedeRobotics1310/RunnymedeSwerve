@@ -276,10 +276,10 @@ public class SwerveMath {
     double bls = Math.hypot(rear_horiz, left_vert);
     double brs = Math.hypot(rear_horiz, right_vert);
 
-    // Correction #2 - desaturate wheel speeds
+    // Correction #2 - desaturate wheel speeds (this should already be done)
     double max = Math.max(frs, Math.max(fls, Math.max(bls, brs)));
     if (max > 1.0) {
-      //      System.out.println("Desaturating. Scale factor = " + max);
+      System.out.println("Unexpected wheel speeds. Scale factor = " + max);
       frs /= max;
       fls /= max;
       bls /= max;
@@ -293,6 +293,41 @@ public class SwerveMath {
     double bra = Math.atan2(rear_horiz, right_vert);
 
     return new double[] {frs, fra, fls, fla, bls, bla, brs, bra};
+  }
+
+  /**
+   * Correction #2 - desaturate wheel speeds
+   *
+   * @param wheelBaseOverFrameDiagonal the ratio of the wheelbase to the diagonal of the robot
+   * @param trackWidthOverFrameDiagonal the ratio of the track width to the diagonal of the robot
+   * @param x desired forward velocity, from -1.0 to 1.0 where -1.0 is the minimum achievable value
+   *     and 1.0 is the maximum achievable value. (forward is positive)
+   * @param y desired sideways velocity from -1.0 to 1.0 where -1.0 is the minimum achievable value
+   *     and 1.0 is the maximum achievable value. (left is positive)
+   * @param w desired angular velocity from -1.0 to 1.0 where -1.0 is the minimum achievable value
+   *     and 1.0 is the maximum achievable value. (counter-clockwise positive)
+   * @return the fastest module speed
+   */
+  public static double getScaleFactor(
+      double wheelBaseOverFrameDiagonal,
+      double trackWidthOverFrameDiagonal,
+      double x,
+      double y,
+      double w) {
+    // Compute the horiz and vert components of the wheel vectors
+    double rear_horiz = y - w * wheelBaseOverFrameDiagonal;
+    double front_horiz = y + w * wheelBaseOverFrameDiagonal;
+    double right_vert = x + w * trackWidthOverFrameDiagonal;
+    double left_vert = x - w * trackWidthOverFrameDiagonal;
+
+    // calculate wheel speeds
+    double frs = Math.hypot(front_horiz, right_vert);
+    double fls = Math.hypot(front_horiz, left_vert);
+    double bls = Math.hypot(rear_horiz, left_vert);
+    double brs = Math.hypot(rear_horiz, right_vert);
+
+    double scaleFactor = Math.max(frs, Math.max(fls, Math.max(bls, brs)));
+    return scaleFactor;
   }
 
   /**
@@ -357,8 +392,11 @@ public class SwerveMath {
    */
   public static double[] discretize(double vx, double vy, double w, double dt) {
     //    return discretize_OP(vx, vy, w, 0.5, 1, 0.65);
-    //    return discretize_RR(vx, vy, w, dt);
-    return discretize_WPILIB(vx, vy, w, dt);
+    return discretize_RR(vx, vy, w, dt);
+    //    return discretize_WPILIB(vx, vy, w, dt);
+    //    return new double[] {vx, vy, w};
+    //    var d = ChassisSpeeds.discretize(vx, vy, w, dt);
+    //    return new double[] {d.vxMetersPerSecond, d.vyMetersPerSecond, d.omegaRadiansPerSecond};
   }
 
   /**
@@ -539,8 +577,8 @@ public class SwerveMath {
   }
 
   /**
-   * @param trackWidth robot width between wheels in m.
    * @param wheelBase robot length between wheels in m.
+   * @param trackWidth robot width between wheels in m.
    * @param frs module speed (-1 to 1)
    * @param fra module angle (-Pi to Pi)
    * @param fls module speed (-1 to 1)
@@ -552,8 +590,8 @@ public class SwerveMath {
    * @return array containing vX (m/s), vY (m/s), and w (rad/s)
    */
   public static double[] calculateRobotVelocity(
-      double trackWidth,
       double wheelBase,
+      double trackWidth,
       double frs,
       double fra,
       double fls,
@@ -563,11 +601,11 @@ public class SwerveMath {
       double brs,
       double bra) {
     double frameDiagonal = Math.hypot(trackWidth, wheelBase);
-    double trackWidthOverFrameDiagonal = trackWidth / frameDiagonal;
     double wheelBaseOverFrameDiagonal = wheelBase / frameDiagonal;
+    double trackWidthOverFrameDiagonal = trackWidth / frameDiagonal;
     return calculateRobotVelocityOpt(
-        trackWidthOverFrameDiagonal,
         wheelBaseOverFrameDiagonal,
+        trackWidthOverFrameDiagonal,
         frs,
         fra,
         fls,
@@ -605,8 +643,8 @@ public class SwerveMath {
    * @return array containing vX (m/s), vY (m/s), and w (rad/s)
    */
   public static double[] calculateRobotVelocityOpt(
-      double trackWidthOverFrameDiagonal,
       double wheelBaseOverFrameDiagonal,
+      double trackWidthOverFrameDiagonal,
       double frs,
       double fra,
       double fls,
