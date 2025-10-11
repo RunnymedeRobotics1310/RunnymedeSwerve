@@ -266,6 +266,123 @@ public class SwerveMath {
   }
 
   /**
+   * This function returns the robot speed given the speed and angle of the wheels. It does so by
+   * reversing the equations from calculateModuleVelocitiesOpt().
+   *
+   * <p>First, the horizontal and vertical components of the vector corresponding to the motion of
+   * each module.
+   *
+   * <p>Each component is on 2 modules, so we average them in case of errors.
+   *
+   * <p>Next we find a system of equations to give us vX, vY, and w.
+   *
+   * <p>Each component has 2 equations that give us the result, so we average them in case of
+   * errors.
+   *
+   * @param trackWidthOverFrameDiagonal the ratio of the track width to the diagonal of the robot
+   * @param wheelBaseOverFrameDiagonal the ratio of the wheelbase to the diagonal of the robot
+   * @param frs module speed (-1 to 1)
+   * @param fra module angle (-Pi to Pi)
+   * @param fls module speed (-1 to 1)
+   * @param fla module angle (-Pi to Pi)
+   * @param bls module speed (-1 to 1)
+   * @param bla module angle (-Pi to Pi)
+   * @param brs module speed (-1 to 1)
+   * @param bra module angle (-Pi to Pi)
+   * @return array containing vX (m/s), vY (m/s), and w (rad/s)
+   */
+  public static double[] calculateRobotVelocity(
+      double trackWidthOverFrameDiagonal,
+      double wheelBaseOverFrameDiagonal,
+      double frs,
+      double fra,
+      double fls,
+      double fla,
+      double bls,
+      double bla,
+      double brs,
+      double bra) {
+
+    // average each component from the 2 modules
+    double rear_horiz = (bls * Math.sin(bla) + brs * Math.sin(bra)) / 2;
+    double front_horiz = (fls * Math.sin(fla) + frs * Math.sin(fra)) / 2;
+    double right_vert = (frs * Math.cos(fra) + brs * Math.cos(bra)) / 2;
+    double left_vert = (fls * Math.cos(fla) + bls * Math.cos(bla)) / 2;
+
+    /*
+     rearrange equations from calculateModuleVelocitiesOpt() to find x and y given all components
+
+     rear_horiz = y - w * wheelBaseOverFrameDiagonal
+     rear_horiz + w * wheelBaseOverFrameDiagonal = y
+     y = rear_horiz + w * wheelBaseOverFrameDiagonal
+
+     front_horiz = y + w * wheelBaseOverFrameDiagonal
+     y = front_horiz - w * wheelBaseOverFrameDiagonal
+
+     right_vert = x + w * trackWidthOverFrameDiagonal
+     x = right_vert - w * trackWidthOverFrameDiagonal
+
+     left_vert = x - w * trackWidthOverFrameDiagonal
+     x = left_vert + w * trackWidthOverFrameDiagonal
+
+     FINDING w
+     sub eq1 into eq2
+     front_horiz = y + w * wheelBaseOverFrameDiagonal
+     front_horiz = (rear_horiz + w * wheelBaseOverFrameDiagonal) + w * wheelBaseOverFrameDiagonal
+     front_horiz = rear_horiz + 2 * w * wheelBaseOverFrameDiagonal
+     front_horiz - rear_horiz = 2 * w * wheelBaseOverFrameDiagonal
+     w = (front_horiz - rear_horiz) / (2 * wheelBaseOverFrameDiagonal)
+
+     sub eqn 4 into eqn 3
+     right_vert = (left_vert + w * trackWidthOverFrameDiagonal) + w * trackWidthOverFrameDiagonal
+     right_vert = left_vert + 2 * w * trackWidthOverFrameDiagonal
+     right_vert - left_vert = 2 * w * trackWidthOverFrameDiagonal
+     w = (right_vert - left_vert) / (2 * trackWidthOverFrameDiagonal)
+    */
+
+    // average results of above eq'ns
+    double w = 0;
+    w += (front_horiz - rear_horiz) / (2 * wheelBaseOverFrameDiagonal);
+    //    System.out.println(w);
+    w += (right_vert - left_vert) / (2 * trackWidthOverFrameDiagonal);
+    //    System.out.println(w);
+    w /= 2;
+    //    System.out.println(w);
+
+    double x = 0;
+    x += right_vert - w * trackWidthOverFrameDiagonal;
+    x += left_vert + w * trackWidthOverFrameDiagonal;
+    x /= 2;
+
+    double y = 0;
+    y += rear_horiz + w * wheelBaseOverFrameDiagonal;
+    y += front_horiz - w * wheelBaseOverFrameDiagonal;
+    y /= 2;
+
+    return new double[] {x, y, w};
+  }
+
+  /**
+   * Correction #1 - Optimize wheel angles. If a wheel needs to pivot more than 180 degrees, reverse
+   * it and turn the other way.
+   *
+   * @param desiredState The desired module state - note - altered in place
+   * @param currentWheelAngleDegrees The current angle of the wheel, in degrees.
+   */
+  public static void optimizeWheelAngles(
+      ModuleDirective desiredState, double currentWheelAngleDegrees) {
+    double angleError = Math.abs(desiredState.getAngle() - currentWheelAngleDegrees);
+    if (angleError > 90 && angleError < 270) {
+      double optimal =
+          currentWheelAngleDegrees < 0
+              ? desiredState.getAngle() + 180
+              : desiredState.getAngle() - 180;
+      optimal = normalizeDegrees(optimal);
+      desiredState.set(-desiredState.getSpeed(), optimal);
+    }
+  }
+
+  /**
    * This method supports:
    *
    * <p>Correction #2 - desaturate wheel speeds
@@ -303,26 +420,6 @@ public class SwerveMath {
     double brs = Math.hypot(rear_horiz, right_vert);
 
     return Math.max(frs, Math.max(fls, Math.max(bls, brs)));
-  }
-
-  /**
-   * Correction #1 - Optimize wheel angles. If a wheel needs to pivot more than 180 degrees, reverse
-   * it and turn the other way.
-   *
-   * @param desiredState The desired module state - note - altered in place
-   * @param currentWheelAngleDegrees The current angle of the wheel, in degrees.
-   */
-  public static void optimizeWheelAngles(
-      ModuleDirective desiredState, double currentWheelAngleDegrees) {
-    double angleError = Math.abs(desiredState.getAngle() - currentWheelAngleDegrees);
-    if (angleError > 90 && angleError < 270) {
-      double optimal =
-          currentWheelAngleDegrees < 0
-              ? desiredState.getAngle() + 180
-              : desiredState.getAngle() - 180;
-      optimal = normalizeDegrees(optimal);
-      desiredState.set(-desiredState.getSpeed(), optimal);
-    }
   }
 
   /**
@@ -550,102 +647,5 @@ public class SwerveMath {
     // force into the minimum absolute value residue class, so that -180 < angle <= 180
     if (degrees > 180) degrees -= 360;
     return degrees;
-  }
-
-  /**
-   * This function returns the robot speed given the speed and angle of the wheels. It does so by
-   * reversing the equations from calculateModuleVelocitiesOpt().
-   *
-   * <p>First, the horizontal and vertical components of the vector corresponding to the motion of
-   * each module.
-   *
-   * <p>Each component is on 2 modules, so we average them in case of errors.
-   *
-   * <p>Next we find a system of equations to give us vX, vY, and w.
-   *
-   * <p>Each component has 2 equations that give us the result, so we average them in case of
-   * errors.
-   *
-   * @param trackWidthOverFrameDiagonal the ratio of the track width to the diagonal of the robot
-   * @param wheelBaseOverFrameDiagonal the ratio of the wheelbase to the diagonal of the robot
-   * @param frs module speed (-1 to 1)
-   * @param fra module angle (-Pi to Pi)
-   * @param fls module speed (-1 to 1)
-   * @param fla module angle (-Pi to Pi)
-   * @param bls module speed (-1 to 1)
-   * @param bla module angle (-Pi to Pi)
-   * @param brs module speed (-1 to 1)
-   * @param bra module angle (-Pi to Pi)
-   * @return array containing vX (m/s), vY (m/s), and w (rad/s)
-   */
-  public static double[] calculateRobotVelocity(
-      double trackWidthOverFrameDiagonal,
-      double wheelBaseOverFrameDiagonal,
-      double frs,
-      double fra,
-      double fls,
-      double fla,
-      double bls,
-      double bla,
-      double brs,
-      double bra) {
-
-    // average each component from the 2 modules
-    double rear_horiz = (bls * Math.sin(bla) + brs * Math.sin(bra)) / 2;
-    double front_horiz = (fls * Math.sin(fla) + frs * Math.sin(fra)) / 2;
-    double right_vert = (frs * Math.cos(fra) + brs * Math.cos(bra)) / 2;
-    double left_vert = (fls * Math.cos(fla) + bls * Math.cos(bla)) / 2;
-
-    /*
-     rearrange equations from calculateModuleVelocitiesOpt() to find x and y given all components
-
-     rear_horiz = y - w * wheelBaseOverFrameDiagonal
-     rear_horiz + w * wheelBaseOverFrameDiagonal = y
-     y = rear_horiz + w * wheelBaseOverFrameDiagonal
-
-     front_horiz = y + w * wheelBaseOverFrameDiagonal
-     y = front_horiz - w * wheelBaseOverFrameDiagonal
-
-     right_vert = x + w * trackWidthOverFrameDiagonal
-     x = right_vert - w * trackWidthOverFrameDiagonal
-
-     left_vert = x - w * trackWidthOverFrameDiagonal
-     x = left_vert + w * trackWidthOverFrameDiagonal
-
-     FINDING w
-     sub eq1 into eq2
-     front_horiz = y + w * wheelBaseOverFrameDiagonal
-     front_horiz = (rear_horiz + w * wheelBaseOverFrameDiagonal) + w * wheelBaseOverFrameDiagonal
-     front_horiz = rear_horiz + 2 * w * wheelBaseOverFrameDiagonal
-     front_horiz - rear_horiz = 2 * w * wheelBaseOverFrameDiagonal
-     w = (front_horiz - rear_horiz) / (2 * wheelBaseOverFrameDiagonal)
-
-     sub eqn 4 into eqn 3
-     right_vert = (left_vert + w * trackWidthOverFrameDiagonal) + w * trackWidthOverFrameDiagonal
-     right_vert = left_vert + 2 * w * trackWidthOverFrameDiagonal
-     right_vert - left_vert = 2 * w * trackWidthOverFrameDiagonal
-     w = (right_vert - left_vert) / (2 * trackWidthOverFrameDiagonal)
-    */
-
-    // average results of above eq'ns
-    double w = 0;
-    w += (front_horiz - rear_horiz) / (2 * wheelBaseOverFrameDiagonal);
-    //    System.out.println(w);
-    w += (right_vert - left_vert) / (2 * trackWidthOverFrameDiagonal);
-    //    System.out.println(w);
-    w /= 2;
-    //    System.out.println(w);
-
-    double x = 0;
-    x += right_vert - w * trackWidthOverFrameDiagonal;
-    x += left_vert + w * trackWidthOverFrameDiagonal;
-    x /= 2;
-
-    double y = 0;
-    y += rear_horiz + w * wheelBaseOverFrameDiagonal;
-    y += front_horiz - w * wheelBaseOverFrameDiagonal;
-    y /= 2;
-
-    return new double[] {x, y, w};
   }
 }
