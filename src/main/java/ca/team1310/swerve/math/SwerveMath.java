@@ -1,6 +1,7 @@
 package ca.team1310.swerve.math;
 
 import ca.team1310.swerve.core.ModuleDirective;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
 /**
  * Essential math utilities for swerve drive calculations.
@@ -469,11 +470,11 @@ public class SwerveMath {
    */
   public static double[] discretize(double vx, double vy, double w, double dt) {
     //    return discretize_OP(vx, vy, w, 0.5, 1, 0.65);
-    return discretize_RR(vx, vy, w, dt);
+    //    return discretize_RR(vx, vy, w, dt);
     //    return discretize_WPILIB(vx, vy, w, dt);
     //    return new double[] {vx, vy, w};
-    //    var d = ChassisSpeeds.discretize(vx, vy, w, dt);
-    //    return new double[] {d.vxMetersPerSecond, d.vyMetersPerSecond, d.omegaRadiansPerSecond};
+    var d = ChassisSpeeds.discretize(vx, vy, w, dt);
+    return new double[] {d.vxMetersPerSecond, d.vyMetersPerSecond, d.omegaRadiansPerSecond};
   }
 
   /**
@@ -501,14 +502,14 @@ public class SwerveMath {
     normal.rotate(-Math.PI / 2);
 
     // Scale the normal vector.
-    normal.scale(w * dt);
+    normal.setMagnitude(w * dt);
 
     // add it to the result
     XYVector corrected = new XYVector(vx, vy);
     corrected.add(normal);
 
     // scale it back to the original speed
-    corrected.scale(input.magnitude);
+    corrected.setMagnitude(input.magnitude);
 
     // package and return
     double[] output = new double[3];
@@ -551,14 +552,14 @@ public class SwerveMath {
 
     // Scale the normal vector.
     double normalMagnitude = normalScale * ((transScale * input.magnitude) * (rotScale * w));
-    normal.scale(normalMagnitude);
+    normal.setMagnitude(normalMagnitude);
 
     // add it to the result
     XYVector corrected = new XYVector(vx, vy);
     corrected.add(normal);
 
     // scale it back to the original speed
-    corrected.scale(input.magnitude);
+    corrected.setMagnitude(input.magnitude);
 
     // package and return
     double[] output = new double[3];

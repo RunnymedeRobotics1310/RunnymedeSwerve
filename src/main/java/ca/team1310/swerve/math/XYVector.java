@@ -37,4 +37,10 @@ class XYVector {
     y *= factor;
     magnitude = Math.hypot(x, y);
   }
+
+  void setMagnitude(double newMagnitude) {
+    magnitude = newMagnitude;
+    x = magnitude * Math.cos(angleRadians);
+    y = magnitude * Math.sin(angleRadians);
+  }
 }

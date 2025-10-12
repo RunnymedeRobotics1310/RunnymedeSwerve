@@ -72,7 +72,7 @@ public class SwerveKinematics {
       scaled[0] /= sf;
       scaled[1] /= sf;
       scaled[2] /= sf;
-      System.out.println("sf1: " + sf);
+      //      System.out.println("sf1: " + sf);
     }
 
     // Correction #4 - discretize after desaturating speeds
@@ -92,7 +92,7 @@ public class SwerveKinematics {
       scaled[1] /= sf2;
       scaled[2] /= sf2;
       discretized = SwerveMath.discretize(scaled[0], scaled[1], scaled[2], dt);
-      System.out.println("sf2: " + sf2);
+      //      System.out.println("sf2: " + sf2);
     }
 
     var result =

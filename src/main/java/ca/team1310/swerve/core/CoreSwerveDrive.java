@@ -104,7 +104,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
         new SwerveKinematics(
             cfg.wheelBaseMetres(),
             cfg.trackWidthMetres(),
-            cfg.maxAttainableTranslationSpeedMetresPerSecond(),
+            cfg.maxAttainableModuleSpeedMetresPerSecond(),
             cfg.maxAchievableRotationalVelocityRadiansPerSecond());
 
     this.telemetry = new SwerveTelemetry(4);
@@ -157,7 +157,8 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
    */
   private synchronized void updateModules() {
     // calculate desired states
-    kinematics.calculateModuleVelocities(desiredVx, desiredVy, desiredOmega, robotPeriodSeconds);
+    kinematics.calculateModuleVelocities(
+        desiredVx, desiredVy, desiredOmega, UPDATE_MODULES_PERIOD / 1000.0);
 
     // set the module states
     this.modules[0].setDesiredState(kinematics.getFrontRight());
