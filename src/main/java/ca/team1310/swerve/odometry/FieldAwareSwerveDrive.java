@@ -27,6 +27,7 @@ import java.util.Arrays;
 public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
 
   private static final int UPDATE_ODOMETRY_EVERY_MILLIS = 20;
+  private final Notifier odometryUpdater = new Notifier(this::updateOdometry);
 
   private final Field2d field;
   private final SwerveDrivePoseEstimator estimator;
@@ -84,10 +85,8 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
             initialModulePositions,
             initialPose);
 
-    try (Notifier odometryUpdater = new Notifier(this::updateOdometry)) {
-      odometryUpdater.startPeriodic(UPDATE_ODOMETRY_EVERY_MILLIS / 1000.0);
-      odometryUpdater.setName("RunnymedeSwerve Odometry");
-    }
+    odometryUpdater.startPeriodic(UPDATE_ODOMETRY_EVERY_MILLIS / 1000.0);
+    odometryUpdater.setName("RunnymedeSwerve Odometry");
   }
 
   private synchronized SwerveModulePosition[] getSwerveModulePositions() {

@@ -40,7 +40,10 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
   // Thread controls
   //
   public static final int MANAGE_MODULES_PERIOD_MS = 5; // milliseconds
+  private final Notifier moduleManagementThread = new Notifier(this::updateModules);
+
   public static final int TELEMETRY_UPDATE_PERIOD_MS = 50; // milliseconds
+  private final Notifier telemetryThread = new Notifier(this::updateTelemetry);
 
   /**
    * Construct a new CoreSwerveDrive object with the specified configuration.
@@ -109,16 +112,12 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     this.telemetry.moduleWheelLocations[7] = cfg.backRightModuleConfig().location().getY();
 
     // start up threads
-    try (Notifier moduleManagementThread = new Notifier(this::updateModules)) {
-      moduleManagementThread.setName("RunnymedeSwerve manageModuleStates");
-      moduleManagementThread.startPeriodic(MANAGE_MODULES_PERIOD_MS / 1000.0);
-    }
+    moduleManagementThread.setName("RunnymedeSwerve manageModuleStates");
+    moduleManagementThread.startPeriodic(MANAGE_MODULES_PERIOD_MS / 1000.0);
 
-    try (Notifier telemetryThread = new Notifier(this::updateTelemetry)) {
-      telemetryThread.setName("RunnymedeSwerve updateTelemetry");
-      telemetryThread.startPeriodic(
-          isSimulation ? MANAGE_MODULES_PERIOD_MS / 1000.0 : TELEMETRY_UPDATE_PERIOD_MS / 1000.0);
-    }
+    telemetryThread.setName("RunnymedeSwerve updateTelemetry");
+    telemetryThread.startPeriodic(
+        isSimulation ? MANAGE_MODULES_PERIOD_MS / 1000.0 : TELEMETRY_UPDATE_PERIOD_MS / 1000.0);
   }
 
   public final synchronized void drive(double x, double y, double w) {

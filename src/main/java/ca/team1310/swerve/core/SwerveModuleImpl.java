@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.Notifier;
 class SwerveModuleImpl implements SwerveModule {
 
   private static final double ANGLE_ENCODER_SYNC_PERIOD_MS = 500;
+  private final Notifier encoderSynchronizer = new Notifier(this::syncAngleEncoder);
 
   private final String name;
   private final Coordinates location;
@@ -34,10 +35,9 @@ class SwerveModuleImpl implements SwerveModule {
     this.driveMotor = getDriveMotor(cfg, maxAttainableModuleSpeedMps);
     this.angleMotor = getAngleMotor(cfg);
     this.angleEncoder = getAbsoluteAngleEncoder(cfg);
-    try (Notifier encoderSynchronizer = new Notifier(this::syncAngleEncoder)) {
-      encoderSynchronizer.setName("RunnymedeSwerve Angle Encoder Sync " + name);
-      encoderSynchronizer.startPeriodic(ANGLE_ENCODER_SYNC_PERIOD_MS / 1000);
-    }
+
+    this.encoderSynchronizer.setName("RunnymedeSwerve Angle Encoder Sync " + name);
+    this.encoderSynchronizer.startPeriodic(ANGLE_ENCODER_SYNC_PERIOD_MS / 1000);
 
     driveMotorFaultPresent =
         new Alert("Swerve Drive Motor [" + name + "] Fault Present", Alert.AlertType.kError);
