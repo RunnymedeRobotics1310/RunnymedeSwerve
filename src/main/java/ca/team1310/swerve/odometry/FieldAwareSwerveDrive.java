@@ -26,6 +26,8 @@ import java.util.Arrays;
  */
 public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
 
+  private static final int UPDATE_ODOMETRY_EVERY_MILLIS = 20;
+
   private final Field2d field;
   private final SwerveDrivePoseEstimator estimator;
   private final SwerveModulePosition[] modulePosition = {
@@ -34,13 +36,6 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     new SwerveModulePosition(),
     new SwerveModulePosition()
   };
-
-  private final Notifier odometryUpdater;
-  private static final int UPDATE_ODOMETRY_EVERY_MILLIS = 20;
-
-  private static final double VISION_HIGH_QUALITY_X = 0.1;
-  private static final double VISION_HIGH_QUALITY_Y = 0.1;
-  private static final double VISION_HIGH_QUALITY_HEADING = 1;
 
   /**
    * Create a new field-aware swerve drive. An optional vision pose callback can be provided to
@@ -89,9 +84,10 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
             initialModulePositions,
             initialPose);
 
-    this.odometryUpdater = new Notifier(this::updateOdometry);
-    this.odometryUpdater.startPeriodic(UPDATE_ODOMETRY_EVERY_MILLIS / 1000.0);
-    this.odometryUpdater.setName("RunnymedeSwerve Odometry");
+    try (Notifier odometryUpdater = new Notifier(this::updateOdometry)) {
+      odometryUpdater.startPeriodic(UPDATE_ODOMETRY_EVERY_MILLIS / 1000.0);
+      odometryUpdater.setName("RunnymedeSwerve Odometry");
+    }
   }
 
   private synchronized SwerveModulePosition[] getSwerveModulePositions() {

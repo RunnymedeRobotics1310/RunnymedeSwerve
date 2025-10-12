@@ -23,8 +23,6 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
   private final SwerveModule[] modules;
   private final ModuleState[] moduleStates;
 
-  private final double robotPeriodSeconds;
-
   private final SwerveKinematics kinematics;
 
   private double desiredVx;
@@ -41,19 +39,8 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
   //
   // Thread controls
   //
-  // module update thread
-  private final Notifier updateModuleThread = new Notifier(this::updateModules);
-  private static final int UPDATE_MODULES_PERIOD = 5; // milliseconds
-
-  // module state refresher thread
-  private final Notifier readModulesThread = new Notifier(this::readModuleStates);
-  private static final int READ_MODULES_PERIOD_MILLIS = 5; // milliseconds
-  private static final int ODOMETRY_UPDATE_CYCLES = 2;
-  private static final int TELEMETRY_UPDATE_CYCLES = 50;
-  private int moduleStateUpdateCount = 0;
-
-  private final Notifier telemetryThread = new Notifier(this::updateTelemetry);
-  private static final int TELEMETRY_UPDATE_PERIOD = 20; // milliseconds
+  public static final int MANAGE_MODULES_PERIOD_MS = 5; // milliseconds
+  public static final int TELEMETRY_UPDATE_PERIOD_MS = 50; // milliseconds
 
   /**
    * Construct a new CoreSwerveDrive object with the specified configuration.
@@ -63,7 +50,6 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
   protected CoreSwerveDrive(CoreSwerveConfig cfg) {
     System.out.println("Initializing RunnymedeSwerve CoreSwerveDrive.");
     // order matters in case we want to use AdvantageScope
-    robotPeriodSeconds = cfg.robotPeriodSeconds();
     this.modules = new SwerveModule[4];
     this.isSimulation = RobotBase.isSimulation();
     if (isSimulation) {
@@ -74,24 +60,16 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     } else {
       this.modules[0] =
           new SwerveModuleImpl(
-              cfg.frontRightModuleConfig(),
-              cfg.maxAttainableModuleSpeedMetresPerSecond(),
-              (int) (robotPeriodSeconds * 1000));
+              cfg.frontRightModuleConfig(), cfg.maxAttainableModuleSpeedMetresPerSecond());
       this.modules[1] =
           new SwerveModuleImpl(
-              cfg.frontLeftModuleConfig(),
-              cfg.maxAttainableModuleSpeedMetresPerSecond(),
-              (int) (robotPeriodSeconds * 1000));
+              cfg.frontLeftModuleConfig(), cfg.maxAttainableModuleSpeedMetresPerSecond());
       this.modules[2] =
           new SwerveModuleImpl(
-              cfg.backLeftModuleConfig(),
-              cfg.maxAttainableModuleSpeedMetresPerSecond(),
-              (int) (robotPeriodSeconds * 1000));
+              cfg.backLeftModuleConfig(), cfg.maxAttainableModuleSpeedMetresPerSecond());
       this.modules[3] =
           new SwerveModuleImpl(
-              cfg.backRightModuleConfig(),
-              cfg.maxAttainableModuleSpeedMetresPerSecond(),
-              (int) (robotPeriodSeconds * 1000));
+              cfg.backRightModuleConfig(), cfg.maxAttainableModuleSpeedMetresPerSecond());
     }
 
     this.moduleStates = new ModuleState[4];
@@ -105,7 +83,8 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
             cfg.wheelBaseMetres(),
             cfg.trackWidthMetres(),
             cfg.maxAttainableModuleSpeedMetresPerSecond(),
-            cfg.maxAchievableRotationalVelocityRadiansPerSecond());
+            cfg.maxAchievableRotationalVelocityRadiansPerSecond(),
+            MANAGE_MODULES_PERIOD_MS / 1000.0);
 
     this.telemetry = new SwerveTelemetry(4);
     this.telemetry.level = cfg.telemetryLevel();
@@ -130,15 +109,16 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     this.telemetry.moduleWheelLocations[7] = cfg.backRightModuleConfig().location().getY();
 
     // start up threads
-    updateModuleThread.setName("RunnymedeSwerve updateModules");
-    updateModuleThread.startPeriodic(UPDATE_MODULES_PERIOD / 1000.0);
+    try (Notifier moduleManagementThread = new Notifier(this::updateModules)) {
+      moduleManagementThread.setName("RunnymedeSwerve manageModuleStates");
+      moduleManagementThread.startPeriodic(MANAGE_MODULES_PERIOD_MS / 1000.0);
+    }
 
-    readModulesThread.setName("RunnymedeSwerve readModuleStates");
-    readModulesThread.startPeriodic(READ_MODULES_PERIOD_MILLIS / 1000.0);
-
-    telemetryThread.setName("RunnymedeSwerve updateTelemetry");
-    telemetryThread.startPeriodic(
-        isSimulation ? READ_MODULES_PERIOD_MILLIS / 1000.0 : TELEMETRY_UPDATE_PERIOD / 1000.0);
+    try (Notifier telemetryThread = new Notifier(this::updateTelemetry)) {
+      telemetryThread.setName("RunnymedeSwerve updateTelemetry");
+      telemetryThread.startPeriodic(
+          isSimulation ? MANAGE_MODULES_PERIOD_MS / 1000.0 : TELEMETRY_UPDATE_PERIOD_MS / 1000.0);
+    }
   }
 
   public final synchronized void drive(double x, double y, double w) {
@@ -156,9 +136,14 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
    * Set the module states based on the desired speed and angle.
    */
   private synchronized void updateModules() {
+
+    // read module states
+    for (SwerveModule module : modules) {
+      module.readState();
+    }
+
     // calculate desired states
-    kinematics.calculateModuleVelocities(
-        desiredVx, desiredVy, desiredOmega, UPDATE_MODULES_PERIOD / 1000.0);
+    kinematics.calculateModuleVelocities(desiredVx, desiredVy, desiredOmega);
 
     // set the module states
     this.modules[0].setDesiredState(kinematics.getFrontRight());
@@ -173,20 +158,6 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
   /** Update the gyro in case the robot is running in simulation mode. */
   protected void updateGyroForSimulation() {}
-
-  private synchronized void readModuleStates() {
-    boolean odometry = moduleStateUpdateCount % ODOMETRY_UPDATE_CYCLES == 0;
-    boolean telemetry = moduleStateUpdateCount % TELEMETRY_UPDATE_CYCLES == 0;
-    if (moduleStateUpdateCount > 10000) {
-      moduleStateUpdateCount = 0;
-    } else {
-      moduleStateUpdateCount++;
-    }
-    this.modules[0].readState(odometry, telemetry);
-    this.modules[1].readState(odometry, telemetry);
-    this.modules[2].readState(odometry, telemetry);
-    this.modules[3].readState(odometry, telemetry);
-  }
 
   /**
    * Get the states of the swerve modules, including their speed and angle.
@@ -261,6 +232,9 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
   }
 
   private synchronized void updateTelemetry() {
+    for (SwerveModule module : modules) {
+      module.readVerboseState();
+    }
     updateTelemetry(this.telemetry);
   }
 

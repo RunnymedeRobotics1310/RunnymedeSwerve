@@ -18,19 +18,13 @@ public class NSMDriveMotor extends NSDriveMotor<SparkMax> {
    * @param wheelRadiusMetres The radius of the wheel in metres
    * @param maxAttainableModuleSpeedMps The maximum attainable speed of the module's drive motor in
    *     metres per
-   * @param robotPeriodMillis The period of the robot in milliseconds
    */
   public NSMDriveMotor(
-      int canId,
-      MotorConfig cfg,
-      double wheelRadiusMetres,
-      double maxAttainableModuleSpeedMps,
-      int robotPeriodMillis) {
+      int canId, MotorConfig cfg, double wheelRadiusMetres, double maxAttainableModuleSpeedMps) {
     super(
         new SparkMax(canId, SparkLowLevel.MotorType.kBrushless),
         cfg,
         wheelRadiusMetres,
-        maxAttainableModuleSpeedMps,
-        robotPeriodMillis);
+        maxAttainableModuleSpeedMps);
   }
 }

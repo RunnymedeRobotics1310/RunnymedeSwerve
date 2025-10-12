@@ -1,5 +1,7 @@
 package ca.team1310.swerve.core.hardware.rev.neospark;
 
+import static ca.team1310.swerve.core.CoreSwerveDrive.MANAGE_MODULES_PERIOD_MS;
+import static ca.team1310.swerve.core.CoreSwerveDrive.TELEMETRY_UPDATE_PERIOD_MS;
 import static ca.team1310.swerve.utils.SwerveUtils.clamp;
 
 import ca.team1310.swerve.core.DriveMotor;
@@ -27,14 +29,9 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
    * @param wheelRadiusMetres The radius of the wheel in metres
    * @param maxAttainableModuleSpeedMps The maximum attainable speed of the module's drive motor in
    *     metres per
-   * @param robotPeriodMillis The period of the robot in milliseconds
    */
   public NSDriveMotor(
-      T spark,
-      MotorConfig cfg,
-      double wheelRadiusMetres,
-      double maxAttainableModuleSpeedMps,
-      int robotPeriodMillis) {
+      T spark, MotorConfig cfg, double wheelRadiusMetres, double maxAttainableModuleSpeedMps) {
     super(spark);
     this.maxMps = maxAttainableModuleSpeedMps;
     SparkFlexConfig config = new SparkFlexConfig();
@@ -63,18 +60,18 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
     // drive motor signals
     config
         .signals
-        .faultsPeriodMs(robotPeriodMillis) // default is 250ms
+        .faultsPeriodMs(TELEMETRY_UPDATE_PERIOD_MS) // default is 250ms
 
         // applied output is used for diagnostics only
-        .appliedOutputPeriodMs(robotPeriodMillis) // default 10ms
+        .appliedOutputPeriodMs(TELEMETRY_UPDATE_PERIOD_MS) // default 10ms
 
         // position is used for odometry
         .primaryEncoderPositionAlwaysOn(true)
-        .primaryEncoderPositionPeriodMs(5) // default is 20ms
+        .primaryEncoderPositionPeriodMs(MANAGE_MODULES_PERIOD_MS) // default is 20ms
 
         // velocity is used for telemetry and diagnostics
         .primaryEncoderVelocityAlwaysOn(true) // always on to prevent lag
-        .primaryEncoderVelocityPeriodMs(robotPeriodMillis); // default is 20ms
+        .primaryEncoderVelocityPeriodMs(TELEMETRY_UPDATE_PERIOD_MS); // default is 20ms
 
     // Drive motor
     double positionConversionFactor = (2 * Math.PI * wheelRadiusMetres) / cfg.gearRatio();

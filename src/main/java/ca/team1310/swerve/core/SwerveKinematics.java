@@ -12,6 +12,7 @@ public class SwerveKinematics {
   private final double trackWidthOverFrameDiagonal;
   private final double maxSpeedMps;
   private final double maxOmegaRadPerSec;
+  private final double moduleUpdatePeriodSec;
 
   private final ModuleDirective fr;
   private final ModuleDirective fl;
@@ -29,14 +30,20 @@ public class SwerveKinematics {
    * @param maxSpeedMps the maximum achievable speed of a module, in metres per second
    * @param maxOmegaRadPerSec the maximum achievable angular velocity of a module, in radians per
    *     second
+   * @param moduleUpdatePeriodSec the module update period, in seconds
    */
   SwerveKinematics(
-      double wheelBase, double trackWidth, double maxSpeedMps, double maxOmegaRadPerSec) {
+      double wheelBase,
+      double trackWidth,
+      double maxSpeedMps,
+      double maxOmegaRadPerSec,
+      double moduleUpdatePeriodSec) {
     double frameDiagonal = Math.hypot(wheelBase, trackWidth);
     this.wheelBaseOverFrameDiagonal = wheelBase / frameDiagonal;
     this.trackWidthOverFrameDiagonal = trackWidth / frameDiagonal;
     this.maxSpeedMps = maxSpeedMps;
     this.maxOmegaRadPerSec = maxOmegaRadPerSec;
+    this.moduleUpdatePeriodSec = moduleUpdatePeriodSec;
     this.fr = new ModuleDirective();
     this.fl = new ModuleDirective();
     this.bl = new ModuleDirective();
@@ -55,9 +62,8 @@ public class SwerveKinematics {
    * @param x desired forward velocity, in m/s (forward is positive)
    * @param y desired sideways velocity from in m/s (left is positive)
    * @param w desired angular velocity from in rad/s, (counter-clockwise is positive)
-   * @param dt robot period in seconds (used for discretize)
    */
-  void calculateModuleVelocities(double x, double y, double w, double dt) {
+  void calculateModuleVelocities(double x, double y, double w) {
     double[] scaled = {x, y, w};
 
     // Correction #2: desaturate wheel speeds
@@ -76,7 +82,8 @@ public class SwerveKinematics {
     }
 
     // Correction #4 - discretize after desaturating speeds
-    double[] discretized = SwerveMath.discretize(scaled[0], scaled[1], scaled[2], dt);
+    double[] discretized =
+        SwerveMath.discretize(scaled[0], scaled[1], scaled[2], moduleUpdatePeriodSec);
 
     // After discretizing, we may have saturated wheel speeds again.
     // Check, and desaturate again if necessary
@@ -91,7 +98,7 @@ public class SwerveKinematics {
       scaled[0] /= sf2;
       scaled[1] /= sf2;
       scaled[2] /= sf2;
-      discretized = SwerveMath.discretize(scaled[0], scaled[1], scaled[2], dt);
+      discretized = SwerveMath.discretize(scaled[0], scaled[1], scaled[2], moduleUpdatePeriodSec);
       //      System.out.println("sf2: " + sf2);
     }
 

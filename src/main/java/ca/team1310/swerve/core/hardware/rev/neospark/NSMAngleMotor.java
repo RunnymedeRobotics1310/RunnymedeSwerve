@@ -15,9 +15,8 @@ public class NSMAngleMotor extends NSAngleMotor<SparkMax> {
    *
    * @param canId The CAN ID of the motor
    * @param cfg The configuration of the motor
-   * @param robotPeriodMillis The period of the robot in milliseconds
    */
-  public NSMAngleMotor(int canId, MotorConfig cfg, int robotPeriodMillis) {
-    super(new SparkMax(canId, SparkLowLevel.MotorType.kBrushless), cfg, robotPeriodMillis);
+  public NSMAngleMotor(int canId, MotorConfig cfg) {
+    super(new SparkMax(canId, SparkLowLevel.MotorType.kBrushless), cfg);
   }
 }

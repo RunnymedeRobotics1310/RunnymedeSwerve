@@ -18,19 +18,13 @@ public class NSFDriveMotor extends NSDriveMotor<SparkFlex> {
    * @param wheelRadiusMetres The radius of the wheel in metres
    * @param maxAttainableModuleSpeedMps The maximum attainable speed of the module's drive motor in
    *     metres per
-   * @param robotPeriodMillis The period of the robot in milliseconds
    */
   public NSFDriveMotor(
-      int canId,
-      MotorConfig cfg,
-      double wheelRadiusMetres,
-      double maxAttainableModuleSpeedMps,
-      int robotPeriodMillis) {
+      int canId, MotorConfig cfg, double wheelRadiusMetres, double maxAttainableModuleSpeedMps) {
     super(
         new SparkFlex(canId, SparkLowLevel.MotorType.kBrushless),
         cfg,
         wheelRadiusMetres,
-        maxAttainableModuleSpeedMps,
-        robotPeriodMillis);
+        maxAttainableModuleSpeedMps);
   }
 }
