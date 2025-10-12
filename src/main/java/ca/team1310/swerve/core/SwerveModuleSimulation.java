@@ -12,8 +12,9 @@ class SwerveModuleSimulation implements SwerveModule {
   private double dt;
   private double lastTime;
   private final ModuleState currentState;
+  private final double maxAttainableModuleSpeedMps;
 
-  public SwerveModuleSimulation(ModuleConfig cfg) {
+  public SwerveModuleSimulation(ModuleConfig cfg, double maxAttainableModuleSpeedMps) {
     this.name = cfg.name();
     this.location = cfg.location();
     this.currentState = new ModuleState();
@@ -21,6 +22,7 @@ class SwerveModuleSimulation implements SwerveModule {
     this.timer.start();
     this.lastTime = this.timer.get();
     this.dt = 0.0;
+    this.maxAttainableModuleSpeedMps = maxAttainableModuleSpeedMps;
   }
 
   @Override
@@ -46,8 +48,9 @@ class SwerveModuleSimulation implements SwerveModule {
 
   @Override
   public void setDesiredState(ModuleDirective desiredState) {
-    this.dt = this.timer.get() - this.lastTime;
-    this.lastTime = this.timer.get();
+    double now = timer.get();
+    this.dt = now - this.lastTime;
+    this.lastTime = now;
 
     this.currentState.setDesiredAngle(desiredState.getAngle());
     this.currentState.setDesiredSpeed(desiredState.getSpeed());
@@ -55,7 +58,7 @@ class SwerveModuleSimulation implements SwerveModule {
     this.currentState.setVelocity(desiredState.getSpeed());
     this.currentState.setPosition(currentState.getPosition() + desiredState.getSpeed() * this.dt);
     this.currentState.setAbsoluteEncoderAngle(desiredState.getAngle());
-    this.currentState.setDriveOutputPower(0);
+    this.currentState.setDriveOutputPower(desiredState.getSpeed() / maxAttainableModuleSpeedMps);
   }
 
   /**

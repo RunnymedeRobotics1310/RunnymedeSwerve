@@ -286,33 +286,36 @@ public class SwerveMath {
    *
    * @param trackWidthOverFrameDiagonal the ratio of the track width to the diagonal of the robot
    * @param wheelBaseOverFrameDiagonal the ratio of the wheelbase to the diagonal of the robot
-   * @param frs module speed (-1 to 1)
-   * @param fra module angle (-Pi to Pi)
-   * @param fls module speed (-1 to 1)
-   * @param fla module angle (-Pi to Pi)
-   * @param bls module speed (-1 to 1)
-   * @param bla module angle (-Pi to Pi)
-   * @param brs module speed (-1 to 1)
-   * @param bra module angle (-Pi to Pi)
-   * @return array containing vX (m/s), vY (m/s), and w (rad/s)
+   * @param frsPwr module speed (-1 to 1)
+   * @param fraRad module angle (-Pi to Pi)
+   * @param flsPwr module speed (-1 to 1)
+   * @param flaRad module angle (-Pi to Pi)
+   * @param blsPwr module speed (-1 to 1)
+   * @param blaRad module angle (-Pi to Pi)
+   * @param brsPwr module speed (-1 to 1)
+   * @param braRad module angle (-Pi to Pi) return array containing vX (m/s), vY (m/s), and w
+   *     (rad/s)
+   * @return array containing xPwr (-1, to 1), yPwr (-1 to 1), and w angular velocity from -1.0 to
+   *     1.0 where -1.0 is the minimum achievable value * and 1.0 is the maximum achievable value.
+   *     (counter-clockwise positive)
    */
   public static double[] calculateRobotVelocity(
       double trackWidthOverFrameDiagonal,
       double wheelBaseOverFrameDiagonal,
-      double frs,
-      double fra,
-      double fls,
-      double fla,
-      double bls,
-      double bla,
-      double brs,
-      double bra) {
+      double frsPwr,
+      double fraRad,
+      double flsPwr,
+      double flaRad,
+      double blsPwr,
+      double blaRad,
+      double brsPwr,
+      double braRad) {
 
     // average each component from the 2 modules
-    double rear_horiz = (bls * Math.sin(bla) + brs * Math.sin(bra)) / 2;
-    double front_horiz = (fls * Math.sin(fla) + frs * Math.sin(fra)) / 2;
-    double right_vert = (frs * Math.cos(fra) + brs * Math.cos(bra)) / 2;
-    double left_vert = (fls * Math.cos(fla) + bls * Math.cos(bla)) / 2;
+    double rear_horiz = (blsPwr * Math.sin(blaRad) + brsPwr * Math.sin(braRad)) / 2;
+    double front_horiz = (flsPwr * Math.sin(flaRad) + frsPwr * Math.sin(fraRad)) / 2;
+    double right_vert = (frsPwr * Math.cos(fraRad) + brsPwr * Math.cos(braRad)) / 2;
+    double left_vert = (flsPwr * Math.cos(flaRad) + blsPwr * Math.cos(blaRad)) / 2;
 
     /*
      rearrange equations from calculateModuleVelocitiesOpt() to find x and y given all components
@@ -346,13 +349,12 @@ public class SwerveMath {
     */
 
     // average results of above eq'ns
-    double w = 0;
-    w += (front_horiz - rear_horiz) / (2 * wheelBaseOverFrameDiagonal);
-    //    System.out.println(w);
-    w += (right_vert - left_vert) / (2 * trackWidthOverFrameDiagonal);
-    //    System.out.println(w);
-    w /= 2;
-    //    System.out.println(w);
+    double frontRearOmega = (front_horiz - rear_horiz) / (2 * wheelBaseOverFrameDiagonal);
+    //    System.out.println("frontRearOmega:" + frontRearOmega);
+    double rightLeftOmega = (right_vert - left_vert) / (2 * trackWidthOverFrameDiagonal);
+    //    System.out.println("rightLeftOmega:" + rightLeftOmega);
+    double w = (frontRearOmega + rightLeftOmega) / 2;
+    //    System.out.println("avgOmega:" + w);
 
     double x = 0;
     x += right_vert - w * trackWidthOverFrameDiagonal;
@@ -469,12 +471,13 @@ public class SwerveMath {
    *     the update period
    */
   public static double[] discretize(double vx, double vy, double w, double dt) {
+
+    var d = ChassisSpeeds.discretize(vx, vy, w, dt);
+    return new double[] {d.vxMetersPerSecond, d.vyMetersPerSecond, d.omegaRadiansPerSecond};
     //    return discretize_OP(vx, vy, w, 0.5, 1, 0.65);
     //    return discretize_RR(vx, vy, w, dt);
     //    return discretize_WPILIB(vx, vy, w, dt);
     //    return new double[] {vx, vy, w};
-    var d = ChassisSpeeds.discretize(vx, vy, w, dt);
-    return new double[] {d.vxMetersPerSecond, d.vyMetersPerSecond, d.omegaRadiansPerSecond};
   }
 
   /**

@@ -54,25 +54,18 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     System.out.println("Initializing RunnymedeSwerve CoreSwerveDrive.");
     // order matters in case we want to use AdvantageScope
     this.modules = new SwerveModule[4];
+    final double maxModSpdMps = cfg.maxAttainableModuleSpeedMetresPerSecond();
     this.isSimulation = RobotBase.isSimulation();
     if (isSimulation) {
-      this.modules[0] = new SwerveModuleSimulation(cfg.frontRightModuleConfig());
-      this.modules[1] = new SwerveModuleSimulation(cfg.frontLeftModuleConfig());
-      this.modules[2] = new SwerveModuleSimulation(cfg.backLeftModuleConfig());
-      this.modules[3] = new SwerveModuleSimulation(cfg.backRightModuleConfig());
+      this.modules[0] = new SwerveModuleSimulation(cfg.frontRightModuleConfig(), maxModSpdMps);
+      this.modules[1] = new SwerveModuleSimulation(cfg.frontLeftModuleConfig(), maxModSpdMps);
+      this.modules[2] = new SwerveModuleSimulation(cfg.backLeftModuleConfig(), maxModSpdMps);
+      this.modules[3] = new SwerveModuleSimulation(cfg.backRightModuleConfig(), maxModSpdMps);
     } else {
-      this.modules[0] =
-          new SwerveModuleImpl(
-              cfg.frontRightModuleConfig(), cfg.maxAttainableModuleSpeedMetresPerSecond());
-      this.modules[1] =
-          new SwerveModuleImpl(
-              cfg.frontLeftModuleConfig(), cfg.maxAttainableModuleSpeedMetresPerSecond());
-      this.modules[2] =
-          new SwerveModuleImpl(
-              cfg.backLeftModuleConfig(), cfg.maxAttainableModuleSpeedMetresPerSecond());
-      this.modules[3] =
-          new SwerveModuleImpl(
-              cfg.backRightModuleConfig(), cfg.maxAttainableModuleSpeedMetresPerSecond());
+      this.modules[0] = new SwerveModuleImpl(cfg.frontRightModuleConfig(), maxModSpdMps);
+      this.modules[1] = new SwerveModuleImpl(cfg.frontLeftModuleConfig(), maxModSpdMps);
+      this.modules[2] = new SwerveModuleImpl(cfg.backLeftModuleConfig(), maxModSpdMps);
+      this.modules[3] = new SwerveModuleImpl(cfg.backRightModuleConfig(), maxModSpdMps);
     }
 
     this.moduleStates = new ModuleState[4];
@@ -85,13 +78,13 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
         new SwerveKinematics(
             cfg.wheelBaseMetres(),
             cfg.trackWidthMetres(),
-            cfg.maxAttainableModuleSpeedMetresPerSecond(),
+            maxModSpdMps,
             cfg.maxAchievableRotationalVelocityRadiansPerSecond(),
             MANAGE_MODULES_PERIOD_MS / 1000.0);
 
     this.telemetry = new SwerveTelemetry(4);
     this.telemetry.level = cfg.telemetryLevel();
-    this.telemetry.maxModuleSpeedMPS = cfg.maxAttainableModuleSpeedMetresPerSecond();
+    this.telemetry.maxModuleSpeedMPS = maxModSpdMps;
     this.telemetry.maxTranslationSpeedMPS = cfg.maxAttainableTranslationSpeedMetresPerSecond();
     this.telemetry.maxRotationalVelocityRadPS =
         cfg.maxAchievableRotationalVelocityRadiansPerSecond();
@@ -116,8 +109,8 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     moduleManagementThread.startPeriodic(MANAGE_MODULES_PERIOD_MS / 1000.0);
 
     telemetryThread.setName("RunnymedeSwerve updateTelemetry");
-    telemetryThread.startPeriodic(
-        isSimulation ? MANAGE_MODULES_PERIOD_MS / 1000.0 : TELEMETRY_UPDATE_PERIOD_MS / 1000.0);
+    // in simulation mode, provide telemetry faster but while driving use slower rate
+    telemetryThread.startPeriodic(isSimulation ? .02 : TELEMETRY_UPDATE_PERIOD_MS / 1000.0);
   }
 
   public final synchronized void drive(double x, double y, double w) {
@@ -193,13 +186,13 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
   public double[] getMeasuredRobotVelocity() {
     return kinematics.calculateRobotVelocity(
         moduleStates[0].getSpeed(),
-        Math.toRadians(moduleStates[0].getAngle()),
+        moduleStates[0].getAngle(),
         moduleStates[1].getSpeed(),
-        Math.toRadians(moduleStates[1].getAngle()),
+        moduleStates[1].getAngle(),
         moduleStates[2].getSpeed(),
-        Math.toRadians(moduleStates[2].getAngle()),
+        moduleStates[2].getAngle(),
         moduleStates[3].getSpeed(),
-        Math.toRadians(moduleStates[3].getAngle()));
+        moduleStates[3].getAngle());
   }
 
   @Override

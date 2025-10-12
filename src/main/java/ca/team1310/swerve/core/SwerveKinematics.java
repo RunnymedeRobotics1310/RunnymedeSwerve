@@ -169,35 +169,51 @@ public class SwerveKinematics {
    * Compute the robot's velocity (vX (metres per second), vY (metres per second), omega (radians
    * per second)) given the velocities of the four swerve modules.
    *
-   * @param frs front right module speed (metres per second)
-   * @param fra front right module angle (radians)
-   * @param fls front left module speed (metres per second)
-   * @param fla front left module angle (radians)
-   * @param bls back left module speed (metres per second)
-   * @param bla back left module angle (radians)
-   * @param brs back right module speed (metres per second)
-   * @param bra back right module angle (radians)
-   * @return an array containing the x, y, and omega components of the robot's velocity
+   * @param frsMps front right module speed (metres per second)
+   * @param fraDeg front right module angle (degrees)
+   * @param flsMps front left module speed (metres per second)
+   * @param flaDeg front left module angle (degrees)
+   * @param blsMps back left module speed (metres per second)
+   * @param blaDeg back left module angle (degrees)
+   * @param brsMps back right module speed (metres per second)
+   * @param braDeg back right module angle (degrees)
+   * @return array containing vX (m/s), vY (m/s), and w (rad/s)
    */
   public double[] calculateRobotVelocity(
-      double frs,
-      double fra,
-      double fls,
-      double fla,
-      double bls,
-      double bla,
-      double brs,
-      double bra) {
-    return SwerveMath.calculateRobotVelocity(
-        trackWidthOverFrameDiagonal,
-        wheelBaseOverFrameDiagonal,
-        frs,
-        fra,
-        fls,
-        fla,
-        bls,
-        bla,
-        brs,
-        bra);
+      double frsMps,
+      double fraDeg,
+      double flsMps,
+      double flaDeg,
+      double blsMps,
+      double blaDeg,
+      double brsMps,
+      double braDeg) {
+    // convert inputs
+
+    double frsPwr = frsMps / maxSpeedMps;
+    double flsPwr = flsMps / maxSpeedMps;
+    double blsPwr = blsMps / maxSpeedMps;
+    double brsPwr = brsMps / maxSpeedMps;
+    double fraRad = Math.toRadians(fraDeg);
+    double flaRad = Math.toRadians(flaDeg);
+    double blaRad = Math.toRadians(blaDeg);
+    double braRad = Math.toRadians(braDeg);
+    // grab calculated output
+    double[] velPwr =
+        SwerveMath.calculateRobotVelocity(
+            trackWidthOverFrameDiagonal,
+            wheelBaseOverFrameDiagonal,
+            frsPwr,
+            fraRad,
+            flsPwr,
+            flaRad,
+            blsPwr,
+            blaRad,
+            brsPwr,
+            braRad);
+    double xMps = velPwr[0] * maxSpeedMps;
+    double yMps = velPwr[1] * maxSpeedMps;
+    double omegaRadPerSec = velPwr[2] * maxOmegaRadPerSec;
+    return new double[] {xMps, yMps, omegaRadPerSec};
   }
 }
