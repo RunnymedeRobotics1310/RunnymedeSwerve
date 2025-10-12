@@ -473,11 +473,11 @@ public class SwerveMath {
   public static double[] discretize(double vx, double vy, double w, double dt) {
 
     var d = ChassisSpeeds.discretize(vx, vy, w, dt);
-    return new double[] {d.vxMetersPerSecond, d.vyMetersPerSecond, d.omegaRadiansPerSecond};
+    //    return new double[] {d.vxMetersPerSecond, d.vyMetersPerSecond, d.omegaRadiansPerSecond};
     //    return discretize_OP(vx, vy, w, 0.5, 1, 0.65);
     //    return discretize_RR(vx, vy, w, dt);
     //    return discretize_WPILIB(vx, vy, w, dt);
-    //    return new double[] {vx, vy, w};
+    return new double[] {vx, vy, w};
   }
 
   /**
