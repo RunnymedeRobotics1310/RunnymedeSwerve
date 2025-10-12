@@ -18,7 +18,6 @@ import com.revrobotics.spark.config.SparkFlexConfig;
 public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implements DriveMotor {
 
   private double prevTargetMPS = 0;
-  private final double velocityConversionFactor;
   private final double maxMps;
 
   /**
@@ -78,8 +77,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
     // report in metres not rotations
     config.encoder.positionConversionFactor(positionConversionFactor);
     // report in metres per second not rotations per minute
-    velocityConversionFactor = positionConversionFactor / 60;
-    config.encoder.velocityConversionFactor(velocityConversionFactor);
+    config.encoder.velocityConversionFactor(positionConversionFactor / 60);
     // reduce measurement lag --> read encoders every 2ms and use last 4 measurements for computing
     // velocity.  Default value is 100ms with a depth of 64
     config.encoder.quadratureMeasurementPeriod(2).quadratureAverageDepth(4);

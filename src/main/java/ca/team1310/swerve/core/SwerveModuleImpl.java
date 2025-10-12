@@ -22,7 +22,6 @@ class SwerveModuleImpl implements SwerveModule {
   private final AbsoluteAngleEncoder angleEncoder;
   private ModuleDirective desiredState = new ModuleDirective();
   private final ModuleState measuredState = new ModuleState();
-  private final Notifier encoderSynchronizer = new Notifier(this::syncAngleEncoder);
 
   private final Alert driveMotorFaultPresent;
   private final Alert angleMotorFaultPresent;
@@ -35,8 +34,10 @@ class SwerveModuleImpl implements SwerveModule {
     this.driveMotor = getDriveMotor(cfg, maxAttainableModuleSpeedMps);
     this.angleMotor = getAngleMotor(cfg);
     this.angleEncoder = getAbsoluteAngleEncoder(cfg);
-    encoderSynchronizer.setName("RunnymedeSwerve Angle Encoder Sync " + name);
-    encoderSynchronizer.startPeriodic(ANGLE_ENCODER_SYNC_PERIOD_MS / 1000);
+    try (Notifier encoderSynchronizer = new Notifier(this::syncAngleEncoder)) {
+      encoderSynchronizer.setName("RunnymedeSwerve Angle Encoder Sync " + name);
+      encoderSynchronizer.startPeriodic(ANGLE_ENCODER_SYNC_PERIOD_MS / 1000);
+    }
 
     driveMotorFaultPresent =
         new Alert("Swerve Drive Motor [" + name + "] Fault Present", Alert.AlertType.kError);
@@ -59,7 +60,7 @@ class SwerveModuleImpl implements SwerveModule {
               cfg.driveMotorConfig(),
               cfg.wheelRadiusMetres(),
               maxAttainableModuleSpeedMps);
-      default ->
+      case NEO_SPARK_MAX ->
           new NSMDriveMotor(
               cfg.driveMotorCanId(),
               cfg.driveMotorConfig(),
@@ -71,7 +72,7 @@ class SwerveModuleImpl implements SwerveModule {
   private AngleMotor getAngleMotor(ModuleConfig cfg) {
     return switch (cfg.angleMotorConfig().type()) {
       case NEO_SPARK_FLEX -> new NSFAngleMotor(cfg.angleMotorCanId(), cfg.angleMotorConfig());
-      default -> new NSMAngleMotor(cfg.angleMotorCanId(), cfg.angleMotorConfig());
+      case NEO_SPARK_MAX -> new NSMAngleMotor(cfg.angleMotorCanId(), cfg.angleMotorConfig());
     };
   }
 
