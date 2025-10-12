@@ -131,22 +131,15 @@ public final class SwerveTelemetry {
 
   /** Post all telemetry data to SmartDashboard */
   public void post() {
-    SmartDashboard.putBoolean("swerve/hasVisPose", hasVisPose);
-
     if (level == INPUT || level == CALCULATED || level == VERBOSE) {
       postConstants();
       postInput();
     }
 
     if (level == CALCULATED || level == VERBOSE) {
-      postConstants();
-      postInput();
       postCalculated();
     }
     if (level == VERBOSE) {
-      postConstants();
-      postInput();
-      postCalculated();
       postVerbose();
     }
   }
@@ -179,6 +172,7 @@ public final class SwerveTelemetry {
     SmartDashboard.putNumber("swerve/robotRotation", poseHeadingDegrees);
     SmartDashboard.putNumberArray("swerve/measuredChassisSpeeds", measuredChassisSpeeds);
     // other calculated values
+    SmartDashboard.putBoolean("swerve/hasVisPose", hasVisPose);
   }
 
   private void postVerbose() {
