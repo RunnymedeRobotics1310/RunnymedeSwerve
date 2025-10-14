@@ -108,13 +108,11 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
 
   /** Update the odometry of the swerve drive. */
   protected synchronized void updateOdometry() {
-    if (this.estimator == null) {
-      System.out.println("Cannot update odometry - estimator is null");
-      return;
+    // During robot startup the updateOdometry thread may call function before the estimator has
+    // been initialized, so check that it exists before updating odometry
+    if (this.estimator != null) {
+      estimator.update(Rotation2d.fromDegrees(getYawRaw()), getSwerveModulePositions());
     }
-
-    // odometry
-    estimator.update(Rotation2d.fromDegrees(getYawRaw()), getSwerveModulePositions());
   }
 
   /**
@@ -154,7 +152,8 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     super.updateTelemetry(telemetry);
     if (telemetry.level == CALCULATED || telemetry.level == VERBOSE) {
       if (this.estimator == null) {
-        System.out.println("Cannot update telemetry - estimator is null");
+        // During robot startup the updateTelemetry thread may call function before the estimator
+        // has been initialized, so check that it exists before updating odometry
         return;
       }
 
