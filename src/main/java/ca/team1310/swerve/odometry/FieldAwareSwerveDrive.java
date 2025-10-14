@@ -26,7 +26,13 @@ import java.util.Arrays;
  */
 public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
 
+  /**
+   * The period at which the odometry data is updated. Note this will trigger gyro reads in addition
+   * to other data processing. Will the robot actually use odometry data updated more frequently
+   * than the robot's periodic cycle?
+   */
   private static final int UPDATE_ODOMETRY_EVERY_MILLIS = 20;
+
   private final Notifier odometryUpdater = new Notifier(this::updateOdometry);
 
   private final Field2d field;
@@ -46,6 +52,8 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
    */
   public FieldAwareSwerveDrive(CoreSwerveConfig cfg, GyroConfig gyroConfig) {
     super(cfg, gyroConfig);
+    System.out.println("Swerve odometry update period: " + UPDATE_ODOMETRY_EVERY_MILLIS + " ms");
+
     this.field = new Field2d();
     SmartDashboard.putData(field);
 
