@@ -99,7 +99,11 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
 
   @Override
   public synchronized void updateTelemetry(SwerveTelemetry telemetry) {
-    gyro.isConnected();
+    // This is called during robot startup, and gyro may be null when this.super() finishes but
+    // this class has not yet initialized the gyro, so perform null check.
+    if (gyro != null) {
+      gyro.isConnected();
+    }
 
     super.updateTelemetry(telemetry);
   }

@@ -26,6 +26,15 @@ import java.util.Arrays;
  */
 public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
 
+  /**
+   * The period at which the odometry data is updated. Note this will trigger gyro reads in addition
+   * to other data processing. Will the robot actually use odometry data updated more frequently
+   * than the robot's periodic cycle?
+   */
+  private static final int UPDATE_ODOMETRY_EVERY_MILLIS = 20;
+
+  private final Notifier odometryUpdater = new Notifier(this::updateOdometry);
+
   private final Field2d field;
   private final SwerveDrivePoseEstimator estimator;
   private final SwerveModulePosition[] modulePosition = {
@@ -35,13 +44,6 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     new SwerveModulePosition()
   };
 
-  private final Notifier odometryUpdater;
-  private static final int UPDATE_ODOMETRY_EVERY_MILLIS = 20;
-
-  private static final double VISION_HIGH_QUALITY_X = 0.1;
-  private static final double VISION_HIGH_QUALITY_Y = 0.1;
-  private static final double VISION_HIGH_QUALITY_HEADING = 1;
-
   /**
    * Create a new field-aware swerve drive. An optional vision pose callback can be provided to
    * allow the drive to use vision data for odometry.
@@ -50,6 +52,8 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
    */
   public FieldAwareSwerveDrive(CoreSwerveConfig cfg, GyroConfig gyroConfig) {
     super(cfg, gyroConfig);
+    System.out.println("Swerve odometry update period: " + UPDATE_ODOMETRY_EVERY_MILLIS + " ms");
+
     this.field = new Field2d();
     SmartDashboard.putData(field);
 
@@ -89,9 +93,8 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
             initialModulePositions,
             initialPose);
 
-    this.odometryUpdater = new Notifier(this::updateOdometry);
-    this.odometryUpdater.startPeriodic(UPDATE_ODOMETRY_EVERY_MILLIS / 1000.0);
-    this.odometryUpdater.setName("RunnymedeSwerve Odometry");
+    odometryUpdater.startPeriodic(UPDATE_ODOMETRY_EVERY_MILLIS / 1000.0);
+    odometryUpdater.setName("RunnymedeSwerve Odometry");
   }
 
   private synchronized SwerveModulePosition[] getSwerveModulePositions() {
@@ -105,13 +108,11 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
 
   /** Update the odometry of the swerve drive. */
   protected synchronized void updateOdometry() {
-    if (this.estimator == null) {
-      System.out.println("Cannot update odometry - estimator is null");
-      return;
+    // During robot startup the updateOdometry thread may call function before the estimator has
+    // been initialized, so check that it exists before updating odometry
+    if (this.estimator != null) {
+      estimator.update(Rotation2d.fromDegrees(getYawRaw()), getSwerveModulePositions());
     }
-
-    // odometry
-    estimator.update(Rotation2d.fromDegrees(getYawRaw()), getSwerveModulePositions());
   }
 
   /**
@@ -148,9 +149,11 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
   }
 
   public synchronized void updateTelemetry(SwerveTelemetry telemetry) {
+    super.updateTelemetry(telemetry);
     if (telemetry.level == CALCULATED || telemetry.level == VERBOSE) {
       if (this.estimator == null) {
-        System.out.println("Cannot update telemetry - estimator is null");
+        // During robot startup the updateTelemetry thread may call function before the estimator
+        // has been initialized, so check that it exists before updating odometry
         return;
       }
 
@@ -166,7 +169,6 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
       var states = getModuleStates();
       field.getObject("XModules").setPoses(asModulePoses(states, pose));
     }
-    super.updateTelemetry(telemetry);
   }
 
   private static Pose2d[] asModulePoses(ModuleState[] states, Pose2d robotPose) {

@@ -32,15 +32,17 @@ public interface SwerveModule {
   void setDesiredState(ModuleDirective desiredState);
 
   /**
-   * Update the internal state of the swerve module by reading data from the module hardware. Flags
-   * are included to skip some sensor reads. Sensor reads are slow, so this allows some control over
-   * which ones are read.
-   *
-   * @param odometry include necessary data for odometry, including module speed, location, and
-   *     angle
-   * @param telemetry includes all data
+   * Update the internal state of the swerve module by reading data from the module hardware. This
+   * function is designed to be used very frequently and must be very performant.
    */
-  void readState(boolean odometry, boolean telemetry);
+  void readState();
+
+  /**
+   * Update the internal state of the swerve module's detailed telemetry information. It does NOT
+   * include data loaded by readState(). Some of these operations can be slow and should therefore
+   * not be invoked more than necessary.
+   */
+  void readVerboseState();
 
   /**
    * Get the current swerve module state. This can safely be called repeatedly.

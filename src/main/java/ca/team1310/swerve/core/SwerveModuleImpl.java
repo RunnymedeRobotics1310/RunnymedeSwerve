@@ -13,7 +13,8 @@ import edu.wpi.first.wpilibj.Notifier;
 
 class SwerveModuleImpl implements SwerveModule {
 
-  private static final double ANGLE_ENCODER_SYNC_PERIOD_SECONDS = 0.5;
+  private static final double ANGLE_ENCODER_SYNC_PERIOD_MS = 500;
+  private final Notifier encoderSynchronizer = new Notifier(this::syncAngleEncoder);
 
   private final String name;
   private final Coordinates location;
@@ -22,21 +23,27 @@ class SwerveModuleImpl implements SwerveModule {
   private final AbsoluteAngleEncoder angleEncoder;
   private ModuleDirective desiredState = new ModuleDirective();
   private final ModuleState measuredState = new ModuleState();
-  private final Notifier encoderSynchronizer = new Notifier(this::syncAngleEncoder);
 
   private final Alert driveMotorFaultPresent;
   private final Alert angleMotorFaultPresent;
   private final Alert angleEncoderFaultPresent;
 
-  SwerveModuleImpl(ModuleConfig cfg, double maxAttainableModuleSpeedMps, int robotPeriodMillis) {
+  SwerveModuleImpl(ModuleConfig cfg, double maxAttainableModuleSpeedMps) {
     this.name = cfg.name();
+    System.out.println(
+        "Swerve ("
+            + this.name
+            + ") absolute angle encoder sync period: "
+            + ANGLE_ENCODER_SYNC_PERIOD_MS
+            + " ms");
     this.location = cfg.location();
     measuredState.setLocation(cfg.location());
-    this.driveMotor = getDriveMotor(cfg, maxAttainableModuleSpeedMps, robotPeriodMillis);
-    this.angleMotor = getAngleMotor(cfg, robotPeriodMillis);
+    this.driveMotor = getDriveMotor(cfg, maxAttainableModuleSpeedMps);
+    this.angleMotor = getAngleMotor(cfg);
     this.angleEncoder = getAbsoluteAngleEncoder(cfg);
-    encoderSynchronizer.setName("RunnymedeSwerve Angle Encoder Sync " + name);
-    encoderSynchronizer.startPeriodic(ANGLE_ENCODER_SYNC_PERIOD_SECONDS);
+
+    this.encoderSynchronizer.setName("RunnymedeSwerve Angle Encoder Sync " + name);
+    this.encoderSynchronizer.startPeriodic(ANGLE_ENCODER_SYNC_PERIOD_MS / 1000);
 
     driveMotorFaultPresent =
         new Alert("Swerve Drive Motor [" + name + "] Fault Present", Alert.AlertType.kError);
@@ -51,32 +58,27 @@ class SwerveModuleImpl implements SwerveModule {
     return location;
   }
 
-  private DriveMotor getDriveMotor(
-      ModuleConfig cfg, double maxAttainableModuleSpeedMps, int robotPeriodMillis) {
+  private DriveMotor getDriveMotor(ModuleConfig cfg, double maxAttainableModuleSpeedMps) {
     return switch (cfg.driveMotorConfig().type()) {
       case NEO_SPARK_FLEX ->
           new NSFDriveMotor(
               cfg.driveMotorCanId(),
               cfg.driveMotorConfig(),
               cfg.wheelRadiusMetres(),
-              maxAttainableModuleSpeedMps,
-              robotPeriodMillis);
-      default ->
+              maxAttainableModuleSpeedMps);
+      case NEO_SPARK_MAX ->
           new NSMDriveMotor(
               cfg.driveMotorCanId(),
               cfg.driveMotorConfig(),
               cfg.wheelRadiusMetres(),
-              maxAttainableModuleSpeedMps,
-              robotPeriodMillis);
+              maxAttainableModuleSpeedMps);
     };
   }
 
-  private AngleMotor getAngleMotor(ModuleConfig cfg, int robotPeriodMillis) {
+  private AngleMotor getAngleMotor(ModuleConfig cfg) {
     return switch (cfg.angleMotorConfig().type()) {
-      case NEO_SPARK_FLEX ->
-          new NSFAngleMotor(cfg.angleMotorCanId(), cfg.angleMotorConfig(), robotPeriodMillis);
-      default ->
-          new NSMAngleMotor(cfg.angleMotorCanId(), cfg.angleMotorConfig(), robotPeriodMillis);
+      case NEO_SPARK_FLEX -> new NSFAngleMotor(cfg.angleMotorCanId(), cfg.angleMotorConfig());
+      case NEO_SPARK_MAX -> new NSMAngleMotor(cfg.angleMotorCanId(), cfg.angleMotorConfig());
     };
   }
 
@@ -95,20 +97,18 @@ class SwerveModuleImpl implements SwerveModule {
     return name;
   }
 
-  public synchronized void readState(boolean odometry, boolean telemetry) {
+  public synchronized void readState() {
     measuredState.setDesiredSpeed(desiredState.getSpeed());
     measuredState.setDesiredAngle(desiredState.getAngle());
 
-    if (odometry || telemetry) {
-      measuredState.setAngle(angleMotor.getPosition());
-      measuredState.setPosition(driveMotor.getDistance());
-    }
+    measuredState.setAngle(angleMotor.getPosition());
+    measuredState.setPosition(driveMotor.getDistance());
+  }
 
-    if (telemetry) {
-      measuredState.setVelocity(driveMotor.getVelocity());
-      measuredState.setDriveOutputPower(driveMotor.getMeasuredVoltage());
-      measuredState.setAbsoluteEncoderAngle(angleEncoder.getPosition());
-    }
+  public synchronized void readVerboseState() {
+    measuredState.setVelocity(driveMotor.getVelocity());
+    measuredState.setDriveOutputPower(driveMotor.getMeasuredVoltage());
+    measuredState.setAbsoluteEncoderAngle(angleEncoder.getPosition());
   }
 
   public synchronized ModuleState getState() {

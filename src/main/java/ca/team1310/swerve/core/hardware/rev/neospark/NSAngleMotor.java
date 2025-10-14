@@ -1,5 +1,7 @@
 package ca.team1310.swerve.core.hardware.rev.neospark;
 
+import static ca.team1310.swerve.core.CoreSwerveDrive.MANAGE_MODULES_PERIOD_MS;
+import static ca.team1310.swerve.core.CoreSwerveDrive.TELEMETRY_UPDATE_PERIOD_MS;
 import static ca.team1310.swerve.utils.SwerveUtils.normalizeDegrees;
 
 import ca.team1310.swerve.core.AngleMotor;
@@ -25,9 +27,8 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
    *
    * @param spark The spark motor controller
    * @param cfg The configuration of the motor
-   * @param robotPeriodMillis The period of the robot in milliseconds
    */
-  public NSAngleMotor(T spark, MotorConfig cfg, int robotPeriodMillis) {
+  public NSAngleMotor(T spark, MotorConfig cfg) {
     super(spark);
     SparkMaxConfig config = new SparkMaxConfig();
     config.inverted(cfg.inverted());
@@ -56,14 +57,14 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
     config
         .signals
         // report faults as they happen
-        .faultsPeriodMs(robotPeriodMillis)
+        .faultsPeriodMs(TELEMETRY_UPDATE_PERIOD_MS)
 
         // applied output is used for diagnostics only
-        .appliedOutputPeriodMs(robotPeriodMillis)
+        .appliedOutputPeriodMs(TELEMETRY_UPDATE_PERIOD_MS)
 
         // used for control and odometry
         .primaryEncoderPositionAlwaysOn(true)
-        .primaryEncoderPositionPeriodMs(5) // default 20ms
+        .primaryEncoderPositionPeriodMs(MANAGE_MODULES_PERIOD_MS) // default 20ms
 
         // not used but exposed via API.
         // Per javadoc for this method, status frames are only enabled when a signal is requested

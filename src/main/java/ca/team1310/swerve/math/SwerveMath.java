@@ -1,6 +1,7 @@
 package ca.team1310.swerve.math;
 
 import ca.team1310.swerve.core.ModuleDirective;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
 /**
  * Essential math utilities for swerve drive calculations.
@@ -69,36 +70,6 @@ import ca.team1310.swerve.core.ModuleDirective;
 public class SwerveMath {
 
   private SwerveMath() {}
-
-  /**
-   * Calculate the module velocities for the swerve drive when operating in robot-oriented mode.
-   *
-   * <p>Units for x, y, and w are from -1.0 to 1.0, where 1.0 represents the maximum speed of the
-   * for each type of movement.
-   *
-   * @param trackWidth the track width of the drivetrain (i.e. from the left to the right of the
-   *     robot). Units are not relevant.
-   * @param wheelBase the wheelbase of the drivetrain, (i.e. from the front to the back of the
-   *     robot). Units are not relevant.
-   * @param x desired forward velocity, from -1.0 to 1.0 where -1.0 is the minimum achievable value
-   *     and 1.0 is the maximum achievable value. (forward is positive)
-   * @param y desired sideways velocity from -1.0 to 1.0 where -1.0 is the minimum achievable value
-   *     and 1.0 is the maximum achievable value. (left is positive)
-   * @param w desired angular velocity from -1.0 to 1.0 where -1.0 is the minimum achievable value
-   *     and 1.0 is the maximum achievable value. (counter-clockwise positive)
-   * @return an array of the calculated module setpoints, in the format [frs, fra, fls, fla, bls,
-   *     bla, brs, bra] where frs is the front right wheel speed from -1 to 1, fra is the front
-   *     right wheel angle, from -PI to PI, etc.
-   * @see <a href="#array-indices">Array Indices</a>
-   */
-  public static double[] calculateModuleVelocities(
-      double trackWidth, double wheelBase, double x, double y, double w) {
-    double hypot = Math.hypot(wheelBase, trackWidth);
-    double wheelBaseOverFrameDiagonal = wheelBase / hypot;
-    double trackWidthOverFrameDiagonal = trackWidth / hypot;
-    return calculateModuleVelocitiesOpt(
-        wheelBaseOverFrameDiagonal, trackWidthOverFrameDiagonal, x, y, w);
-  }
 
   /**
    * Calculate the module velocities for the swerve drive when operating in robot-oriented mode.
@@ -245,8 +216,8 @@ public class SwerveMath {
    * <p>To keep performance at a maximum, all 8 components of the module velocities are returned in
    * a single array in the format [frs, fra, fls, fla, bls, bla, brs, bra].
    *
-   * @param wheelBaseOverFrameDiagonal the ratio of the wheelbase to the diagonal of the robot
    * @param trackWidthOverFrameDiagonal the ratio of the track width to the diagonal of the robot
+   * @param wheelBaseOverFrameDiagonal the ratio of the wheelbase to the diagonal of the robot
    * @param x desired forward velocity, from -1.0 to 1.0 where -1.0 is the minimum achievable value
    *     and 1.0 is the maximum achievable value. (forward is positive)
    * @param y desired sideways velocity from -1.0 to 1.0 where -1.0 is the minimum achievable value
@@ -258,12 +229,13 @@ public class SwerveMath {
    *     right wheel angle, from -PI to PI, etc.
    * @see <a href="#array-indices">Array Indices</a>
    */
-  public static double[] calculateModuleVelocitiesOpt(
-      double wheelBaseOverFrameDiagonal,
+  public static double[] calculateModuleVelocities(
       double trackWidthOverFrameDiagonal,
+      double wheelBaseOverFrameDiagonal,
       double x,
       double y,
       double w) {
+
     // Compute the horiz and vert components of the wheel vectors
     double rear_horiz = y - w * wheelBaseOverFrameDiagonal;
     double front_horiz = y + w * wheelBaseOverFrameDiagonal;
@@ -276,10 +248,13 @@ public class SwerveMath {
     double bls = Math.hypot(rear_horiz, left_vert);
     double brs = Math.hypot(rear_horiz, right_vert);
 
-    // Correction #2 - desaturate wheel speeds
+    // Correction #2 - desaturate wheel speeds (this should already be done)
     double max = Math.max(frs, Math.max(fls, Math.max(bls, brs)));
     if (max > 1.0) {
-      //      System.out.println("Desaturating. Scale factor = " + max);
+      // This code path should never be reached, because scaling should be done
+      // before calling this method.
+      // See <code>SwerveKinematics.calculateModuleVelocities</code>.
+      System.out.println("ERROR: Unachievable module speeds. Scale factor: " + max);
       frs /= max;
       fls /= max;
       bls /= max;
@@ -293,6 +268,105 @@ public class SwerveMath {
     double bra = Math.atan2(rear_horiz, right_vert);
 
     return new double[] {frs, fra, fls, fla, bls, bla, brs, bra};
+  }
+
+  /**
+   * This function returns the robot speed given the speed and angle of the wheels. It does so by
+   * reversing the equations from calculateModuleVelocitiesOpt().
+   *
+   * <p>First, the horizontal and vertical components of the vector corresponding to the motion of
+   * each module.
+   *
+   * <p>Each component is on 2 modules, so we average them in case of errors.
+   *
+   * <p>Next we find a system of equations to give us vX, vY, and w.
+   *
+   * <p>Each component has 2 equations that give us the result, so we average them in case of
+   * errors.
+   *
+   * @param trackWidthOverFrameDiagonal the ratio of the track width to the diagonal of the robot
+   * @param wheelBaseOverFrameDiagonal the ratio of the wheelbase to the diagonal of the robot
+   * @param frsPwr module speed (-1 to 1)
+   * @param fraRad module angle (-Pi to Pi)
+   * @param flsPwr module speed (-1 to 1)
+   * @param flaRad module angle (-Pi to Pi)
+   * @param blsPwr module speed (-1 to 1)
+   * @param blaRad module angle (-Pi to Pi)
+   * @param brsPwr module speed (-1 to 1)
+   * @param braRad module angle (-Pi to Pi) return array containing vX (m/s), vY (m/s), and w
+   *     (rad/s)
+   * @return array containing xPwr (-1, to 1), yPwr (-1 to 1), and w angular velocity from -1.0 to
+   *     1.0 where -1.0 is the minimum achievable value * and 1.0 is the maximum achievable value.
+   *     (counter-clockwise positive)
+   */
+  public static double[] calculateRobotVelocity(
+      double trackWidthOverFrameDiagonal,
+      double wheelBaseOverFrameDiagonal,
+      double frsPwr,
+      double fraRad,
+      double flsPwr,
+      double flaRad,
+      double blsPwr,
+      double blaRad,
+      double brsPwr,
+      double braRad) {
+
+    // average each component from the 2 modules
+    double rear_horiz = (blsPwr * Math.sin(blaRad) + brsPwr * Math.sin(braRad)) / 2;
+    double front_horiz = (flsPwr * Math.sin(flaRad) + frsPwr * Math.sin(fraRad)) / 2;
+    double right_vert = (frsPwr * Math.cos(fraRad) + brsPwr * Math.cos(braRad)) / 2;
+    double left_vert = (flsPwr * Math.cos(flaRad) + blsPwr * Math.cos(blaRad)) / 2;
+
+    /*
+     rearrange equations from calculateModuleVelocitiesOpt() to find x and y given all components
+
+     rear_horiz = y - w * wheelBaseOverFrameDiagonal
+     rear_horiz + w * wheelBaseOverFrameDiagonal = y
+     y = rear_horiz + w * wheelBaseOverFrameDiagonal
+
+     front_horiz = y + w * wheelBaseOverFrameDiagonal
+     y = front_horiz - w * wheelBaseOverFrameDiagonal
+
+     right_vert = x + w * trackWidthOverFrameDiagonal
+     x = right_vert - w * trackWidthOverFrameDiagonal
+
+     left_vert = x - w * trackWidthOverFrameDiagonal
+     x = left_vert + w * trackWidthOverFrameDiagonal
+
+     FINDING w
+     sub eq1 into eq2
+     front_horiz = y + w * wheelBaseOverFrameDiagonal
+     front_horiz = (rear_horiz + w * wheelBaseOverFrameDiagonal) + w * wheelBaseOverFrameDiagonal
+     front_horiz = rear_horiz + 2 * w * wheelBaseOverFrameDiagonal
+     front_horiz - rear_horiz = 2 * w * wheelBaseOverFrameDiagonal
+     w = (front_horiz - rear_horiz) / (2 * wheelBaseOverFrameDiagonal)
+
+     sub eqn 4 into eqn 3
+     right_vert = (left_vert + w * trackWidthOverFrameDiagonal) + w * trackWidthOverFrameDiagonal
+     right_vert = left_vert + 2 * w * trackWidthOverFrameDiagonal
+     right_vert - left_vert = 2 * w * trackWidthOverFrameDiagonal
+     w = (right_vert - left_vert) / (2 * trackWidthOverFrameDiagonal)
+    */
+
+    // average results of above eq'ns
+    double frontRearOmega = (front_horiz - rear_horiz) / (2 * wheelBaseOverFrameDiagonal);
+    //    System.out.println("frontRearOmega:" + frontRearOmega);
+    double rightLeftOmega = (right_vert - left_vert) / (2 * trackWidthOverFrameDiagonal);
+    //    System.out.println("rightLeftOmega:" + rightLeftOmega);
+    double w = (frontRearOmega + rightLeftOmega) / 2;
+    //    System.out.println("avgOmega:" + w);
+
+    double x = 0;
+    x += right_vert - w * trackWidthOverFrameDiagonal;
+    x += left_vert + w * trackWidthOverFrameDiagonal;
+    x /= 2;
+
+    double y = 0;
+    y += rear_horiz + w * wheelBaseOverFrameDiagonal;
+    y += front_horiz - w * wheelBaseOverFrameDiagonal;
+    y /= 2;
+
+    return new double[] {x, y, w};
   }
 
   /**
@@ -313,6 +387,46 @@ public class SwerveMath {
       optimal = normalizeDegrees(optimal);
       desiredState.set(-desiredState.getSpeed(), optimal);
     }
+  }
+
+  /**
+   * This method supports:
+   *
+   * <p>Correction #2 - desaturate wheel speeds
+   *
+   * <p>Compute the module wheel speeds and return the scale factor required to ensure that module
+   * speeds are actually achievable.
+   *
+   * @param trackWidthOverFrameDiagonal the ratio of the track width to the diagonal of the robot
+   * @param wheelBaseOverFrameDiagonal the ratio of the wheelbase to the diagonal of the robot
+   * @param x desired forward velocity, from -1.0 to 1.0 where -1.0 is the minimum achievable value
+   *     and 1.0 is the maximum achievable value. (forward is positive)
+   * @param y desired sideways velocity from -1.0 to 1.0 where -1.0 is the minimum achievable value
+   *     and 1.0 is the maximum achievable value. (left is positive)
+   * @param w desired angular velocity from -1.0 to 1.0 where -1.0 is the minimum achievable value
+   *     and 1.0 is the maximum achievable value. (counter-clockwise positive)
+   * @return the fastest module speed on the scale of 0 to 1. If the returned value is > 1, the x,
+   *     y, w values need to be scaled down by this value.
+   */
+  public static double computeVelocityScaleFactor(
+      double trackWidthOverFrameDiagonal,
+      double wheelBaseOverFrameDiagonal,
+      double x,
+      double y,
+      double w) {
+    // Compute the horiz and vert components of the wheel vectors
+    double rear_horiz = y - w * wheelBaseOverFrameDiagonal;
+    double front_horiz = y + w * wheelBaseOverFrameDiagonal;
+    double right_vert = x + w * trackWidthOverFrameDiagonal;
+    double left_vert = x - w * trackWidthOverFrameDiagonal;
+
+    // calculate wheel speeds
+    double frs = Math.hypot(front_horiz, right_vert);
+    double fls = Math.hypot(front_horiz, left_vert);
+    double bls = Math.hypot(rear_horiz, left_vert);
+    double brs = Math.hypot(rear_horiz, right_vert);
+
+    return Math.max(frs, Math.max(fls, Math.max(bls, brs)));
   }
 
   /**
@@ -338,7 +452,8 @@ public class SwerveMath {
 
   /**
    * Correction #4 - Discretize. Compensate for the fact that the robot will drive off the desired
-   * path during the interval between one set of instructions and the next set of instructions.
+   * path during the interval between one set of instructions and the next set of instructions,
+   * because it is pivoting while driving.
    *
    * <p>See <a
    * href="https://www.chiefdelphi.com/t/looking-for-an-explanation-of-chassisspeeds-discretize/462069">explanation
@@ -349,18 +464,130 @@ public class SwerveMath {
    *
    * @param vx the speed in the x direction - units don't matter
    * @param vy the speed in the y direction - units don't matter
-   * @param w the speed of rotation - radians per second
+   * @param w the speed of rotation - radians per second (ccw+)
    * @param dt the time interval to the next time direction is calculated (typically the robot
    *     period) - in seconds
    * @return an array consisting of vx, vy, w in the same units above, but optimized to account for
    *     the update period
    */
   public static double[] discretize(double vx, double vy, double w, double dt) {
-    // todo: implement
+
+    var d = ChassisSpeeds.discretize(vx, vy, w, dt);
+    //    return new double[] {d.vxMetersPerSecond, d.vyMetersPerSecond, d.omegaRadiansPerSecond};
+    //    return discretize_OP(vx, vy, w, 0.5, 1, 0.65);
+    //    return discretize_RR(vx, vy, w, dt);
+    //    return discretize_WPILIB(vx, vy, w, dt);
+    return new double[] {vx, vy, w};
+  }
+
+  /**
+   * Correct for drift away from the desired velocity due to high values of omega.
+   *
+   * <p>A normal vector is added to the input vector, scaled by a magnitude computed by this formula
+   * <code>dt * omega</code>
+   *
+   * <p>This calculation is very efficient but does not account for or allow compensation for
+   * changing omega values
+   *
+   * @param vx The robot's x velocity
+   * @param vy The robot's y velocity
+   * @param w The robot's angular velocity in radians per second (ccw+)
+   * @param dt the time interval to the next time direction is calculated (typically the robot
+   *     period) - in seconds
+   * @return An array of the robot's x, y, and angular velocities
+   */
+  private static double[] discretize_RR(double vx, double vy, double w, double dt) {
+
+    XYVector input = new XYVector(vx, vy);
+
+    // set up the normal (perpendicular) vector
+    XYVector normal = new XYVector(vx, vy);
+    normal.rotate(-Math.PI / 2);
+
+    // Scale the normal vector.
+    normal.setMagnitude(w * dt);
+
+    // add it to the result
+    XYVector corrected = new XYVector(vx, vy);
+    corrected.add(normal);
+
+    // scale it back to the original speed
+    corrected.setMagnitude(input.magnitude);
+
+    // package and return
     double[] output = new double[3];
-    output[0] = vx;
-    output[1] = vy;
+    output[0] = corrected.x;
+    output[1] = corrected.y;
     output[2] = w;
+    return output;
+  }
+
+  /**
+   * Correct for drift away from the desired velocity due to high values of omega.
+   *
+   * <p>A normal vector is added to the input vector, scaled by a magnitude computed by this formula
+   * <code>normalScale * ((translationScale * input.magnitude) * (rotationScale * w))</code>
+   *
+   * <p>This calculation is very efficient (especially compared to WPILib's <code>
+   * ChassisSpeeds.discretize()</code> function, but it requires the three scale factors to be
+   * manually tuned.
+   *
+   * <p>The tuning process is made clear by incorporating a translation element, a rotation element,
+   * and an overall element, all of which combine with the angular velocity to create the correction
+   * vector.
+   *
+   * @param vx The robot's x velocity
+   * @param vy The robot's y velocity
+   * @param w The robot's angular velocity in radians per second
+   * @param transScale The scale factor for the translation contribution to the normal vector
+   * @param rotScale The scale factor for the rotation contribution to the normal vector
+   * @param normalScale An overall scale factor for the normal vector
+   * @return An array of the robot's x, y, and angular velocities
+   */
+  private static double[] discretize_OP(
+      double vx, double vy, double w, double transScale, double rotScale, double normalScale) {
+
+    XYVector input = new XYVector(vx, vy);
+
+    // set up the normal (perpendicular) vector
+    XYVector normal = new XYVector(vx, vy);
+    normal.rotate(-Math.PI / 2);
+
+    // Scale the normal vector.
+    double normalMagnitude = normalScale * ((transScale * input.magnitude) * (rotScale * w));
+    normal.setMagnitude(normalMagnitude);
+
+    // add it to the result
+    XYVector corrected = new XYVector(vx, vy);
+    corrected.add(normal);
+
+    // scale it back to the original speed
+    corrected.setMagnitude(input.magnitude);
+
+    // package and return
+    double[] output = new double[3];
+    output[0] = corrected.x;
+    output[1] = corrected.y;
+    output[2] = w;
+    return output;
+  }
+
+  private static double[] discretize_WPILIB(double vx, double vy, double w, double dt) {
+    // This is a port of the WPILib implementation of discretize()
+
+    // Construct the desired pose after dt, relative to the current pose. The desired pose
+    // has decoupled translation and rotation.
+    RRPose2d desiredEndPose = new RRPose2d(vx * dt, vy * dt, w * dt);
+
+    // Find the chassis translation/rotation deltas in the robot frame that move the robot from its
+    // current pose to the desired pose
+    RRTwist2d twist = RRPose2d.ZERO.log(desiredEndPose);
+
+    // Turn the chassis translation/rotation deltas into average velocities
+    double[] output = new double[3];
+    output[0] = twist.dx / dt;
+    output[1] = twist.dy / dt;
+    output[2] = twist.dtheta / dt;
     return output;
   }
 
@@ -428,142 +655,5 @@ public class SwerveMath {
     // force into the minimum absolute value residue class, so that -180 < angle <= 180
     if (degrees > 180) degrees -= 360;
     return degrees;
-  }
-
-  /**
-   * @param trackWidth robot width between wheels in m.
-   * @param wheelBase robot length between wheels in m.
-   * @param frs module speed (-1 to 1)
-   * @param fra module angle (-Pi to Pi)
-   * @param fls module speed (-1 to 1)
-   * @param fla module angle (-Pi to Pi)
-   * @param bls module speed (-1 to 1)
-   * @param bla module angle (-Pi to Pi)
-   * @param brs module speed (-1 to 1)
-   * @param bra module angle (-Pi to Pi)
-   * @return array containing vX (m/s), vY (m/s), and w (rad/s)
-   */
-  public static double[] calculateRobotVelocity(
-      double trackWidth,
-      double wheelBase,
-      double frs,
-      double fra,
-      double fls,
-      double fla,
-      double bls,
-      double bla,
-      double brs,
-      double bra) {
-    double frameDiagonal = Math.hypot(trackWidth, wheelBase);
-    double trackWidthOverFrameDiagonal = trackWidth / frameDiagonal;
-    double wheelBaseOverFrameDiagonal = wheelBase / frameDiagonal;
-    return calculateRobotVelocityOpt(
-        trackWidthOverFrameDiagonal,
-        wheelBaseOverFrameDiagonal,
-        frs,
-        fra,
-        fls,
-        fla,
-        bls,
-        bla,
-        brs,
-        bra);
-  }
-
-  /**
-   * This function returns the robot speed given the speed and angle of the wheels. It does so by
-   * reversing the equations from calculateModuleVelocitiesOpt().
-   *
-   * <p>First, the horizontal and vertical components of the vector corresponding to the motion of
-   * each module.
-   *
-   * <p>Each component is on 2 modules, so we average them in case of errors.
-   *
-   * <p>Next we find a system of equations to give us vX, vY, and w.
-   *
-   * <p>Each component has 2 equations that give us the result, so we average them in case of
-   * errors.
-   *
-   * @param wheelBaseOverFrameDiagonal the ratio of the wheelbase to the diagonal of the robot
-   * @param trackWidthOverFrameDiagonal the ratio of the track width to the diagonal of the robot
-   * @param frs module speed (-1 to 1)
-   * @param fra module angle (-Pi to Pi)
-   * @param fls module speed (-1 to 1)
-   * @param fla module angle (-Pi to Pi)
-   * @param bls module speed (-1 to 1)
-   * @param bla module angle (-Pi to Pi)
-   * @param brs module speed (-1 to 1)
-   * @param bra module angle (-Pi to Pi)
-   * @return array containing vX (m/s), vY (m/s), and w (rad/s)
-   */
-  public static double[] calculateRobotVelocityOpt(
-      double trackWidthOverFrameDiagonal,
-      double wheelBaseOverFrameDiagonal,
-      double frs,
-      double fra,
-      double fls,
-      double fla,
-      double bls,
-      double bla,
-      double brs,
-      double bra) {
-
-    // average each component from the 2 modules
-    double rear_horiz = (bls * Math.sin(bla) + brs * Math.sin(bra)) / 2;
-    double front_horiz = (fls * Math.sin(fla) + frs * Math.sin(fra)) / 2;
-    double right_vert = (frs * Math.cos(fra) + brs * Math.cos(bra)) / 2;
-    double left_vert = (fls * Math.cos(fla) + bls * Math.cos(bla)) / 2;
-
-    /*
-     rearrange equations from calculateModuleVelocitiesOpt() to find x and y given all components
-
-     rear_horiz = y - w * wheelBaseOverFrameDiagonal
-     rear_horiz + w * wheelBaseOverFrameDiagonal = y
-     y = rear_horiz + w * wheelBaseOverFrameDiagonal
-
-     front_horiz = y + w * wheelBaseOverFrameDiagonal
-     y = front_horiz - w * wheelBaseOverFrameDiagonal
-
-     right_vert = x + w * trackWidthOverFrameDiagonal
-     x = right_vert - w * trackWidthOverFrameDiagonal
-
-     left_vert = x - w * trackWidthOverFrameDiagonal
-     x = left_vert + w * trackWidthOverFrameDiagonal
-
-     FINDING w
-     sub eq1 into eq2
-     front_horiz = y + w * wheelBaseOverFrameDiagonal
-     front_horiz = (rear_horiz + w * wheelBaseOverFrameDiagonal) + w * wheelBaseOverFrameDiagonal
-     front_horiz = rear_horiz + 2 * w * wheelBaseOverFrameDiagonal
-     front_horiz - rear_horiz = 2 * w * wheelBaseOverFrameDiagonal
-     w = (front_horiz - rear_horiz) / (2 * wheelBaseOverFrameDiagonal)
-
-     sub eqn 4 into eqn 3
-     right_vert = (left_vert + w * trackWidthOverFrameDiagonal) + w * trackWidthOverFrameDiagonal
-     right_vert = left_vert + 2 * w * trackWidthOverFrameDiagonal
-     right_vert - left_vert = 2 * w * trackWidthOverFrameDiagonal
-     w = (right_vert - left_vert) / (2 * trackWidthOverFrameDiagonal)
-    */
-
-    // average results of above eq'ns
-    double w = 0;
-    w += (front_horiz - rear_horiz) / (2 * wheelBaseOverFrameDiagonal);
-    //    System.out.println(w);
-    w += (right_vert - left_vert) / (2 * trackWidthOverFrameDiagonal);
-    //    System.out.println(w);
-    w /= 2;
-    //    System.out.println(w);
-
-    double x = 0;
-    x += right_vert - w * trackWidthOverFrameDiagonal;
-    x += left_vert + w * trackWidthOverFrameDiagonal;
-    x /= 2;
-
-    double y = 0;
-    y += rear_horiz + w * wheelBaseOverFrameDiagonal;
-    y += front_horiz - w * wheelBaseOverFrameDiagonal;
-    y /= 2;
-
-    return new double[] {x, y, w};
   }
 }
