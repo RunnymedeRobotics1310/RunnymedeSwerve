@@ -39,7 +39,15 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
   //
   // Thread controls
   //
-  public static final int MANAGE_MODULES_PERIOD_MS = 5; // milliseconds
+  /**
+   * This is the period (in milliseconds) at which modules are read and updated during driving
+   * operations. We typically want this to be as quick as possible, but need to monitor CAN
+   * utilization. Setting this to 10ms vs 20ms has no impact on CAN utilization. Setting it to 5ms
+   * vs 10ms has a significant impact (on a Roborio1 with default CAN, utilization went from 30% to
+   * 50% when going from 10ms to 5ms).
+   */
+  public static final int MANAGE_MODULES_PERIOD_MS = 10;
+
   private final Notifier moduleManagementThread = new Notifier(this::updateModules);
 
   public static final int TELEMETRY_UPDATE_PERIOD_MS = 50; // milliseconds
@@ -51,7 +59,10 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
    * @param cfg the configuration of the swerve drive
    */
   protected CoreSwerveDrive(CoreSwerveConfig cfg) {
-    System.out.println("Initializing RunnymedeSwerve CoreSwerveDrive.");
+    System.out.println("Initializing RunnymedeSwerve.");
+    System.out.println("Swerve module update period: " + MANAGE_MODULES_PERIOD_MS + " ms");
+    System.out.println("Swerve telemetry update period: " + TELEMETRY_UPDATE_PERIOD_MS + " ms");
+
     // order matters in case we want to use AdvantageScope
     this.modules = new SwerveModule[4];
     final double maxModSpdMps = cfg.maxAttainableModuleSpeedMetresPerSecond();
