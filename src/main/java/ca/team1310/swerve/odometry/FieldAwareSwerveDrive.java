@@ -143,6 +143,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
   }
 
   public synchronized void updateTelemetry(SwerveTelemetry telemetry) {
+    super.updateTelemetry(telemetry);
     if (telemetry.level == CALCULATED || telemetry.level == VERBOSE) {
       if (this.estimator == null) {
         System.out.println("Cannot update telemetry - estimator is null");
@@ -161,7 +162,6 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
       var states = getModuleStates();
       field.getObject("XModules").setPoses(asModulePoses(states, pose));
     }
-    super.updateTelemetry(telemetry);
   }
 
   private static Pose2d[] asModulePoses(ModuleState[] states, Pose2d robotPose) {
