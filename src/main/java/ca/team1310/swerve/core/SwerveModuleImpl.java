@@ -30,6 +30,12 @@ class SwerveModuleImpl implements SwerveModule {
 
   SwerveModuleImpl(ModuleConfig cfg, double maxAttainableModuleSpeedMps) {
     this.name = cfg.name();
+    System.out.println(
+        "Swerve ("
+            + this.name
+            + ") absolute angle encoder sync period: "
+            + ANGLE_ENCODER_SYNC_PERIOD_MS
+            + " ms");
     this.location = cfg.location();
     measuredState.setLocation(cfg.location());
     this.driveMotor = getDriveMotor(cfg, maxAttainableModuleSpeedMps);
