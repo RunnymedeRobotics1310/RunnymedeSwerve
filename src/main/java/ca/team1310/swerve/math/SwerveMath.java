@@ -82,7 +82,7 @@ public class SwerveMath {
    * <h5>Introduction</h5>
    *
    * <p>Given desired robot velocity described as x (forward/backward motion with forward positive),
-   * y (left/right motion with right positive), and w (i.e. omega) (rotation with clockwise
+   * y (left/right motion with left positive), and w (i.e. omega) (rotation with counterclockwise
    * positive), all with values in the range of -1.0 (minimum possible) to 1.0 (maximum possible),
    * compute the speed and angle of each module in units of -1.0 to 1.0 for speed and -PI to PI for
    * angle
@@ -97,10 +97,13 @@ public class SwerveMath {
    * vectors: the x,y translation vector + the tangential vector contributed by the rotation
    * specified by w.
    *
-   * <p>First, we compute the tangential vector for each wheel,
+   * <p>We start with the input translation vector x,y
+   *
+   * <p>Next, we compute the tangential vector for each wheel,
    *
    * <p>Next, we add the x component of the tangential vector to the input x velocity, and the y
-   * component of the tangential vector to the input y velocity.
+   * component of the tangential vector to the input y velocity to produce the vector for each
+   * module.
    *
    * <p>Once we have these vectors, we use basic trigonometry to compute the magnitude (i.e. module
    * speed) and angle (i.e. the individual module heading) for each wheel.
@@ -475,6 +478,7 @@ public class SwerveMath {
     var d = ChassisSpeeds.discretize(vx, vy, w, dt);
     //    return new double[] {d.vxMetersPerSecond, d.vyMetersPerSecond, d.omegaRadiansPerSecond};
     return discretize_OP(vx, vy, w, 0.55, 0.85, 0.65);
+    //    return discretize_OP(vx, vy, w, 0.3575, 0.5525, 1);
     //    return discretize_RR(vx, vy, w, dt);
     //    return discretize_WPILIB(vx, vy, w, dt);
     //    return new double[] {vx, vy, w};
