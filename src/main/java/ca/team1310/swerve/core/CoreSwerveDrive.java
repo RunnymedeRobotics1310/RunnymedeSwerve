@@ -91,7 +91,9 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
             cfg.trackWidthMetres(),
             maxModSpdMps,
             cfg.maxAchievableRotationalVelocityRadiansPerSecond(),
-            MANAGE_MODULES_PERIOD_MS / 1000.0);
+            cfg.discretizeTransScale(),
+            cfg.discretizeRotScale(),
+            cfg.discretizeNormalScale());
 
     this.telemetry = new SwerveTelemetry(4);
     this.telemetry.level = cfg.telemetryLevel();

@@ -30,10 +30,19 @@ public class SwerveMathTest {
   private static final double maxModuleSpeedMps = 5.3;
   private static final double maxOmegaRadPerSec =
       0.75 * 2 * Math.PI; // rotations per sec * 2pi (4.7123889804)
+  private static final double transScale = 0.55;
+  private static final double rotScale = 0.85;
+  private static final double normalScale = 0.65;
   private static final double moduleUpdatePeriodSec = .005;
   private static final SwerveKinematics kin =
       new SwerveKinematics(
-          wheelBase, trackWidth, maxModuleSpeedMps, maxOmegaRadPerSec, moduleUpdatePeriodSec);
+          wheelBase,
+          trackWidth,
+          maxModuleSpeedMps,
+          maxOmegaRadPerSec,
+          transScale,
+          rotScale,
+          normalScale);
 
   @Test
   public void test() {
@@ -370,7 +379,7 @@ public class SwerveMathTest {
 
     // now generate them ourselves
     double[] discretized =
-        SwerveMath.discretize(xMetres, yMetres, omegaRadPerSec, moduleUpdatePeriodSec);
+        SwerveMath.discretize(xMetres, yMetres, omegaRadPerSec, transScale, rotScale, normalScale);
     double[] pwr = {
       discretized[0] / maxModuleSpeedMps,
       discretized[1] / maxModuleSpeedMps,

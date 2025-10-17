@@ -1,7 +1,6 @@
 package ca.team1310.swerve.math;
 
 import ca.team1310.swerve.core.ModuleDirective;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 
 /**
  * Essential math utilities for swerve drive calculations.
@@ -462,72 +461,10 @@ public class SwerveMath {
    * href="https://www.chiefdelphi.com/t/looking-for-an-explanation-of-chassisspeeds-discretize/462069">explanation
    * here</a>.
    *
+   * <p>This method was inspired by team 2056.
+   *
    * <p>Basically, change the translation vector so that it points wo where the robot should be at
    * the start of the next timestep, not where it should be at the given instant this is called.
-   *
-   * @param vx the speed in the x direction - units don't matter
-   * @param vy the speed in the y direction - units don't matter
-   * @param w the speed of rotation - radians per second (ccw+)
-   * @param dt the time interval to the next time direction is calculated (typically the robot
-   *     period) - in seconds
-   * @return an array consisting of vx, vy, w in the same units above, but optimized to account for
-   *     the update period
-   */
-  public static double[] discretize(double vx, double vy, double w, double dt) {
-
-    var d = ChassisSpeeds.discretize(vx, vy, w, dt);
-    //    return new double[] {d.vxMetersPerSecond, d.vyMetersPerSecond, d.omegaRadiansPerSecond};
-    return discretize_OP(vx, vy, w, 0.55, 0.85, 0.65);
-    //    return discretize_OP(vx, vy, w, 0.3575, 0.5525, 1);
-    //    return discretize_RR(vx, vy, w, dt);
-    //    return discretize_WPILIB(vx, vy, w, dt);
-    //    return new double[] {vx, vy, w};
-  }
-
-  /**
-   * Correct for drift away from the desired velocity due to high values of omega.
-   *
-   * <p>A normal vector is added to the input vector, scaled by a magnitude computed by this formula
-   * <code>dt * omega</code>
-   *
-   * <p>This calculation is very efficient but does not account for or allow compensation for
-   * changing omega values
-   *
-   * @param vx The robot's x velocity
-   * @param vy The robot's y velocity
-   * @param w The robot's angular velocity in radians per second (ccw+)
-   * @param dt the time interval to the next time direction is calculated (typically the robot
-   *     period) - in seconds
-   * @return An array of the robot's x, y, and angular velocities
-   */
-  private static double[] discretize_RR(double vx, double vy, double w, double dt) {
-
-    XYVector input = new XYVector(vx, vy);
-
-    // set up the normal (perpendicular) vector
-    XYVector normal = new XYVector(vx, vy);
-    normal.rotate(-Math.PI / 2);
-
-    // Scale the normal vector.
-    normal.setMagnitude(w * dt);
-
-    // add it to the result
-    XYVector corrected = new XYVector(vx, vy);
-    corrected.add(normal);
-
-    // scale it back to the original speed
-    corrected.setMagnitude(input.magnitude);
-
-    // package and return
-    double[] output = new double[3];
-    output[0] = corrected.x;
-    output[1] = corrected.y;
-    output[2] = w;
-    return output;
-  }
-
-  /**
-   * Correct for drift away from the desired velocity due to high values of omega.
    *
    * <p>A normal vector is added to the input vector, scaled by a magnitude computed by this formula
    * <code>normalScale * ((translationScale * input.magnitude) * (rotationScale * w))</code>
@@ -540,16 +477,19 @@ public class SwerveMath {
    * and an overall element, all of which combine with the angular velocity to create the correction
    * vector.
    *
-   * @param vx The robot's x velocity
-   * @param vy The robot's y velocity
-   * @param w The robot's angular velocity in radians per second
+   * @param vx the speed in the x direction - units don't matter
+   * @param vy the speed in the y direction - units don't matter
+   * @param w the speed of rotation - radians per second (ccw+)
    * @param transScale The scale factor for the translation contribution to the normal vector
    * @param rotScale The scale factor for the rotation contribution to the normal vector
    * @param normalScale An overall scale factor for the normal vector
-   * @return An array of the robot's x, y, and angular velocities
+   * @return an array consisting of vx, vy, w in the same units above, but optimized to account for
+   *     the update period
    */
-  private static double[] discretize_OP(
+  public static double[] discretize(
       double vx, double vy, double w, double transScale, double rotScale, double normalScale) {
+
+    // swervy values: 0.55 0.85 0.65
 
     XYVector input = new XYVector(vx, vy);
 
@@ -573,25 +513,6 @@ public class SwerveMath {
     output[0] = corrected.x;
     output[1] = corrected.y;
     output[2] = w;
-    return output;
-  }
-
-  private static double[] discretize_WPILIB(double vx, double vy, double w, double dt) {
-    // This is a port of the WPILib implementation of discretize()
-
-    // Construct the desired pose after dt, relative to the current pose. The desired pose
-    // has decoupled translation and rotation.
-    RRPose2d desiredEndPose = new RRPose2d(vx * dt, vy * dt, w * dt);
-
-    // Find the chassis translation/rotation deltas in the robot frame that move the robot from its
-    // current pose to the desired pose
-    RRTwist2d twist = RRPose2d.ZERO.log(desiredEndPose);
-
-    // Turn the chassis translation/rotation deltas into average velocities
-    double[] output = new double[3];
-    output[0] = twist.dx / dt;
-    output[1] = twist.dy / dt;
-    output[2] = twist.dtheta / dt;
     return output;
   }
 

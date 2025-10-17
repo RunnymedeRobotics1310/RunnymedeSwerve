@@ -12,7 +12,9 @@ public class SwerveKinematics {
   private final double trackWidthOverFrameDiagonal;
   private final double maxSpeedMps;
   private final double maxOmegaRadPerSec;
-  private final double moduleUpdatePeriodSec;
+  private final double discretizeTransScale;
+  private final double discretizeRotScale;
+  private final double discretizeNormalScale;
 
   private final ModuleDirective fr;
   private final ModuleDirective fl;
@@ -30,20 +32,27 @@ public class SwerveKinematics {
    * @param maxSpeedMps the maximum achievable speed of a module, in metres per second
    * @param maxOmegaRadPerSec the maximum achievable angular velocity of a module, in radians per
    *     second
-   * @param moduleUpdatePeriodSec the module update period, in seconds
+   * @param discretizeTransScale The scale factor for the translation contribution to the normal
+   *     vector
+   * @param discretizeRotScale The scale factor for the rotation contribution to the normal vector
+   * @param discretizeNormalScale An overall scale factor for the normal vector
    */
   SwerveKinematics(
       double wheelBase,
       double trackWidth,
       double maxSpeedMps,
       double maxOmegaRadPerSec,
-      double moduleUpdatePeriodSec) {
+      double discretizeTransScale,
+      double discretizeRotScale,
+      double discretizeNormalScale) {
     double frameDiagonal = Math.hypot(wheelBase, trackWidth);
     this.wheelBaseOverFrameDiagonal = wheelBase / frameDiagonal;
     this.trackWidthOverFrameDiagonal = trackWidth / frameDiagonal;
     this.maxSpeedMps = maxSpeedMps;
     this.maxOmegaRadPerSec = maxOmegaRadPerSec;
-    this.moduleUpdatePeriodSec = moduleUpdatePeriodSec;
+    this.discretizeTransScale = discretizeTransScale;
+    this.discretizeRotScale = discretizeRotScale;
+    this.discretizeNormalScale = discretizeNormalScale;
     this.fr = new ModuleDirective();
     this.fl = new ModuleDirective();
     this.bl = new ModuleDirective();
@@ -83,7 +92,13 @@ public class SwerveKinematics {
 
     // Correction #4 - discretize after desaturating speeds
     double[] discretized =
-        SwerveMath.discretize(scaled[0], scaled[1], scaled[2], moduleUpdatePeriodSec);
+        SwerveMath.discretize(
+            scaled[0],
+            scaled[1],
+            scaled[2],
+            discretizeTransScale,
+            discretizeRotScale,
+            discretizeNormalScale);
 
     // After discretizing, we may have saturated wheel speeds again.
     // Check, and desaturate again if necessary
@@ -98,7 +113,14 @@ public class SwerveKinematics {
       scaled[0] /= sf2;
       scaled[1] /= sf2;
       scaled[2] /= sf2;
-      discretized = SwerveMath.discretize(scaled[0], scaled[1], scaled[2], moduleUpdatePeriodSec);
+      discretized =
+          SwerveMath.discretize(
+              scaled[0],
+              scaled[1],
+              scaled[2],
+              discretizeTransScale,
+              discretizeRotScale,
+              discretizeNormalScale);
       //      System.out.println("sf2: " + sf2);
     }
 

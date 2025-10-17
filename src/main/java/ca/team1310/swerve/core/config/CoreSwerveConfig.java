@@ -13,6 +13,11 @@ package ca.team1310.swerve.core.config;
  *     attain
  * @param maxAchievableRotationalVelocityRadiansPerSecond specify the maximum rotational velocity
  *     that the robot can attain
+ * @param discretizeTransScale specify the scale factor for the translation contribution to the
+ *     normal vector when rotating
+ * @param discretizeRotScale specify the scale factor for the rotation contribution to the normal
+ *     vector when rotating
+ * @param discretizeNormalScale specify the overall scale factor for the normal vector when rotating
  * @param frontLeftModuleConfig specify the configuration of the front left module
  * @param frontRightModuleConfig specify the configuration of the front right module
  * @param backLeftModuleConfig specify the configuration of the back left module
@@ -27,6 +32,9 @@ public record CoreSwerveConfig(
     double maxAttainableModuleSpeedMetresPerSecond,
     double maxAttainableTranslationSpeedMetresPerSecond,
     double maxAchievableRotationalVelocityRadiansPerSecond,
+    double discretizeTransScale,
+    double discretizeRotScale,
+    double discretizeNormalScale,
     ModuleConfig frontLeftModuleConfig,
     ModuleConfig frontRightModuleConfig,
     ModuleConfig backLeftModuleConfig,
