@@ -25,10 +25,10 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
   private final SwerveKinematics kinematics;
 
-  private double desiredVx;
-  private double desiredVy;
-  private double desiredOmega;
-  private final double MINIMUM_OMEGA_VALUE_RAD_PER_SEC = Math.toRadians(1);
+  protected double desiredVx;
+  protected double desiredVy;
+  protected double desiredOmega;
+  protected final double MINIMUM_OMEGA_VALUE_RAD_PER_SEC = Math.toRadians(1);
 
   /** The telemetry object for the swerve drive */
   protected final SwerveTelemetry telemetry;
@@ -126,7 +126,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     telemetryThread.startPeriodic(isSimulation ? .02 : TELEMETRY_UPDATE_PERIOD_MS / 1000.0);
   }
 
-  public final synchronized void drive(double x, double y, double w) {
+  public synchronized void drive(double x, double y, double w) {
 
     // if below minimum speed just stop rotating
     w = Math.abs(w) < MINIMUM_OMEGA_VALUE_RAD_PER_SEC ? 0 : w;
@@ -140,7 +140,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
   /*
    * Set the module states based on the desired speed and angle.
    */
-  private synchronized void updateModules() {
+  protected synchronized void updateModules() {
 
     // read module states
     for (SwerveModule module : modules) {

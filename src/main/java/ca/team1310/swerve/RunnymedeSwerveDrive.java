@@ -30,6 +30,21 @@ public interface RunnymedeSwerveDrive {
   void drive(double vx, double vy, double omega);
 
   /**
+   * The other main internal method for controlling the drivebase. This code does not apply any
+   * limiters or validation, and should be used by implementing swerve drive subsystems only.
+   *
+   * <p>Takes the desired chassis speeds of the robot - in a robot-oriented configuration.
+   *
+   * @param vx The desired field oriented velocity of the robot in the x direction in meters per
+   *     second. Positive is towards the red alliance.
+   * @param vy The desired field oriented velocity of the robot in the y direction in meters per
+   *     second. Positive away from the scoring table.
+   * @param omega The desired angular velocity of the robot in radians per second. Positive is
+   *     counter-clockwise.
+   */
+  default void driveFieldOriented(double vx, double vy, double omega) {}
+
+  /**
    * Obtain the robot relative velocity vX, vY, vR
    *
    * @return A double[] with {vX, vY, vR}

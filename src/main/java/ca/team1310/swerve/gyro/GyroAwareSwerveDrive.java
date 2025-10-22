@@ -9,6 +9,7 @@ import ca.team1310.swerve.gyro.config.GyroConfig;
 import ca.team1310.swerve.gyro.hardware.MXPNavX;
 import ca.team1310.swerve.gyro.hardware.Pigeon2;
 import ca.team1310.swerve.gyro.hardware.SimulatedGyro;
+import ca.team1310.swerve.math.SwerveMath;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -21,6 +22,10 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
   /** The gyro for the swerve drive */
   private final Gyro gyro;
 
+  private boolean fieldOriented;
+  private double fieldOrientedDesiredVx;
+  private double fieldOrientedDesiredVy;
+
   /**
    * Create a new field-aware swerve drive
    *
@@ -30,6 +35,37 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
     super(cfg);
     this.gyro = createGyro(gyroConfig);
     SmartDashboard.putData(PREFIX + "Gyro", this.gyro);
+  }
+
+  public synchronized void drive(double x, double y, double w) {
+    fieldOriented = false;
+    super.drive(x, y, w);
+  }
+
+  public final void driveRobotOriented(double x, double y, double w) {
+    fieldOriented = true;
+
+    // if below minimum speed just stop rotating
+    w = Math.abs(w) < MINIMUM_OMEGA_VALUE_RAD_PER_SEC ? 0 : w;
+
+    // set desired speeds
+    fieldOrientedDesiredVx = x;
+    fieldOrientedDesiredVy = y;
+    desiredOmega = w;
+  }
+
+  /*
+   * Set the module states based on the desired speed and angle.
+   */
+  @Override
+  protected synchronized void updateModules() {
+    if (fieldOriented) {
+      double[] desired =
+          SwerveMath.toRobotOriented(fieldOrientedDesiredVx, fieldOrientedDesiredVy, getYaw());
+      desiredVx = desired[0];
+      desiredVy = desired[1];
+    }
+    super.updateModules();
   }
 
   /**
