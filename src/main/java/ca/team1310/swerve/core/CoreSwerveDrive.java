@@ -126,7 +126,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     telemetryThread.startPeriodic(isSimulation ? .02 : TELEMETRY_UPDATE_PERIOD_MS / 1000.0);
   }
 
-  public synchronized void drive(double x, double y, double w) {
+  public synchronized void driveRobotOriented(double x, double y, double w) {
 
     // if below minimum speed just stop rotating
     w = Math.abs(w) < MINIMUM_OMEGA_VALUE_RAD_PER_SEC ? 0 : w;

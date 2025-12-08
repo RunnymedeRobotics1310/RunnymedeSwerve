@@ -37,14 +37,13 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
     SmartDashboard.putData(PREFIX + "Gyro", this.gyro);
   }
 
-  public synchronized void drive(double x, double y, double w) {
+  public synchronized void driveRobotOriented(double x, double y, double w) {
     fieldOriented = false;
-    super.drive(x, y, w);
+    super.driveRobotOriented(x, y, w);
   }
 
-  public final void driveRobotOriented(double x, double y, double w) {
+  public final synchronized void driveFieldOriented(double x, double y, double w) {
     fieldOriented = true;
-
     // if below minimum speed just stop rotating
     w = Math.abs(w) < MINIMUM_OMEGA_VALUE_RAD_PER_SEC ? 0 : w;
 
@@ -61,7 +60,8 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
   protected synchronized void updateModules() {
     if (fieldOriented) {
       double[] desired =
-          SwerveMath.toRobotOriented(fieldOrientedDesiredVx, fieldOrientedDesiredVy, getYaw());
+          SwerveMath.toRobotOriented(
+              fieldOrientedDesiredVx, fieldOrientedDesiredVy, Math.toRadians(getYaw()));
       desiredVx = desired[0];
       desiredVy = desired[1];
     }

@@ -27,7 +27,7 @@ public interface RunnymedeSwerveDrive {
    * @param omega The desired angular velocity of the robot in radians per second. Positive is
    *     counter-clockwise.
    */
-  void drive(double vx, double vy, double omega);
+  void driveRobotOriented(double vx, double vy, double omega);
 
   /**
    * The other main internal method for controlling the drivebase. This code does not apply any
