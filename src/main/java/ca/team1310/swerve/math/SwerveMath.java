@@ -489,7 +489,7 @@ public class SwerveMath {
   public static double[] discretize(
       double vx, double vy, double w, double transScale, double rotScale, double normalScale) {
 
-    // swervy values: 0.55 0.85 0.65
+    // swervy values: 0.55 0.5 0.65
 
     XYVector input = new XYVector(vx, vy);
 
