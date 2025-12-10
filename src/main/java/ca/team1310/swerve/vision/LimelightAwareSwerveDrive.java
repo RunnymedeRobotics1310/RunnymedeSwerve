@@ -67,7 +67,7 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
   }
 
   @Override
-  protected synchronized void updateOdometry() {
+  protected final synchronized void updateOdometry() {
     super.updateOdometry();
 
     // Try to use MT1 pose yaw if it's present,
