@@ -11,7 +11,7 @@ public class SwerveKinematics {
   private final double wheelBaseOverFrameDiagonal;
   private final double trackWidthOverFrameDiagonal;
   private final double maxSpeedMps;
-  private final double maxOmegaRadPerSec;
+  private final double maxOmegaDegPerSec;
   private final double discretizeTransScale;
   private final double discretizeRotScale;
   private final double discretizeNormalScale;
@@ -30,7 +30,7 @@ public class SwerveKinematics {
    * @param trackWidth the track width of the drivetrain (i.e. from the left to the right of the
    *     robot). Units are not relevant.
    * @param maxSpeedMps the maximum achievable speed of a module, in metres per second
-   * @param maxOmegaRadPerSec the maximum achievable angular velocity of a module, in radians per
+   * @param maxOmegaDegPerSec the maximum achievable angular velocity of a module, in radians per
    *     second
    * @param discretizeTransScale The scale factor for the translation contribution to the normal
    *     vector
@@ -41,7 +41,7 @@ public class SwerveKinematics {
       double wheelBase,
       double trackWidth,
       double maxSpeedMps,
-      double maxOmegaRadPerSec,
+      double maxOmegaDegPerSec,
       double discretizeTransScale,
       double discretizeRotScale,
       double discretizeNormalScale) {
@@ -49,7 +49,7 @@ public class SwerveKinematics {
     this.wheelBaseOverFrameDiagonal = wheelBase / frameDiagonal;
     this.trackWidthOverFrameDiagonal = trackWidth / frameDiagonal;
     this.maxSpeedMps = maxSpeedMps;
-    this.maxOmegaRadPerSec = maxOmegaRadPerSec;
+    this.maxOmegaDegPerSec = maxOmegaDegPerSec;
     this.discretizeTransScale = discretizeTransScale;
     this.discretizeRotScale = discretizeRotScale;
     this.discretizeNormalScale = discretizeNormalScale;
@@ -68,9 +68,9 @@ public class SwerveKinematics {
    * <p>Note that Correction 2 (desaturate wheel speeds) and Correction 4 (discretize) are both
    * applied when performing these calculations.
    *
-   * @param x desired forward velocity, in m/s (forward is positive)
-   * @param y desired sideways velocity from in m/s (left is positive)
-   * @param w desired angular velocity from in rad/s, (counter-clockwise is positive)
+   * @param x desired forward velocity, in power (-1.0 - 1.0) (forward is positive)
+   * @param y desired sideways velocity in power (-1.0 - 1.0) (left is positive)
+   * @param w desired angular velocity in power (-1.0 - 1.0), (counter-clockwise is positive)
    */
   void calculateModuleVelocities(double x, double y, double w) {
     double[] scaled = {x, y, w};
@@ -78,11 +78,7 @@ public class SwerveKinematics {
     // Correction #2: desaturate wheel speeds
     double sf =
         SwerveMath.computeVelocityScaleFactor(
-            trackWidthOverFrameDiagonal,
-            wheelBaseOverFrameDiagonal,
-            x / maxSpeedMps,
-            y / maxSpeedMps,
-            w / maxOmegaRadPerSec);
+            trackWidthOverFrameDiagonal, wheelBaseOverFrameDiagonal, x, y, w);
     if (sf > 1) {
       scaled[0] /= sf;
       scaled[1] /= sf;
@@ -106,9 +102,9 @@ public class SwerveKinematics {
         SwerveMath.computeVelocityScaleFactor(
             trackWidthOverFrameDiagonal,
             wheelBaseOverFrameDiagonal,
-            discretized[0] / maxSpeedMps,
-            discretized[1] / maxSpeedMps,
-            discretized[2] / maxOmegaRadPerSec);
+            discretized[0],
+            discretized[1],
+            discretized[2]);
     if (sf2 > 1) {
       scaled[0] /= sf2;
       scaled[1] /= sf2;
@@ -128,9 +124,9 @@ public class SwerveKinematics {
         SwerveMath.calculateModuleVelocities(
             trackWidthOverFrameDiagonal,
             wheelBaseOverFrameDiagonal,
-            discretized[0] / maxSpeedMps,
-            discretized[1] / maxSpeedMps,
-            discretized[2] / maxOmegaRadPerSec);
+            discretized[0],
+            discretized[1],
+            discretized[2]);
 
     // convert from -1.0 - 1.0 into to m/s
     result[0] *= maxSpeedMps;
@@ -235,7 +231,7 @@ public class SwerveKinematics {
             braRad);
     double xMps = velPwr[0] * maxSpeedMps;
     double yMps = velPwr[1] * maxSpeedMps;
-    double omegaRadPerSec = velPwr[2] * maxOmegaRadPerSec;
+    double omegaRadPerSec = velPwr[2] * Math.toRadians(maxOmegaDegPerSec);
     return new double[] {xMps, yMps, omegaRadPerSec};
   }
 }

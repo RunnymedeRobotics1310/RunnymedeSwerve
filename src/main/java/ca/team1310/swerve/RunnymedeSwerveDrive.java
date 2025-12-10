@@ -24,7 +24,7 @@ public interface RunnymedeSwerveDrive {
    *     is forward.
    * @param vy The desired velocity of the robot in the y direction in meters per second. Positive
    *     is to the left.
-   * @param omega The desired angular velocity of the robot in radians per second. Positive is
+   * @param omega The desired angular velocity of the robot in degrees per second. Positive is
    *     counter-clockwise.
    */
   void driveRobotOriented(double vx, double vy, double omega);
@@ -39,7 +39,7 @@ public interface RunnymedeSwerveDrive {
    *     second. Positive is towards the red alliance.
    * @param vy The desired field oriented velocity of the robot in the y direction in meters per
    *     second. Positive away from the scoring table.
-   * @param omega The desired angular velocity of the robot in radians per second. Positive is
+   * @param omega The desired angular velocity of the robot in degrees per second. Positive is
    *     counter-clockwise.
    */
   default void driveFieldOriented(double vx, double vy, double omega) {}

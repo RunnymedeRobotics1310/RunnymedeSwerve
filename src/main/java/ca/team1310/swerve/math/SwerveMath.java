@@ -521,13 +521,13 @@ public class SwerveMath {
    *
    * @param fieldOrientedX the x component of the vector (forward is positive, units don't matter)
    * @param fieldOrientedY the y component of the vector (left is positive, units don't matter)
-   * @param robotHeadingRadians the heading of the robot in radians (counter-clockwise is positive)
+   * @param robotHeadingDegrees the heading of the robot in degrees (counter-clockwise is positive)
    * @return an array containing the x and y components of the vector in robot-oriented coordinates
    * @see <a href="#array-indices">Array Indices</a>
    */
   public static double[] toRobotOriented(
-      double fieldOrientedX, double fieldOrientedY, double robotHeadingRadians) {
-    return rotate(fieldOrientedX, fieldOrientedY, -robotHeadingRadians);
+      double fieldOrientedX, double fieldOrientedY, double robotHeadingDegrees) {
+    return rotate(fieldOrientedX, fieldOrientedY, -Math.toRadians(robotHeadingDegrees));
   }
 
   /**

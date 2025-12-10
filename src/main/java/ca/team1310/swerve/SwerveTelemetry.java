@@ -27,7 +27,7 @@ public final class SwerveTelemetry {
   public double maxTranslationSpeedMPS = Double.MIN_VALUE;
 
   /** The maximum rotational velocity of the robot in radians per second */
-  public double maxRotationalVelocityRadPS = Double.MIN_VALUE;
+  public double maxRotationalVelocityDegPS = Double.MIN_VALUE;
 
   /** The track width of the robot in metres */
   public double trackWidthMetres = Double.MIN_VALUE;
@@ -154,7 +154,7 @@ public final class SwerveTelemetry {
       SmartDashboard.putNumber("swerve/sizeLeftRight", trackWidthMetres);
       SmartDashboard.putNumber("swerve/sizeFrontBack", wheelBaseMetres);
       SmartDashboard.putString("swerve/forwardDirection", "up");
-      SmartDashboard.putNumber("swerve/maxAngularVelocity", maxRotationalVelocityRadPS);
+      SmartDashboard.putNumber("swerve/maxAngularVelocity", maxRotationalVelocityDegPS);
       advantageScopeConstantsPosted = true;
     }
   }

@@ -11,7 +11,7 @@ package ca.team1310.swerve.core.config;
  *     attain
  * @param maxAttainableTranslationSpeedMetresPerSecond specify the maximum speed that the robot can
  *     attain
- * @param maxAchievableRotationalVelocityRadiansPerSecond specify the maximum rotational velocity
+ * @param maxAchievableRotationalVelocityDegreesPerSecond specify the maximum rotational velocity
  *     that the robot can attain
  * @param discretizeTransScale specify the scale factor for the translation contribution to the
  *     normal vector when rotating
@@ -31,7 +31,7 @@ public record CoreSwerveConfig(
     double robotPeriodSeconds,
     double maxAttainableModuleSpeedMetresPerSecond,
     double maxAttainableTranslationSpeedMetresPerSecond,
-    double maxAchievableRotationalVelocityRadiansPerSecond,
+    double maxAchievableRotationalVelocityDegreesPerSecond,
     double discretizeTransScale,
     double discretizeRotScale,
     double discretizeNormalScale,

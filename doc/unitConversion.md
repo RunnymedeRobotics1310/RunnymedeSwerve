@@ -34,12 +34,12 @@
 
 # Better Idea
 
-- drive (m/s & deg/s)
-- toRobotOriented (any & deg)
-- calculateModuleVelocities (power & power)
+- drive (m/s & deg/s) - done
+- toRobotOriented (any & deg) - done
+- calculateModuleVelocities (power & power) - done
 -
-- computeVelocityScaleFactor (power & power)
-- discretize (power & power)
+- computeVelocityScaleFactor (power & power) - done
+- discretize (power & power) - done
 - calculateModuleVelocities (power & power) -> (power & rad)
 - save module directives (m/s & rad)
 - setDesiredState (m/s & rad)
@@ -52,9 +52,9 @@
 
 # What Changed
 
-- drive (rad/s -> deg/s)
-- toRobotOriented (rad -> deg)
-- V vars in core (m/s & rad/s -> power & power)
-- kinematics.calculateModuleVelocities (m/s & rad/s -> power & power)
-- discretize (m/s & rad/s -> power & power) (this is just sfs)
+- drive (rad/s -> deg/s) - done
+- toRobotOriented (rad -> deg) - done
+- V vars in core (m/s & rad/s -> power & power) - done
+- kinematics.calculateModuleVelocities (m/s & rad/s -> power & power) - done
+- discretize (m/s & rad/s -> power & power) (this is just sfs) - needs tunign
 - module directives & down (deg -> rad)

@@ -28,7 +28,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
   protected double desiredVx;
   protected double desiredVy;
   protected double desiredOmega;
-  protected final double MINIMUM_OMEGA_VALUE_RAD_PER_SEC = Math.toRadians(1);
+  protected final double MINIMUM_OMEGA_VALUE_DEG_PER_SEC = 1;
 
   /** The telemetry object for the swerve drive */
   protected final SwerveTelemetry telemetry;
@@ -90,7 +90,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
             cfg.wheelBaseMetres(),
             cfg.trackWidthMetres(),
             maxModSpdMps,
-            cfg.maxAchievableRotationalVelocityRadiansPerSecond(),
+            cfg.maxAchievableRotationalVelocityDegreesPerSecond(),
             cfg.discretizeTransScale(),
             cfg.discretizeRotScale(),
             cfg.discretizeNormalScale());
@@ -99,8 +99,8 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     this.telemetry.level = cfg.telemetryLevel();
     this.telemetry.maxModuleSpeedMPS = maxModSpdMps;
     this.telemetry.maxTranslationSpeedMPS = cfg.maxAttainableTranslationSpeedMetresPerSecond();
-    this.telemetry.maxRotationalVelocityRadPS =
-        cfg.maxAchievableRotationalVelocityRadiansPerSecond();
+    this.telemetry.maxRotationalVelocityDegPS =
+        cfg.maxAchievableRotationalVelocityDegreesPerSecond();
     this.telemetry.trackWidthMetres = cfg.trackWidthMetres();
     this.telemetry.wheelBaseMetres = cfg.wheelBaseMetres();
     this.telemetry.wheelRadiusMetres = cfg.wheelRadiusMetres();
@@ -129,12 +129,12 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
   public synchronized void driveRobotOriented(double x, double y, double w) {
 
     // if below minimum speed just stop rotating
-    w = Math.abs(w) < MINIMUM_OMEGA_VALUE_RAD_PER_SEC ? 0 : w;
+    w = Math.abs(w) < MINIMUM_OMEGA_VALUE_DEG_PER_SEC ? 0 : w;
 
-    // set desired speeds
-    desiredVx = x;
-    desiredVy = y;
-    desiredOmega = w;
+    // set desired speeds as power (-1 - 1)
+    desiredVx = x / telemetry.maxModuleSpeedMPS;
+    desiredVy = y / telemetry.maxModuleSpeedMPS;
+    desiredOmega = w / telemetry.maxRotationalVelocityDegPS;
   }
 
   /*

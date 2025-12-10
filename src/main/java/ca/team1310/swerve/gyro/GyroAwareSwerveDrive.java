@@ -45,12 +45,12 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
   public final synchronized void driveFieldOriented(double x, double y, double w) {
     fieldOriented = true;
     // if below minimum speed just stop rotating
-    w = Math.abs(w) < MINIMUM_OMEGA_VALUE_RAD_PER_SEC ? 0 : w;
+    w = Math.abs(w) < MINIMUM_OMEGA_VALUE_DEG_PER_SEC ? 0 : w;
 
     // set desired speeds
-    fieldOrientedDesiredVx = x;
-    fieldOrientedDesiredVy = y;
-    desiredOmega = w;
+    desiredVx = x / telemetry.maxModuleSpeedMPS;
+    desiredVy = y / telemetry.maxModuleSpeedMPS;
+    desiredOmega = w / telemetry.maxRotationalVelocityDegPS;
   }
 
   /*
@@ -60,8 +60,7 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
   protected synchronized void updateModules() {
     if (fieldOriented) {
       double[] desired =
-          SwerveMath.toRobotOriented(
-              fieldOrientedDesiredVx, fieldOrientedDesiredVy, Math.toRadians(getYaw()));
+          SwerveMath.toRobotOriented(fieldOrientedDesiredVx, fieldOrientedDesiredVy, getYaw());
       desiredVx = desired[0];
       desiredVy = desired[1];
     }
