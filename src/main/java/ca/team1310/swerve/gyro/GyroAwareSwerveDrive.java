@@ -37,7 +37,7 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
     SmartDashboard.putData(PREFIX + "Gyro", this.gyro);
   }
 
-  public synchronized void driveRobotOriented(double x, double y, double w) {
+  public final synchronized void driveRobotOriented(double x, double y, double w) {
     fieldOriented = false;
     super.driveRobotOriented(x, y, w);
   }
@@ -57,7 +57,7 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
    * Set the module states based on the desired speed and angle.
    */
   @Override
-  protected synchronized void updateModules() {
+  protected final synchronized void updateModules() {
     if (fieldOriented) {
       double[] desired =
           SwerveMath.toRobotOriented(fieldOrientedDesiredVx, fieldOrientedDesiredVy, getYaw());
