@@ -366,7 +366,10 @@ public class SwerveMathTest {
             + maxOmegaRadPerSec
             + " rad/sec - invalid test parameter - fix the test.");
 
-    kin.calculateModuleVelocities(xMetres, yMetres, omegaRadPerSec);
+    kin.calculateModuleVelocities(
+        xMetres / maxModuleSpeedMps,
+        yMetres / maxModuleSpeedMps,
+        omegaRadPerSec / maxOmegaRadPerSec);
 
     double frsMps = kin.getFrontRight().getSpeed();
     double fraDeg = kin.getFrontRight().getAngle();
@@ -378,14 +381,15 @@ public class SwerveMathTest {
     double blaDeg = kin.getBackLeft().getAngle();
 
     // now generate them ourselves
-    double[] discretized =
-        SwerveMath.discretize(xMetres, yMetres, omegaRadPerSec, transScale, rotScale, normalScale);
-    double[] pwr = {
-      discretized[0] / maxModuleSpeedMps,
-      discretized[1] / maxModuleSpeedMps,
-      discretized[2] / maxOmegaRadPerSec
-    };
-    double[] modSpdsPwrRad =
+    double[] pwr =
+        SwerveMath.discretize(
+            xMetres / maxModuleSpeedMps,
+            yMetres / maxModuleSpeedMps,
+            omegaRadPerSec / maxOmegaRadPerSec,
+            transScale,
+            rotScale,
+            normalScale);
+    double[] modSpdsPwrRad = // fixme: no rad in this var. all power
         SwerveMath.calculateModuleVelocities(
             trackWidthOverFrameDiagonal, wheelBaseOverFrameDiagonal, pwr[0], pwr[1], pwr[2]);
     double[] modSpdsMpsDeg = {
@@ -399,13 +403,13 @@ public class SwerveMathTest {
       Math.toDegrees(modSpdsPwrRad[7])
     };
 
-    assertEquals(frsMps, modSpdsMpsDeg[0], "frs m/s");
-    assertEquals(fraDeg, modSpdsMpsDeg[1], "frs deg");
-    assertEquals(flsMps, modSpdsMpsDeg[2], "fls m/s");
-    assertEquals(flaDeg, modSpdsMpsDeg[3], "fls deg");
-    assertEquals(blsMps, modSpdsMpsDeg[4], "bls m/s");
-    assertEquals(blaDeg, modSpdsMpsDeg[5], "bls deg");
-    assertEquals(brsMps, modSpdsMpsDeg[6], "brs m/s");
-    assertEquals(braDeg, modSpdsMpsDeg[7], "brs deg");
+    assertEquals(frsMps, modSpdsMpsDeg[0], EPSILON, "frs m/s");
+    assertEquals(fraDeg, modSpdsMpsDeg[1], EPSILON, "frs deg");
+    assertEquals(flsMps, modSpdsMpsDeg[2], EPSILON, "fls m/s");
+    assertEquals(flaDeg, modSpdsMpsDeg[3], EPSILON, "fls deg");
+    assertEquals(blsMps, modSpdsMpsDeg[4], EPSILON, "bls m/s");
+    assertEquals(blaDeg, modSpdsMpsDeg[5], EPSILON, "bls deg");
+    assertEquals(brsMps, modSpdsMpsDeg[6], EPSILON, "brs m/s");
+    assertEquals(braDeg, modSpdsMpsDeg[7], EPSILON, "brs deg");
   }
 }
