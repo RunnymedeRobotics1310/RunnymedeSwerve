@@ -120,12 +120,12 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
    *
    * @return the pose estimator
    */
-  protected SwerveDrivePoseEstimator getPoseEstimator() {
+  protected final SwerveDrivePoseEstimator getPoseEstimator() {
     return estimator;
   }
 
   @Override
-  public synchronized void zeroGyro() {
+  public final synchronized void zeroGyro() {
     super.zeroGyro();
     Pose2d oldPose = estimator.getEstimatedPosition();
     Pose2d newPose = new Pose2d(oldPose.getX(), oldPose.getY(), Rotation2d.fromDegrees(0));
@@ -133,18 +133,18 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
   }
 
   @Override
-  public synchronized void setYaw(double yaw) {
+  public final synchronized void setYaw(double yaw) {
     super.setYaw(yaw);
     Pose2d oldPose = estimator.getEstimatedPosition();
     Pose2d newPose = new Pose2d(oldPose.getX(), oldPose.getY(), Rotation2d.fromDegrees(yaw));
     estimator.resetPose(newPose);
   }
 
-  public synchronized void resetOdometry(Pose2d pose) {
+  public final synchronized void resetOdometry(Pose2d pose) {
     estimator.resetPose(pose);
   }
 
-  public synchronized Pose2d getPose() {
+  public final synchronized Pose2d getPose() {
     return estimator.getEstimatedPosition();
   }
 

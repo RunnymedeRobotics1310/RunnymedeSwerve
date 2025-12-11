@@ -15,8 +15,8 @@ import edu.wpi.first.math.geometry.Pose2d;
  */
 public interface RunnymedeSwerveDrive {
   /**
-   * The main internal method for controlling the drivebase. This code does not apply any limiters
-   * or validation, and should be used by implementing swerve drive subsystems only.
+   * The internal robot-oriented method for controlling the drivebase. This code does not apply any
+   * limiters or validation, and should be used by implementing swerve drive subsystems only.
    *
    * <p>Takes the desired chassis speeds of the robot - in a robot-oriented configuration.
    *
@@ -27,7 +27,22 @@ public interface RunnymedeSwerveDrive {
    * @param omega The desired angular velocity of the robot in radians per second. Positive is
    *     counter-clockwise.
    */
-  void drive(double vx, double vy, double omega);
+  void driveRobotOriented(double vx, double vy, double omega);
+
+  /**
+   * The internal field-oriented method for controlling the drivebase. This code does not apply any
+   * limiters or validation, and should be used by implementing swerve drive subsystems only.
+   *
+   * <p>Takes the desired chassis speeds of the robot - in a field-oriented configuration.
+   *
+   * @param vx The desired field oriented velocity of the robot in the x direction in meters per
+   *     second. Positive is towards the red alliance.
+   * @param vy The desired field oriented velocity of the robot in the y direction in meters per
+   *     second. Positive away from the scoring table.
+   * @param omega The desired angular velocity of the robot in radians per second. Positive is
+   *     counter-clockwise.
+   */
+  default void driveFieldOriented(double vx, double vy, double omega) {}
 
   /**
    * Obtain the robot relative velocity vX, vY, vR
