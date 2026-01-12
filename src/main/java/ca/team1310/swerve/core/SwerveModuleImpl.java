@@ -146,4 +146,8 @@ class SwerveModuleImpl implements SwerveModule {
 
     return driveFaults | angleFaults | angleEncoderFaults;
   }
+
+  public double getRawDriveMotorEncoder() {
+    return driveMotor.getRawEncoder();
+  }
 }

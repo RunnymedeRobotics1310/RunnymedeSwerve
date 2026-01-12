@@ -19,6 +19,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
 
   private double prevTargetMPS = 0;
   private final double maxMps;
+  private double positionConversionFactor;
 
   /**
    * Construct a properly configured drive motor.
@@ -73,7 +74,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
         .primaryEncoderVelocityPeriodMs(TELEMETRY_UPDATE_PERIOD_MS); // default is 20ms
 
     // Drive motor
-    double positionConversionFactor = (2 * Math.PI * wheelRadiusMetres) / cfg.gearRatio();
+    positionConversionFactor = (2 * Math.PI * wheelRadiusMetres) / cfg.gearRatio();
     // report in metres not rotations
     config.encoder.positionConversionFactor(positionConversionFactor);
     // report in metres per second not rotations per minute
@@ -123,5 +124,31 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
 
   public double getMeasuredVoltage() {
     return spark.getAppliedOutput();
+  }
+
+  public double getRawEncoder() {
+    //    SparkFlexConfig rotConfig = new SparkFlexConfig();
+    //    rotConfig.encoder.positionConversionFactor(1);
+    //
+    //    doWithRetry(
+    //        () ->
+    //            spark.configure(
+    //                rotConfig,
+    //                SparkBase.ResetMode.kNoResetSafeParameters,
+    //                SparkBase.PersistMode.kNoPersistParameters));
+
+    double encoderCount = encoder.getPosition();
+
+    //    SparkFlexConfig defConfig = new SparkFlexConfig();
+    //    defConfig.encoder.positionConversionFactor(positionConversionFactor);
+    //
+    //    doWithRetry(
+    //        () ->
+    //            spark.configure(
+    //                defConfig,
+    //                SparkBase.ResetMode.kNoResetSafeParameters,
+    //                SparkBase.PersistMode.kNoPersistParameters));
+
+    return encoderCount / positionConversionFactor;
   }
 }

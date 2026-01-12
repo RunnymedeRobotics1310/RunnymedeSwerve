@@ -13,8 +13,10 @@ class SwerveModuleSimulation implements SwerveModule {
   private double lastTime;
   private final ModuleState currentState;
   private final double maxAttainableModuleSpeedMps;
+  private final ModuleConfig cfg;
 
   public SwerveModuleSimulation(ModuleConfig cfg, double maxAttainableModuleSpeedMps) {
+    this.cfg = cfg;
     this.name = cfg.name();
     this.location = cfg.location();
     this.currentState = new ModuleState();
@@ -68,5 +70,9 @@ class SwerveModuleSimulation implements SwerveModule {
    */
   public boolean checkFaults() {
     return false;
+  }
+
+  public double getRawDriveMotorEncoder() {
+    return this.currentState.getPosition() / cfg.driveMotorConfig().gearRatio();
   }
 }

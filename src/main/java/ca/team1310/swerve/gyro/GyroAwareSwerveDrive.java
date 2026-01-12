@@ -22,6 +22,8 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
   /** The gyro for the swerve drive */
   private final Gyro gyro;
 
+  private final CoreSwerveConfig cfg;
+
   private boolean fieldOriented;
   private double fieldOrientedDesiredVx;
   private double fieldOrientedDesiredVy;
@@ -33,6 +35,7 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
    */
   public GyroAwareSwerveDrive(CoreSwerveConfig cfg, GyroConfig gyroConfig) {
     super(cfg);
+    this.cfg = cfg;
     this.gyro = createGyro(gyroConfig);
     SmartDashboard.putData(PREFIX + "Gyro", this.gyro);
   }
@@ -115,8 +118,8 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
   }
 
   /**
-   * Get the raw yaw value from hardware, without any zeroing/offset, in degrees. Positive is
-   * CounterClockWise.
+   * Get the raw yaw value from hardware, without any zeroing/offset or normalization, in degrees.
+   * Positive is CounterClockWise.
    *
    * @return the raw yaw of the robot, in degrees
    */
@@ -152,5 +155,13 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
       var measuredRobotVelocity = getMeasuredRobotVelocity();
       ((SimulatedGyro) gyro).updateGyroForSimulation(measuredRobotVelocity[2]);
     }
+  }
+
+  double[] getRawDriveEncoders() {
+    return getRawDriveMotorEncoders();
+  }
+
+  CoreSwerveConfig getCoreCfg() {
+    return cfg;
   }
 }

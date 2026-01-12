@@ -15,7 +15,7 @@ java {
 }
 
 // set a valid semver version
-version = '3.6.1'
+version = '3.7.2-wheel-radius'
 
 repositories {
     mavenCentral()

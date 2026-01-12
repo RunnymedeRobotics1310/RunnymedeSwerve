@@ -39,4 +39,6 @@ public interface DriveMotor {
    * @return true if there are active faults
    */
   boolean hasFaults();
+
+  double getRawEncoder();
 }

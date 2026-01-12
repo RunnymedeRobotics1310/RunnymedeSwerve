@@ -298,4 +298,15 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     // post it!
     telemetry.post();
   }
+
+  protected double[] getRawDriveMotorEncoders() {
+    double[] encoders = new double[4];
+
+    encoders[0] = modules[0].getRawDriveMotorEncoder();
+    encoders[1] = modules[1].getRawDriveMotorEncoder();
+    encoders[2] = modules[2].getRawDriveMotorEncoder();
+    encoders[3] = modules[3].getRawDriveMotorEncoder();
+
+    return encoders;
+  }
 }

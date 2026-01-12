@@ -1,7 +1,5 @@
 package ca.team1310.swerve.gyro.hardware;
 
-import static ca.team1310.swerve.utils.SwerveUtils.normalizeDegrees;
-
 import ca.team1310.swerve.gyro.Gyro;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
@@ -31,7 +29,7 @@ public class SimulatedGyro implements Gyro {
   }
 
   public double getYawRaw() {
-    return normalizeDegrees(this.yaw);
+    return this.yaw;
   }
 
   public double getPitch() {
