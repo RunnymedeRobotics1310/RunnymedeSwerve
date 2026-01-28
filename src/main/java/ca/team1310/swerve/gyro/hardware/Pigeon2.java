@@ -90,7 +90,7 @@ public class Pigeon2 implements Gyro {
   }
 
   public double getYawRaw() {
-    return normalizeDegrees(yaw.getValueAsDouble());
+    return yaw.getValueAsDouble();
   }
 
   @Override

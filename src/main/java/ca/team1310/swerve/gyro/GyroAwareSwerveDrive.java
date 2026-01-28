@@ -115,8 +115,8 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
   }
 
   /**
-   * Get the raw yaw value from hardware, without any zeroing/offset, in degrees. Positive is
-   * CounterClockWise.
+   * Get the raw yaw value from hardware, without any zeroing/offset or normalization, in degrees.
+   * Positive is CounterClockWise.
    *
    * @return the raw yaw of the robot, in degrees
    */

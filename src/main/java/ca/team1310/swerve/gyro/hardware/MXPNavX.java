@@ -57,7 +57,7 @@ public class MXPNavX implements Gyro {
   }
 
   public double getYawRaw() {
-    return normalizeDegrees(-navx.getYaw());
+    return -navx.getYaw();
   }
 
   @Override

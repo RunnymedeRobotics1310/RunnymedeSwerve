@@ -6,8 +6,8 @@ import static ca.team1310.swerve.utils.SwerveUtils.normalizeDegrees;
 
 import ca.team1310.swerve.core.AngleMotor;
 import ca.team1310.swerve.core.config.MotorConfig;
+import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase;
-import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
@@ -83,7 +83,7 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
     // configure PID controller
     config
         .closedLoop
-        .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
+        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
         .pidf(cfg.p(), cfg.i(), cfg.d(), cfg.ff())
         .iZone(cfg.izone())
         .outputRange(-180, 180)
