@@ -57,6 +57,4 @@ public interface SwerveModule {
    * @return true if there are active faults
    */
   boolean checkFaults();
-
-  double getRawDriveMotorEncoder();
 }
