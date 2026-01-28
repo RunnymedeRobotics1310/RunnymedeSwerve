@@ -7,6 +7,7 @@ import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /** The Core swerve drive object. This implements most core features of a swerve drive */
 public class CoreSwerveDrive implements RunnymedeSwerveDrive {
@@ -141,6 +142,15 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
    * Set the module states based on the desired speed and angle.
    */
   protected synchronized void updateModules() {
+
+    SmartDashboard.putNumberArray(
+        "swerve/rawDriveMotorEncoders",
+        new double[] {
+          this.modules[0].getRawDriveMotorEncoder(),
+          this.modules[1].getRawDriveMotorEncoder(),
+          this.modules[2].getRawDriveMotorEncoder(),
+          this.modules[3].getRawDriveMotorEncoder()
+        });
 
     // read module states
     for (SwerveModule module : modules) {

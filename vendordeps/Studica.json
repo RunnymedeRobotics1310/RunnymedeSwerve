@@ -1,30 +1,29 @@
 {
-    "fileName": "REVLib-2025.0.0.json",
-    "name": "REVLib",
-    "version": "2025.0.0",
-    "frcYear": "2025",
-    "uuid": "3f48eb8c-50fe-43a6-9cb7-44c86353c4cb",
+    "fileName": "Studica.json",
+    "name": "Studica",
+    "version": "2026.0.0",
+    "frcYear": "2026",
+    "uuid": "cb311d09-36e9-4143-a032-55bb2b94443b",
     "mavenUrls": [
-        "https://maven.revrobotics.com/"
+        "https://dev.studica.com/maven/release/2026/"
     ],
-    "jsonUrl": "https://software-metadata.revrobotics.com/REVLib-2025.json",
+    "jsonUrl": "https://dev.studica.com/maven/release/2026/json/Studica-2026.0.0.json",
     "javaDependencies": [
         {
-            "groupId": "com.revrobotics.frc",
-            "artifactId": "REVLib-java",
-            "version": "2025.0.0"
+            "groupId": "com.studica.frc",
+            "artifactId": "Studica-java",
+            "version": "2026.0.0"
         }
     ],
     "jniDependencies": [
         {
-            "groupId": "com.revrobotics.frc",
-            "artifactId": "REVLib-driver",
-            "version": "2025.0.0",
+            "groupId": "com.studica.frc",
+            "artifactId": "Studica-driver",
+            "version": "2026.0.0",
             "skipInvalidPlatforms": true,
             "isJar": false,
             "validPlatforms": [
                 "windowsx86-64",
-                "windowsx86",
                 "linuxarm64",
                 "linuxx86-64",
                 "linuxathena",
@@ -35,16 +34,15 @@
     ],
     "cppDependencies": [
         {
-            "groupId": "com.revrobotics.frc",
-            "artifactId": "REVLib-cpp",
-            "version": "2025.0.0",
-            "libName": "REVLib",
+            "groupId": "com.studica.frc",
+            "artifactId": "Studica-cpp",
+            "version": "2026.0.0",
+            "libName": "Studica",
             "headerClassifier": "headers",
             "sharedLibrary": false,
             "skipInvalidPlatforms": true,
             "binaryPlatforms": [
                 "windowsx86-64",
-                "windowsx86",
                 "linuxarm64",
                 "linuxx86-64",
                 "linuxathena",
@@ -53,16 +51,15 @@
             ]
         },
         {
-            "groupId": "com.revrobotics.frc",
-            "artifactId": "REVLib-driver",
-            "version": "2025.0.0",
-            "libName": "REVLibDriver",
+            "groupId": "com.studica.frc",
+            "artifactId": "Studica-driver",
+            "version": "2026.0.0",
+            "libName": "StudicaDriver",
             "headerClassifier": "headers",
             "sharedLibrary": false,
             "skipInvalidPlatforms": true,
             "binaryPlatforms": [
                 "windowsx86-64",
-                "windowsx86",
                 "linuxarm64",
                 "linuxx86-64",
                 "linuxathena",
