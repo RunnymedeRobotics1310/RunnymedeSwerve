@@ -153,4 +153,11 @@ public interface RunnymedeSwerveDrive {
   default double getYawRate() {
     return 0;
   }
+
+  /**
+   * Get the telemetry object updated by SwerveLib
+   *
+   * @return the SwerveTelemetry object
+   */
+  SwerveTelemetry getSwerveTelemetry();
 }

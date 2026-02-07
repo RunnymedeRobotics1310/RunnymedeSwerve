@@ -298,4 +298,8 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     // post it!
     telemetry.post();
   }
+
+  public SwerveTelemetry getSwerveTelemetry() {
+    return telemetry;
+  }
 }
