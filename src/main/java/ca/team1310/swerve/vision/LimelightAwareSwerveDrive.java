@@ -84,33 +84,34 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
     // Update the robot orientation
     llRobotOrientation.set(new double[] {getYaw(), 0, 0, 0, 0, 0});
 
-    // Get the MegaTag data
-    TimestampedDoubleArray megaTagAtomic = llMegaTag2.getAtomic();
-    double[] megaTagData = megaTagAtomic.value;
-    long timestampMicros = megaTagAtomic.timestamp;
+    // Get the MegaTag data - can be multiple readings since we last checked
+    for (var megaTagAtomic : llMegaTag2.readQueue()) {
+      double[] megaTagData = megaTagAtomic.value;
+      long timestampMicros = megaTagAtomic.timestamp;
 
-    // Check for valid data
-    if (megaTagData != null && megaTagData.length >= 12) {
+      // Check for valid data
+      if (megaTagData != null && megaTagData.length >= 12) {
 
-      // Extract the pose data & latency
-      Pose2d botPose =
-          new Pose2d(
-              megaTagData[OFFSET_POSE_X],
-              megaTagData[OFFSET_POSE_Y],
-              Rotation2d.fromDegrees(megaTagData[OFFSET_POSE_ROTATION_YAW]));
-      double totalLatencyMillis = megaTagData[OFFSET_TOTAL_LATENCY];
+        // Extract the pose data & latency
+        Pose2d botPose =
+            new Pose2d(
+                megaTagData[OFFSET_POSE_X],
+                megaTagData[OFFSET_POSE_Y],
+                Rotation2d.fromDegrees(megaTagData[OFFSET_POSE_ROTATION_YAW]));
+        double totalLatencyMillis = megaTagData[OFFSET_TOTAL_LATENCY];
 
-      // Ensure pose is on field
-      if (botPose.getX() > 0
-          && botPose.getY() > 0
-          && botPose.getX() < fieldExtentX
-          && botPose.getY() < fieldExtentY) {
+        // Ensure pose is on field
+        if (botPose.getX() > 0
+            && botPose.getY() > 0
+            && botPose.getX() < fieldExtentX
+            && botPose.getY() < fieldExtentY) {
 
-        // Good data, let's update the pose estimator
-        double latencySeconds = (timestampMicros / 1000000.0) - (totalLatencyMillis / 1000.0);
-        getPoseEstimator().addVisionMeasurement(botPose, latencySeconds, MEGATAG2_STDDEV);
-        visPose = botPose;
-        return;
+          // Good data, let's update the pose estimator
+          double latencySeconds = (timestampMicros / 1000000.0) - (totalLatencyMillis / 1000.0);
+          getPoseEstimator().addVisionMeasurement(botPose, latencySeconds, MEGATAG2_STDDEV);
+          visPose = botPose;
+          return;
+        }
       }
     }
 
