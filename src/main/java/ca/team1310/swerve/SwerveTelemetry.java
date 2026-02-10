@@ -105,6 +105,24 @@ public final class SwerveTelemetry {
    */
   public double visionPoseHeading = Double.MIN_VALUE;
 
+  /**
+   * The x location of the robot with respect to the field as measured by wheel-only odometry (no
+   * vision corrections) in metres
+   */
+  public double wheelOnlyPoseX = Double.MIN_VALUE;
+
+  /**
+   * The y location of the robot with respect to the field as measured by wheel-only odometry (no
+   * vision corrections) in metres
+   */
+  public double wheelOnlyPoseY = Double.MIN_VALUE;
+
+  /**
+   * The heading of the robot with respect to the field as measured by wheel-only odometry (no
+   * vision corrections) in degrees
+   */
+  public double wheelOnlyPoseHeading = Double.MIN_VALUE;
+
   /** Whether the swerve advantage scope constants have been posted to SmartDashboard */
   private boolean advantageScopeConstantsPosted = false;
 

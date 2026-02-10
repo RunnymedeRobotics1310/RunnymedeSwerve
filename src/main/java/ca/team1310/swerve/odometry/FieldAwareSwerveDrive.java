@@ -37,6 +37,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
 
   private final Field2d field;
   private final SwerveDrivePoseEstimator estimator;
+  private final SwerveDrivePoseEstimator wheelOnlyEstimator;
   private final SwerveModulePosition[] modulePosition = {
     new SwerveModulePosition(),
     new SwerveModulePosition(),
@@ -86,12 +87,16 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
             cfg.backRightModuleConfig().location().getX(),
             cfg.backRightModuleConfig().location().getY());
 
+    SwerveDriveKinematics kinematics = new SwerveDriveKinematics(moduleLocations);
+
     this.estimator =
         new SwerveDrivePoseEstimator(
-            new SwerveDriveKinematics(moduleLocations),
-            initialRotation,
-            initialModulePositions,
-            initialPose);
+            kinematics, initialRotation, initialModulePositions, initialPose);
+
+    // Create a second estimator for wheel-only odometry (no vision corrections)
+    this.wheelOnlyEstimator =
+        new SwerveDrivePoseEstimator(
+            kinematics, initialRotation, initialModulePositions, initialPose);
 
     odometryUpdater.startPeriodic(UPDATE_ODOMETRY_EVERY_MILLIS / 1000.0);
     odometryUpdater.setName("RunnymedeSwerve Odometry");
@@ -111,7 +116,10 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     // During robot startup the updateOdometry thread may call function before the estimator has
     // been initialized, so check that it exists before updating odometry
     if (this.estimator != null) {
-      estimator.update(Rotation2d.fromDegrees(getYawRaw()), getSwerveModulePositions());
+      Rotation2d rotation = Rotation2d.fromDegrees(getYawRaw());
+      SwerveModulePosition[] positions = getSwerveModulePositions();
+      estimator.update(rotation, positions);
+      wheelOnlyEstimator.update(rotation, positions);
     }
   }
 
@@ -130,6 +138,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     Pose2d oldPose = estimator.getEstimatedPosition();
     Pose2d newPose = new Pose2d(oldPose.getX(), oldPose.getY(), Rotation2d.fromDegrees(0));
     estimator.resetPose(newPose);
+    wheelOnlyEstimator.resetPose(newPose);
   }
 
   @Override
@@ -138,14 +147,27 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     Pose2d oldPose = estimator.getEstimatedPosition();
     Pose2d newPose = new Pose2d(oldPose.getX(), oldPose.getY(), Rotation2d.fromDegrees(yaw));
     estimator.resetPose(newPose);
+    wheelOnlyEstimator.resetPose(newPose);
   }
 
   public final synchronized void resetOdometry(Pose2d pose) {
     estimator.resetPose(pose);
+    wheelOnlyEstimator.resetPose(pose);
   }
 
   public final synchronized Pose2d getPose() {
     return estimator.getEstimatedPosition();
+  }
+
+  /**
+   * Gets the wheel-only pose estimate. This pose is updated only from wheel encoders and gyro,
+   * without any vision corrections. Use this to compare against the fused pose to understand how
+   * much vision is correcting wheel odometry drift.
+   *
+   * @return The wheel-only estimated pose
+   */
+  public final synchronized Pose2d getWheelOnlyPose() {
+    return wheelOnlyEstimator.getEstimatedPosition();
   }
 
   public synchronized void updateTelemetry(SwerveTelemetry telemetry) {
