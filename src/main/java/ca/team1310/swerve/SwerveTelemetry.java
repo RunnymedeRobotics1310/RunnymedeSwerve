@@ -78,6 +78,12 @@ public final class SwerveTelemetry {
   /** The drive motor output power of the swerve modules */
   public double[] driveMotorOutputPower;
 
+  /**
+   * Per-module angle error in degrees: difference between relative encoder angle and absolute
+   * encoder angle. Useful for monitoring encoder drift.
+   */
+  public double[] moduleAngleErrorDegrees;
+
   // Pose
   /** The x location of the robot with respect to the field in metres */
   public double poseMetresX = Double.MIN_VALUE;
@@ -145,6 +151,7 @@ public final class SwerveTelemetry {
     moduleAngleMotorPositionDegrees = new double[moduleCount];
     moduleDriveMotorPositionMetres = new double[moduleCount];
     driveMotorOutputPower = new double[moduleCount];
+    moduleAngleErrorDegrees = new double[moduleCount];
   }
 
   /** Post all telemetry data to SmartDashboard */
@@ -221,5 +228,7 @@ public final class SwerveTelemetry {
       double pwr = driveMotorOutputPower[i];
       SmartDashboard.putString(PREFIX + "Swerve/drive_power_" + name, String.format("%.3f", pwr));
     }
+
+    SmartDashboard.putNumberArray(PREFIX + "Swerve/angleErrors", moduleAngleErrorDegrees);
   }
 }

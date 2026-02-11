@@ -5,6 +5,7 @@ import static ca.team1310.swerve.core.config.TelemetryLevel.*;
 import ca.team1310.swerve.RunnymedeSwerveDrive;
 import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
+import ca.team1310.swerve.utils.SwerveUtils;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotBase;
 
@@ -293,6 +294,14 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
         telemetry.driveMotorOutputPower[i] = state.getDriveOutputPower();
         // angle encoder
         telemetry.moduleAbsoluteEncoderPositionDegrees[i] = state.getAbsoluteEncoderAngle();
+
+        // Compute per-module angle error (relative vs absolute encoder)
+        double absAngle = state.getAbsoluteEncoderAngle();
+        if (absAngle >= 0) {
+          double absNormalized = SwerveUtils.normalizeDegrees(absAngle);
+          double error = SwerveUtils.normalizeDegrees(state.getAngle() - absNormalized);
+          telemetry.moduleAngleErrorDegrees[i] = error;
+        }
       }
     }
     // post it!
