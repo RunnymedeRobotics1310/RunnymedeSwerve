@@ -85,6 +85,8 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
     llRobotOrientation.set(new double[] {getYaw(), 0, 0, 0, 0, 0});
 
     // Get the MegaTag data - can be multiple readings since we last checked
+    Pose2d newVisPose = null;
+
     for (var megaTagAtomic : llMegaTag2.readQueue()) {
       double[] megaTagData = megaTagAtomic.value;
       long timestampMicros = megaTagAtomic.timestamp;
@@ -109,14 +111,13 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
           // Good data, let's update the pose estimator
           double latencySeconds = (timestampMicros / 1000000.0) - (totalLatencyMillis / 1000.0);
           getPoseEstimator().addVisionMeasurement(botPose, latencySeconds, MEGATAG2_STDDEV);
-          visPose = botPose;
-          return;
+          newVisPose = botPose;
         }
       }
     }
 
-    // Fall through, no visPose
-    visPose = null;
+    // Either no values were good, or we get the last one in the queue (most recent)
+    visPose = newVisPose;
   }
 
   /**
