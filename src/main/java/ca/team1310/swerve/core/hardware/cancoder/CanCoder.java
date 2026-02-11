@@ -100,6 +100,14 @@ public class CanCoder implements AbsoluteAngleEncoder {
     return measuredPosition;
   }
 
+  @Override
+  public double getPositionCached() {
+    if (angle.getStatus() != StatusCode.OK) {
+      return -1;
+    }
+    return ((angle.getValue().in(Degrees) - absoluteEncoderOffset) + 360) % 360;
+  }
+
   private double calculatePosition() {
     MagnetHealthValue strength = magnetHealth.refresh().getValue();
 

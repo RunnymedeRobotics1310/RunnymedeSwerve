@@ -103,6 +103,7 @@ class SwerveModuleImpl implements SwerveModule {
 
     measuredState.setAngle(angleMotor.getPosition());
     measuredState.setPosition(driveMotor.getDistance());
+    measuredState.setAbsoluteEncoderAngle(angleEncoder.getPositionCached());
   }
 
   public synchronized void readVerboseState() {

@@ -1,5 +1,7 @@
 package ca.team1310.swerve.core;
 
+import static ca.team1310.swerve.utils.SwerveUtils.normalizeDegrees;
+
 import ca.team1310.swerve.utils.Coordinates;
 
 /**
@@ -86,6 +88,20 @@ public class ModuleState {
    * @return the angle of the module in degrees from -180 to 180 (ccw positive)
    */
   public double getAngle() {
+    return anglePosition;
+  }
+
+  /**
+   * Get the best available angle for odometry. Returns the absolute encoder angle (normalized to
+   * -180..180) if available, falling back to the relative encoder angle. The absolute encoder is
+   * preferred because the relative encoder can drift between sync cycles.
+   *
+   * @return the angle in degrees from -180 to 180 (ccw positive)
+   */
+  public double getOdometryAngle() {
+    if (absoluteEncoderAngle >= 0) {
+      return normalizeDegrees(absoluteEncoderAngle);
+    }
     return anglePosition;
   }
 
