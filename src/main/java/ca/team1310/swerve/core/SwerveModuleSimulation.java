@@ -39,6 +39,9 @@ class SwerveModuleSimulation implements SwerveModule {
   public void readState() {}
 
   @Override
+  public void syncEncoders() {}
+
+  @Override
   public void readVerboseState() {}
 
   @Override

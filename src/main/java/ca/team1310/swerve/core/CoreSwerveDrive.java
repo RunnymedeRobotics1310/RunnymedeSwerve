@@ -148,6 +148,11 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
       module.readState();
     }
 
+    // sync relative encoders toward absolute encoders
+    for (SwerveModule module : modules) {
+      module.syncEncoders();
+    }
+
     // calculate desired states
     kinematics.calculateModuleVelocities(desiredVx, desiredVy, desiredOmega);
 

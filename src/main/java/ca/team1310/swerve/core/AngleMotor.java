@@ -35,6 +35,20 @@ public interface AngleMotor {
   void setEncoderPosition(double actualAngleDegrees);
 
   /**
+   * Gradually correct the internal encoder position toward the absolute angle. Unlike {@link
+   * #setEncoderPosition(double)}, this applies a fractional correction to avoid discontinuities in
+   * the PID feedback signal during active steering.
+   *
+   * <p>The default implementation delegates to {@link #setEncoderPosition(double)}.
+   *
+   * @param absoluteAngleDegrees the true angle from the absolute encoder (0 to 360)
+   * @param correctionFactor fraction of the error to apply per call (e.g. 0.2 = 20%)
+   */
+  default void correctEncoderPosition(double absoluteAngleDegrees, double correctionFactor) {
+    setEncoderPosition(absoluteAngleDegrees);
+  }
+
+  /**
    * Are there any active faults on this motor
    *
    * @return true if there are active faults
