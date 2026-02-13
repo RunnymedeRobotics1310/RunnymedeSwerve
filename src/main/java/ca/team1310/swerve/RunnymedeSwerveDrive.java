@@ -95,6 +95,19 @@ public interface RunnymedeSwerveDrive {
   }
 
   /**
+   * Gets the wheel-only pose estimate. This pose is updated only from wheel encoders and gyro,
+   * without any vision corrections. Use this to compare against the fused pose to understand how
+   * much vision is correcting wheel odometry drift.
+   *
+   * <p>The default implementation returns a pose at 0,0,0.
+   *
+   * @return The wheel-only estimated pose
+   */
+  default Pose2d getWheelOnlyPose() {
+    return new Pose2d();
+  }
+
+  /**
    * Set the gyro yaw offset of the robot, in degrees.
    *
    * @param yaw the yaw offset of the robot, in degrees
@@ -153,4 +166,11 @@ public interface RunnymedeSwerveDrive {
   default double getYawRate() {
     return 0;
   }
+
+  /**
+   * Get the telemetry object updated by SwerveLib
+   *
+   * @return the SwerveTelemetry object
+   */
+  SwerveTelemetry getSwerveTelemetry();
 }

@@ -6,8 +6,8 @@ import static ca.team1310.swerve.utils.SwerveUtils.clamp;
 
 import ca.team1310.swerve.core.DriveMotor;
 import ca.team1310.swerve.core.config.MotorConfig;
+import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase;
-import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkFlexConfig;
 
@@ -86,7 +86,7 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
     // configure PID controller - we want to speak in m/s
     config
         .closedLoop
-        .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
+        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
         .pidf(cfg.p(), cfg.i(), cfg.d(), cfg.ff())
         .iZone(cfg.izone())
         .outputRange(-1, 1)

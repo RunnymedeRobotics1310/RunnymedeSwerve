@@ -309,4 +309,8 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
     return encoders;
   }
+
+  public SwerveTelemetry getSwerveTelemetry() {
+    return telemetry;
+  }
 }

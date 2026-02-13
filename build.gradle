@@ -1,6 +1,6 @@
 plugins {
     id 'java-library'
-    id "edu.wpi.first.GradleRIO" version "2025.3.2"
+    id "edu.wpi.first.GradleRIO" version "2026.2.1"
     id "maven-publish"
     id "org.jreleaser" version "1.15.0"
     id "com.diffplug.spotless" version "6.25.0"
@@ -15,7 +15,7 @@ java {
 }
 
 // set a valid semver version
-version = '3.7.2-wheel-radius'
+version = '4.1.2-wheel'
 
 repositories {
     mavenCentral()
