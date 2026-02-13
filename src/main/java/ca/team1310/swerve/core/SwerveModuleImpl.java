@@ -9,12 +9,13 @@ import ca.team1310.swerve.core.hardware.rev.neospark.NSMDriveMotor;
 import ca.team1310.swerve.math.SwerveMath;
 import ca.team1310.swerve.utils.Coordinates;
 import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Notifier;
 
 class SwerveModuleImpl implements SwerveModule {
 
-  private static final double ANGLE_ENCODER_SYNC_PERIOD_MS = 500;
-  private final Notifier encoderSynchronizer = new Notifier(this::syncAngleEncoder);
+  private static final boolean USE_GRADUAL_ENCODER_CORRECTION = true;
+  private static final double ENCODER_CORRECTION_FACTOR = 0.1;
+  private static final int HARD_SYNC_CYCLE_INTERVAL =
+      500 / CoreSwerveDrive.MANAGE_MODULES_PERIOD_MS; // ~50 cycles = 500ms
 
   private final String name;
   private final Coordinates location;
@@ -23,6 +24,7 @@ class SwerveModuleImpl implements SwerveModule {
   private final AbsoluteAngleEncoder angleEncoder;
   private ModuleDirective desiredState = new ModuleDirective();
   private final ModuleState measuredState = new ModuleState();
+  private int hardSyncCycleCounter = 0;
 
   private final Alert driveMotorFaultPresent;
   private final Alert angleMotorFaultPresent;
@@ -30,20 +32,11 @@ class SwerveModuleImpl implements SwerveModule {
 
   SwerveModuleImpl(ModuleConfig cfg, double maxAttainableModuleSpeedMps) {
     this.name = cfg.name();
-    System.out.println(
-        "Swerve ("
-            + this.name
-            + ") absolute angle encoder sync period: "
-            + ANGLE_ENCODER_SYNC_PERIOD_MS
-            + " ms");
     this.location = cfg.location();
     measuredState.setLocation(cfg.location());
     this.driveMotor = getDriveMotor(cfg, maxAttainableModuleSpeedMps);
     this.angleMotor = getAngleMotor(cfg);
     this.angleEncoder = getAbsoluteAngleEncoder(cfg);
-
-    this.encoderSynchronizer.setName("RunnymedeSwerve Angle Encoder Sync " + name);
-    this.encoderSynchronizer.startPeriodic(ANGLE_ENCODER_SYNC_PERIOD_MS / 1000);
 
     driveMotorFaultPresent =
         new Alert("Swerve Drive Motor [" + name + "] Fault Present", Alert.AlertType.kError);
@@ -89,10 +82,6 @@ class SwerveModuleImpl implements SwerveModule {
         cfg.absoluteAngleEncoderConfig());
   }
 
-  private synchronized void syncAngleEncoder() {
-    angleMotor.setEncoderPosition(angleEncoder.getPosition());
-  }
-
   public String getName() {
     return name;
   }
@@ -103,6 +92,20 @@ class SwerveModuleImpl implements SwerveModule {
 
     measuredState.setAngle(angleMotor.getPosition());
     measuredState.setPosition(driveMotor.getDistance());
+    measuredState.setAbsoluteEncoderAngle(angleEncoder.getPositionCached());
+  }
+
+  public synchronized void syncEncoders() {
+    double absoluteEncoderAngle = measuredState.getAbsoluteEncoderAngle();
+    if (absoluteEncoderAngle < 0) {
+      return; // invalid CANCoder reading (-1 means error)
+    }
+    if (USE_GRADUAL_ENCODER_CORRECTION) {
+      angleMotor.correctEncoderPosition(absoluteEncoderAngle, ENCODER_CORRECTION_FACTOR);
+    } else if (++hardSyncCycleCounter >= HARD_SYNC_CYCLE_INTERVAL) {
+      hardSyncCycleCounter = 0;
+      angleMotor.setEncoderPosition(absoluteEncoderAngle);
+    }
   }
 
   public synchronized void readVerboseState() {
@@ -118,7 +121,7 @@ class SwerveModuleImpl implements SwerveModule {
   public synchronized void setDesiredState(ModuleDirective desiredState) {
     this.desiredState = desiredState;
 
-    double currentHeadingDeg = angleMotor.getPosition();
+    double currentHeadingDeg = measuredState.getOdometryAngle();
     SwerveMath.optimizeWheelAngles(desiredState, currentHeadingDeg);
     SwerveMath.cosineCompensator(desiredState, currentHeadingDeg);
 

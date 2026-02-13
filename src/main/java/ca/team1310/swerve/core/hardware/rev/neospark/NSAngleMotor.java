@@ -120,6 +120,17 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
   }
 
   @Override
+  public void correctEncoderPosition(double absoluteAngleDegrees, double correctionFactor) {
+    double rawPosition = encoder.getPosition();
+    double normalizedPosition = normalizeDegrees(rawPosition);
+    double error = normalizeDegrees(absoluteAngleDegrees - normalizedPosition);
+    if (Math.abs(error) < 0.1) {
+      return; // dead band: avoid CAN traffic for negligible corrections
+    }
+    encoder.setPosition(rawPosition + correctionFactor * error); // fire-and-forget
+  }
+
+  @Override
   public void setEncoderPosition(double actualAngleDegrees) {
     double omega = Math.abs(encoder.getVelocity());
     if (omega > MAX_ANGULAR_VELOCITY_FOR_ENCODER_UPDATE) {

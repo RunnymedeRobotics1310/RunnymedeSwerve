@@ -25,9 +25,8 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
   private static final int OFFSET_POSE_Y = 1;
   private static final int OFFSET_POSE_ROTATION_YAW = 5;
   private static final int OFFSET_TOTAL_LATENCY = 6;
-
-  // Standard Deviations Used for most of the Pose Updates
-  private static final Matrix<N3, N1> MEGATAG2_STDDEV = VecBuilder.fill(0.06, 0.06, 9999999);
+  private static final int OFFSET_TAG_COUNT = 7;
+  private static final int OFFSET_AVG_TAG_DISTANCE = 9;
 
   // Orientation publishers
   private final DoubleArrayPublisher llRobotOrientation;
@@ -39,6 +38,14 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
   // Field Extent for tag validity
   private final double fieldExtentX;
   private final double fieldExtentY;
+
+  // Vision trust parameters
+  private final double baseStdDevXY;
+  private final double baseStdDevTheta;
+  private final double distanceScaleFactor;
+  private final double maxTrustDistanceMetres;
+  private final double outlierRejectionThresholdMetres;
+  private final int minTagCountForLowStdDev;
 
   // Data for telemetry publishing
   private Pose2d visPose = null;
@@ -57,6 +64,12 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
 
     this.fieldExtentX = limelightConfig.fieldExtentX();
     this.fieldExtentY = limelightConfig.fieldExtentY();
+    this.baseStdDevXY = limelightConfig.baseStdDevXY();
+    this.baseStdDevTheta = limelightConfig.baseStdDevTheta();
+    this.distanceScaleFactor = limelightConfig.distanceScaleFactor();
+    this.maxTrustDistanceMetres = limelightConfig.maxTrustDistanceMetres();
+    this.outlierRejectionThresholdMetres = limelightConfig.outlierRejectionThresholdMetres();
+    this.minTagCountForLowStdDev = limelightConfig.minTagCountForLowStdDev();
 
     final NetworkTable limelightNT =
         NetworkTableInstance.getDefault().getTable("limelight-" + limelightConfig.limelightName());
@@ -64,6 +77,29 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
     llRobotOrientation = limelightNT.getDoubleArrayTopic("robot_orientation_set").publish();
     llMegaTag1 = limelightNT.getDoubleArrayTopic("botpose_wpiblue").subscribe(new double[0]);
     llMegaTag2 = limelightNT.getDoubleArrayTopic("botpose_orb_wpiblue").subscribe(new double[0]);
+  }
+
+  /**
+   * Compute dynamic vision standard deviations based on tag count and average tag distance.
+   *
+   * @param tagCount number of tags visible
+   * @param avgTagDistance average distance to visible tags in metres
+   * @return standard deviation matrix, or null if the measurement should be rejected
+   */
+  private Matrix<N3, N1> computeVisionStdDevs(int tagCount, double avgTagDistance) {
+    // Reject readings beyond max trust distance
+    if (avgTagDistance > maxTrustDistanceMetres) {
+      return null;
+    }
+
+    // Tag count penalty: single tags are less reliable
+    double tagPenalty = tagCount < minTagCountForLowStdDev ? 2.0 : 1.0;
+
+    // Formula: stddev = baseStdDev * (1 + distanceScaleFactor * distance^2) * tagPenalty
+    double xyStdDev =
+        baseStdDevXY * (1.0 + distanceScaleFactor * avgTagDistance * avgTagDistance) * tagPenalty;
+
+    return VecBuilder.fill(xyStdDev, xyStdDev, baseStdDevTheta);
   }
 
   @Override
@@ -86,6 +122,7 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
 
     // Get the MegaTag data - can be multiple readings since we last checked
     Pose2d newVisPose = null;
+    Pose2d currentPose = getPose();
 
     for (var megaTagAtomic : llMegaTag2.readQueue()) {
       double[] megaTagData = megaTagAtomic.value;
@@ -101,6 +138,8 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
                 megaTagData[OFFSET_POSE_Y],
                 Rotation2d.fromDegrees(megaTagData[OFFSET_POSE_ROTATION_YAW]));
         double totalLatencyMillis = megaTagData[OFFSET_TOTAL_LATENCY];
+        int tagCount = (int) megaTagData[OFFSET_TAG_COUNT];
+        double avgTagDistance = megaTagData[OFFSET_AVG_TAG_DISTANCE];
 
         // Ensure pose is on field
         if (botPose.getX() > 0
@@ -108,9 +147,21 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
             && botPose.getX() < fieldExtentX
             && botPose.getY() < fieldExtentY) {
 
+          // Outlier rejection: skip poses too far from current estimate
+          if (currentPose.getTranslation().getDistance(botPose.getTranslation())
+              > outlierRejectionThresholdMetres) {
+            continue;
+          }
+
+          // Compute dynamic standard deviations
+          Matrix<N3, N1> stdDevs = computeVisionStdDevs(tagCount, avgTagDistance);
+          if (stdDevs == null) {
+            continue;
+          }
+
           // Good data, let's update the pose estimator
           double latencySeconds = (timestampMicros / 1000000.0) - (totalLatencyMillis / 1000.0);
-          getPoseEstimator().addVisionMeasurement(botPose, latencySeconds, MEGATAG2_STDDEV);
+          getPoseEstimator().addVisionMeasurement(botPose, latencySeconds, stdDevs);
           newVisPose = botPose;
         }
       }

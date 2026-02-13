@@ -38,6 +38,12 @@ public interface SwerveModule {
   void readState();
 
   /**
+   * Synchronize the relative encoder toward the absolute encoder. Called every module update cycle
+   * after {@link #readState()}.
+   */
+  void syncEncoders();
+
+  /**
    * Update the internal state of the swerve module's detailed telemetry information. It does NOT
    * include data loaded by readState(). Some of these operations can be slow and should therefore
    * not be invoked more than necessary.

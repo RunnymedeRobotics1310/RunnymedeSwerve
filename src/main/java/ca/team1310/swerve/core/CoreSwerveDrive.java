@@ -5,6 +5,7 @@ import static ca.team1310.swerve.core.config.TelemetryLevel.*;
 import ca.team1310.swerve.RunnymedeSwerveDrive;
 import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
+import ca.team1310.swerve.utils.SwerveUtils;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotBase;
 
@@ -50,6 +51,9 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
   private final Notifier moduleManagementThread = new Notifier(this::updateModules);
 
+  private static final int SYNC_ENCODERS_PERIOD_MS = 500;
+  private final Notifier encoderSyncThread = new Notifier(this::syncAllEncoders);
+
   public static final int TELEMETRY_UPDATE_PERIOD_MS = 50; // milliseconds
   private final Notifier telemetryThread = new Notifier(this::updateTelemetry);
 
@@ -61,6 +65,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
   protected CoreSwerveDrive(CoreSwerveConfig cfg) {
     System.out.println("Initializing RunnymedeSwerve.");
     System.out.println("Swerve module update period: " + MANAGE_MODULES_PERIOD_MS + " ms");
+    System.out.println("Swerve encoder sync period: " + SYNC_ENCODERS_PERIOD_MS + " ms");
     System.out.println("Swerve telemetry update period: " + TELEMETRY_UPDATE_PERIOD_MS + " ms");
 
     // order matters in case we want to use AdvantageScope
@@ -121,6 +126,9 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     moduleManagementThread.setName("RunnymedeSwerve manageModuleStates");
     moduleManagementThread.startPeriodic(MANAGE_MODULES_PERIOD_MS / 1000.0);
 
+    encoderSyncThread.setName("RunnymedeSwerve syncEncoders");
+    encoderSyncThread.startPeriodic(SYNC_ENCODERS_PERIOD_MS / 1000.0);
+
     telemetryThread.setName("RunnymedeSwerve updateTelemetry");
     // in simulation mode, provide telemetry faster but while driving use slower rate
     telemetryThread.startPeriodic(isSimulation ? .02 : TELEMETRY_UPDATE_PERIOD_MS / 1000.0);
@@ -158,6 +166,13 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
     if (isSimulation) {
       updateGyroForSimulation();
+    }
+  }
+
+  /** Sync relative encoders toward absolute encoders on a separate, slower thread. */
+  private synchronized void syncAllEncoders() {
+    for (SwerveModule module : modules) {
+      module.syncEncoders();
     }
   }
 
@@ -293,6 +308,14 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
         telemetry.driveMotorOutputPower[i] = state.getDriveOutputPower();
         // angle encoder
         telemetry.moduleAbsoluteEncoderPositionDegrees[i] = state.getAbsoluteEncoderAngle();
+
+        // Compute per-module angle error (relative vs absolute encoder)
+        double absAngle = state.getAbsoluteEncoderAngle();
+        if (absAngle >= 0) {
+          double absNormalized = SwerveUtils.normalizeDegrees(absAngle);
+          double error = SwerveUtils.normalizeDegrees(state.getAngle() - absNormalized);
+          telemetry.moduleAngleErrorDegrees[i] = error;
+        }
       }
     }
     // post it!
