@@ -51,6 +51,9 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
   private final Notifier moduleManagementThread = new Notifier(this::updateModules);
 
+  private static final int SYNC_ENCODERS_PERIOD_MS = 500;
+  private final Notifier encoderSyncThread = new Notifier(this::syncAllEncoders);
+
   public static final int TELEMETRY_UPDATE_PERIOD_MS = 50; // milliseconds
   private final Notifier telemetryThread = new Notifier(this::updateTelemetry);
 
@@ -62,6 +65,7 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
   protected CoreSwerveDrive(CoreSwerveConfig cfg) {
     System.out.println("Initializing RunnymedeSwerve.");
     System.out.println("Swerve module update period: " + MANAGE_MODULES_PERIOD_MS + " ms");
+    System.out.println("Swerve encoder sync period: " + SYNC_ENCODERS_PERIOD_MS + " ms");
     System.out.println("Swerve telemetry update period: " + TELEMETRY_UPDATE_PERIOD_MS + " ms");
 
     // order matters in case we want to use AdvantageScope
@@ -122,6 +126,9 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
     moduleManagementThread.setName("RunnymedeSwerve manageModuleStates");
     moduleManagementThread.startPeriodic(MANAGE_MODULES_PERIOD_MS / 1000.0);
 
+    encoderSyncThread.setName("RunnymedeSwerve syncEncoders");
+    encoderSyncThread.startPeriodic(SYNC_ENCODERS_PERIOD_MS / 1000.0);
+
     telemetryThread.setName("RunnymedeSwerve updateTelemetry");
     // in simulation mode, provide telemetry faster but while driving use slower rate
     telemetryThread.startPeriodic(isSimulation ? .02 : TELEMETRY_UPDATE_PERIOD_MS / 1000.0);
@@ -148,11 +155,6 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
       module.readState();
     }
 
-    // sync relative encoders toward absolute encoders
-    for (SwerveModule module : modules) {
-      module.syncEncoders();
-    }
-
     // calculate desired states
     kinematics.calculateModuleVelocities(desiredVx, desiredVy, desiredOmega);
 
@@ -164,6 +166,13 @@ public class CoreSwerveDrive implements RunnymedeSwerveDrive {
 
     if (isSimulation) {
       updateGyroForSimulation();
+    }
+  }
+
+  /** Sync relative encoders toward absolute encoders on a separate, slower thread. */
+  private synchronized void syncAllEncoders() {
+    for (SwerveModule module : modules) {
+      module.syncEncoders();
     }
   }
 
