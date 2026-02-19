@@ -14,6 +14,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.networktables.*;
+import edu.wpi.first.wpilibj.Notifier;
 
 /**
  * A swerve drive that is aware of the Limelight vision system. This drive will use the Limelight to
@@ -27,6 +28,15 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
   private static final int OFFSET_TOTAL_LATENCY = 6;
   private static final int OFFSET_TAG_COUNT = 7;
   private static final int OFFSET_AVG_TAG_DISTANCE = 9;
+
+  /**
+   * The period at which the odometry data is updated. Note this will trigger gyro reads in addition
+   * to other data processing. Will the robot actually use odometry data updated more frequently
+   * than the robot's periodic cycle?
+   */
+  private static final int UPDATE_LIMELIGHT_EVERY_MILLIS = 20;
+
+  private final Notifier limelightUpdater = new Notifier(this::updateLimelight);
 
   // Orientation publishers
   private final DoubleArrayPublisher llRobotOrientation;
@@ -77,6 +87,10 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
     llRobotOrientation = limelightNT.getDoubleArrayTopic("robot_orientation_set").publish();
     llMegaTag1 = limelightNT.getDoubleArrayTopic("botpose_wpiblue").subscribe(new double[0]);
     llMegaTag2 = limelightNT.getDoubleArrayTopic("botpose_orb_wpiblue").subscribe(new double[0]);
+
+    System.out.println("Limelight update period: " + UPDATE_LIMELIGHT_EVERY_MILLIS + " ms");
+    limelightUpdater.startPeriodic(UPDATE_LIMELIGHT_EVERY_MILLIS / 1000.0);
+    limelightUpdater.setName("RunnymedeSwerve LimelightUpdater");
   }
 
   /**
@@ -102,10 +116,7 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
     return VecBuilder.fill(xyStdDev, xyStdDev, baseStdDevTheta);
   }
 
-  @Override
-  protected final synchronized void updateOdometry() {
-    super.updateOdometry();
-
+  protected final synchronized void updateLimelight() {
     // Try to use MT1 pose yaw if it's present,
     if (firstRun) {
       double[] mt1Data = llMegaTag1.get();

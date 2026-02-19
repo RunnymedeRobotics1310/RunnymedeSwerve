@@ -15,7 +15,7 @@ java {
 }
 
 // set a valid semver version
-version = '4.1.3'
+version = '4.2.0-test1'
 
 repositories {
     mavenCentral()

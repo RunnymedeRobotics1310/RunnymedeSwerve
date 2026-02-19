@@ -57,7 +57,7 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
    * Set the module states based on the desired speed and angle.
    */
   @Override
-  protected final synchronized void updateModules() {
+  protected synchronized void updateModules() {
     if (fieldOriented) {
       double[] desired =
           SwerveMath.toRobotOriented(

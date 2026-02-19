@@ -15,7 +15,6 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import java.util.Arrays;
@@ -25,15 +24,6 @@ import java.util.Arrays;
  * @since 2025-02-05 23:18
  */
 public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
-
-  /**
-   * The period at which the odometry data is updated. Note this will trigger gyro reads in addition
-   * to other data processing. Will the robot actually use odometry data updated more frequently
-   * than the robot's periodic cycle?
-   */
-  private static final int UPDATE_ODOMETRY_EVERY_MILLIS = 20;
-
-  private final Notifier odometryUpdater = new Notifier(this::updateOdometry);
 
   private final Field2d field;
   private final SwerveDrivePoseEstimator estimator;
@@ -53,7 +43,6 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
    */
   public FieldAwareSwerveDrive(CoreSwerveConfig cfg, GyroConfig gyroConfig) {
     super(cfg, gyroConfig);
-    System.out.println("Swerve odometry update period: " + UPDATE_ODOMETRY_EVERY_MILLIS + " ms");
 
     this.field = new Field2d();
     SmartDashboard.putData(field);
@@ -97,9 +86,6 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     this.wheelOnlyEstimator =
         new SwerveDrivePoseEstimator(
             kinematics, initialRotation, initialModulePositions, initialPose);
-
-    odometryUpdater.startPeriodic(UPDATE_ODOMETRY_EVERY_MILLIS / 1000.0);
-    odometryUpdater.setName("RunnymedeSwerve Odometry");
   }
 
   private synchronized SwerveModulePosition[] getSwerveModulePositions() {
@@ -109,6 +95,13 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
       modulePosition[i].angle = Rotation2d.fromDegrees(states[i].getOdometryAngle());
     }
     return modulePosition;
+  }
+
+  /** Inline the odometry updates with the module updates to ensure it's highly recent */
+  @Override
+  protected synchronized void updateModules() {
+    super.updateModules();
+    updateOdometry();
   }
 
   /** Update the odometry of the swerve drive. */
