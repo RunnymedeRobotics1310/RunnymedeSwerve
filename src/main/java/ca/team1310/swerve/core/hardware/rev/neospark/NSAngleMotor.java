@@ -5,6 +5,8 @@ import static ca.team1310.swerve.core.CoreSwerveDrive.TELEMETRY_UPDATE_PERIOD_MS
 import static ca.team1310.swerve.utils.SwerveUtils.normalizeDegrees;
 
 import ca.team1310.swerve.core.AngleMotor;
+import ca.team1310.swerve.core.config.EncoderConfig;
+import ca.team1310.swerve.core.config.EncoderType;
 import ca.team1310.swerve.core.config.MotorConfig;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase;
@@ -27,8 +29,9 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
    *
    * @param spark The spark motor controller
    * @param cfg The configuration of the motor
+   * @param encoderConfig the configuration of the absolute encoder
    */
-  public NSAngleMotor(T spark, MotorConfig cfg) {
+  public NSAngleMotor(T spark, MotorConfig cfg, EncoderConfig encoderConfig) {
     super(spark);
     SparkMaxConfig config = new SparkMaxConfig();
     config.inverted(cfg.inverted());
@@ -83,12 +86,15 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
     // configure PID controller
     config
         .closedLoop
-        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
         .pidf(cfg.p(), cfg.i(), cfg.d(), cfg.ff())
         .iZone(cfg.izone())
         .outputRange(-180, 180)
         .positionWrappingEnabled(true)
         .positionWrappingInputRange(-180, 180);
+
+    if (encoderConfig.type() == EncoderType.INTEGRATED)
+      config.closedLoop.feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
+    else config.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
 
     // send them to the motor
     doWithRetry(
