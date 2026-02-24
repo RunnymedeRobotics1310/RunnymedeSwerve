@@ -1,5 +1,6 @@
 package ca.team1310.swerve.core.hardware.rev.neospark;
 
+import ca.team1310.swerve.core.config.EncoderConfig;
 import ca.team1310.swerve.core.config.MotorConfig;
 import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
@@ -15,8 +16,9 @@ public class NSMAngleMotor extends NSAngleMotor<SparkMax> {
    *
    * @param canId The CAN ID of the motor
    * @param cfg The configuration of the motor
+   * @param encoderConfig the configuration of the absolute encoder
    */
-  public NSMAngleMotor(int canId, MotorConfig cfg) {
-    super(new SparkMax(canId, SparkLowLevel.MotorType.kBrushless), cfg);
+  public NSMAngleMotor(int canId, MotorConfig cfg, EncoderConfig encoderConfig) {
+    super(new SparkMax(canId, SparkLowLevel.MotorType.kBrushless), cfg, encoderConfig);
   }
 }

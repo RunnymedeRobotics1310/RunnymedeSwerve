@@ -1,5 +1,6 @@
 package ca.team1310.swerve.core;
 
+import ca.team1310.swerve.core.config.EncoderType;
 import ca.team1310.swerve.core.config.ModuleConfig;
 import ca.team1310.swerve.core.hardware.cancoder.CanCoder;
 import ca.team1310.swerve.core.hardware.rev.neospark.NSFAngleMotor;
@@ -14,7 +15,6 @@ import edu.wpi.first.wpilibj.Notifier;
 class SwerveModuleImpl implements SwerveModule {
 
   private static final double ANGLE_ENCODER_SYNC_PERIOD_MS = 500;
-  private final Notifier encoderSynchronizer = new Notifier(this::syncAngleEncoder);
 
   private final String name;
   private final Coordinates location;
@@ -40,10 +40,15 @@ class SwerveModuleImpl implements SwerveModule {
     measuredState.setLocation(cfg.location());
     this.driveMotor = getDriveMotor(cfg, maxAttainableModuleSpeedMps);
     this.angleMotor = getAngleMotor(cfg);
-    this.angleEncoder = getAbsoluteAngleEncoder(cfg);
+    if (cfg.absoluteAngleEncoderConfig().type() == EncoderType.CANCODER)
+      this.angleEncoder = getAbsoluteAngleEncoder(cfg);
+    else this.angleEncoder = null;
 
-    this.encoderSynchronizer.setName("RunnymedeSwerve Angle Encoder Sync " + name);
-    this.encoderSynchronizer.startPeriodic(ANGLE_ENCODER_SYNC_PERIOD_MS / 1000);
+    if (angleEncoder != null) {
+      Notifier encoderSynchronizer = new Notifier(this::syncAngleEncoder);
+      encoderSynchronizer.setName("RunnymedeSwerve Angle Encoder Sync " + name);
+      encoderSynchronizer.startPeriodic(ANGLE_ENCODER_SYNC_PERIOD_MS / 1000);
+    }
 
     driveMotorFaultPresent =
         new Alert("Swerve Drive Motor [" + name + "] Fault Present", Alert.AlertType.kError);
@@ -77,8 +82,12 @@ class SwerveModuleImpl implements SwerveModule {
 
   private AngleMotor getAngleMotor(ModuleConfig cfg) {
     return switch (cfg.angleMotorConfig().type()) {
-      case NEO_SPARK_FLEX -> new NSFAngleMotor(cfg.angleMotorCanId(), cfg.angleMotorConfig());
-      case NEO_SPARK_MAX -> new NSMAngleMotor(cfg.angleMotorCanId(), cfg.angleMotorConfig());
+      case NEO_SPARK_FLEX ->
+          new NSFAngleMotor(
+              cfg.angleMotorCanId(), cfg.angleMotorConfig(), cfg.absoluteAngleEncoderConfig());
+      case NEO_SPARK_MAX ->
+          new NSMAngleMotor(
+              cfg.angleMotorCanId(), cfg.angleMotorConfig(), cfg.absoluteAngleEncoderConfig());
     };
   }
 
@@ -108,7 +117,7 @@ class SwerveModuleImpl implements SwerveModule {
   public synchronized void readVerboseState() {
     measuredState.setVelocity(driveMotor.getVelocity());
     measuredState.setDriveOutputPower(driveMotor.getMeasuredVoltage());
-    measuredState.setAbsoluteEncoderAngle(angleEncoder.getPosition());
+    measuredState.setAbsoluteEncoderAngle(angleMotor.getPosition());
   }
 
   public synchronized ModuleState getState() {
@@ -138,7 +147,8 @@ class SwerveModuleImpl implements SwerveModule {
   public boolean checkFaults() {
     boolean driveFaults = driveMotor.hasFaults();
     boolean angleFaults = angleMotor.hasFaults();
-    boolean angleEncoderFaults = angleEncoder.hasFaults();
+    boolean angleEncoderFaults = false;
+    if (angleEncoder != null) angleEncoderFaults = angleEncoder.hasFaults();
 
     driveMotorFaultPresent.set(driveFaults);
     angleMotorFaultPresent.set(angleFaults);
