@@ -2,6 +2,7 @@ package ca.team1310.swerve.vision;
 
 import static ca.team1310.swerve.core.config.TelemetryLevel.VERBOSE;
 
+import ca.team1310.swerve.SwerveFlag;
 import ca.team1310.swerve.SwerveTelemetry;
 import ca.team1310.swerve.core.config.CoreSwerveConfig;
 import ca.team1310.swerve.gyro.config.GyroConfig;
@@ -44,6 +45,7 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
   private Pose2d visPose = null;
 
   private boolean firstRun = true;
+  private boolean visionOdometryEnabled = true;
 
   /**
    * Create a new Limelight-aware swerve drive.
@@ -110,7 +112,9 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
 
           // Good data, let's update the pose estimator
           double latencySeconds = (timestampMicros / 1000000.0) - (totalLatencyMillis / 1000.0);
-          getPoseEstimator().addVisionMeasurement(botPose, latencySeconds, MEGATAG2_STDDEV);
+          if (visionOdometryEnabled) {
+            getPoseEstimator().addVisionMeasurement(botPose, latencySeconds, MEGATAG2_STDDEV);
+          }
           newVisPose = botPose;
         }
       }
@@ -118,6 +122,21 @@ public class LimelightAwareSwerveDrive extends FieldAwareSwerveDrive {
 
     // Either no values were good, or we get the last one in the queue (most recent)
     visPose = newVisPose;
+  }
+
+  @Override
+  public synchronized void setFlag(SwerveFlag flag, boolean value) {
+    if (flag == SwerveFlag.VISION_ODOMETRY_ENABLED) {
+      this.visionOdometryEnabled = value;
+    }
+  }
+
+  @Override
+  public synchronized boolean getFlag(SwerveFlag flag) {
+    if (flag == SwerveFlag.VISION_ODOMETRY_ENABLED) {
+      return visionOdometryEnabled;
+    }
+    return false;
   }
 
   /**

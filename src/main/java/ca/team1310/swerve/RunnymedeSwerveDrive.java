@@ -168,6 +168,28 @@ public interface RunnymedeSwerveDrive {
   }
 
   /**
+   * Set a runtime configuration flag. Flags that are not supported by the current drive
+   * implementation are silently ignored.
+   *
+   * @param flag the flag to set
+   * @param value the value to set
+   * @see SwerveFlag
+   */
+  default void setFlag(SwerveFlag flag, boolean value) {}
+
+  /**
+   * Get the current value of a runtime configuration flag. Returns false for flags not supported by
+   * the current drive implementation.
+   *
+   * @param flag the flag to query
+   * @return the current value of the flag
+   * @see SwerveFlag
+   */
+  default boolean getFlag(SwerveFlag flag) {
+    return false;
+  }
+
+  /**
    * Get the telemetry object updated by SwerveLib
    *
    * @return the SwerveTelemetry object
