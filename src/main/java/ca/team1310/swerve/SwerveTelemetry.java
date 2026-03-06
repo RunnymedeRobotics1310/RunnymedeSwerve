@@ -216,10 +216,13 @@ public final class SwerveTelemetry {
     SmartDashboard.putNumberArray(
         PREFIX + "Swerve/pose_wheel_only_delta",
         new double[] {
-          wheelOnlyDeltaXMetres, wheelOnlyDeltaYMetres, wheelOnlyDeltaHeadingDegrees,
+          wheelOnlyDeltaXMetres,
+          wheelOnlyDeltaYMetres,
+          wheelOnlyDeltaHeadingDegrees,
           wheelOnlyDeltaMetres
         });
-    SmartDashboard.putNumberArray(PREFIX + "Swerve/module_angle_error_deg", moduleAngleErrorDegrees);
+    SmartDashboard.putNumberArray(
+        PREFIX + "Swerve/module_angle_error_deg", moduleAngleErrorDegrees);
   }
 
   private void postVerbose() {
