@@ -408,4 +408,27 @@ public class SwerveMathTest {
     assertEquals(brsMps, modSpdsMpsDeg[6], "brs m/s");
     assertEquals(braDeg, modSpdsMpsDeg[7], "brs deg");
   }
+
+  @ParameterizedTest
+  @CsvSource({
+    "179, -179, 2.0, -179, 2.0",
+    "-179, 179, 2.0, 179, 2.0",
+    "170, -20, -3.0, 160, 3.0",
+    "-170, 20, -3.0, -160, 3.0",
+    "0, 90, 1.5, 90, 1.5"
+  })
+  public void testOptimizeWheelAnglesWrapBehaviour(
+      double currentAngle,
+      double desiredAngle,
+      double desiredSpeed,
+      double expectedAngle,
+      double expectedSpeed) {
+    ModuleDirective directive = new ModuleDirective();
+    directive.set(desiredSpeed, desiredAngle);
+
+    SwerveMath.optimizeWheelAngles(directive, currentAngle);
+
+    assertEquals(expectedSpeed, directive.getSpeed(), EPSILON, "speed");
+    assertEquals(expectedAngle, directive.getAngle(), EPSILON, "angle");
+  }
 }

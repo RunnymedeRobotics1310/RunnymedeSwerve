@@ -78,6 +78,12 @@ public final class SwerveTelemetry {
   /** The drive motor output power of the swerve modules */
   public double[] driveMotorOutputPower;
 
+  /**
+   * Per-module angle error in degrees: the difference between relative angle motor position and
+   * absolute encoder position.
+   */
+  public double[] moduleAngleErrorDegrees;
+
   // Pose
   /** The x location of the robot with respect to the field in metres */
   public double poseMetresX = Double.MIN_VALUE;
@@ -123,6 +129,18 @@ public final class SwerveTelemetry {
    */
   public double wheelOnlyPoseHeading = Double.MIN_VALUE;
 
+  /** Difference in x position between fused and wheel-only odometry, in metres */
+  public double wheelOnlyDeltaXMetres = Double.MIN_VALUE;
+
+  /** Difference in y position between fused and wheel-only odometry, in metres */
+  public double wheelOnlyDeltaYMetres = Double.MIN_VALUE;
+
+  /** Difference in heading between fused and wheel-only odometry, in degrees */
+  public double wheelOnlyDeltaHeadingDegrees = Double.MIN_VALUE;
+
+  /** Translation magnitude difference between fused and wheel-only odometry, in metres */
+  public double wheelOnlyDeltaMetres = Double.MIN_VALUE;
+
   /** Whether the swerve advantage scope constants have been posted to SmartDashboard */
   private boolean advantageScopeConstantsPosted = false;
 
@@ -145,6 +163,7 @@ public final class SwerveTelemetry {
     moduleAngleMotorPositionDegrees = new double[moduleCount];
     moduleDriveMotorPositionMetres = new double[moduleCount];
     driveMotorOutputPower = new double[moduleCount];
+    moduleAngleErrorDegrees = new double[moduleCount];
   }
 
   /** Post all telemetry data to SmartDashboard */
@@ -191,6 +210,16 @@ public final class SwerveTelemetry {
     SmartDashboard.putNumberArray("swerve/measuredChassisSpeeds", measuredChassisSpeeds);
     // other calculated values
     SmartDashboard.putBoolean("swerve/hasVisPose", hasVisPose);
+    SmartDashboard.putNumberArray(
+        PREFIX + "Swerve/pose_wheel_only",
+        new double[] {wheelOnlyPoseX, wheelOnlyPoseY, wheelOnlyPoseHeading});
+    SmartDashboard.putNumberArray(
+        PREFIX + "Swerve/pose_wheel_only_delta",
+        new double[] {
+          wheelOnlyDeltaXMetres, wheelOnlyDeltaYMetres, wheelOnlyDeltaHeadingDegrees,
+          wheelOnlyDeltaMetres
+        });
+    SmartDashboard.putNumberArray(PREFIX + "Swerve/module_angle_error_deg", moduleAngleErrorDegrees);
   }
 
   private void postVerbose() {
@@ -215,6 +244,20 @@ public final class SwerveTelemetry {
     String poseVis =
         String.format("(%.2f, %.2f) m %.1f deg", visionPoseX, visionPoseY, visionPoseHeading);
     SmartDashboard.putString(PREFIX + "Swerve/pose_vis", poseVis);
+
+    String poseWheelOnly =
+        String.format(
+            "(%.2f, %.2f) m %.1f deg", wheelOnlyPoseX, wheelOnlyPoseY, wheelOnlyPoseHeading);
+    SmartDashboard.putString(PREFIX + "Swerve/pose_wheel_only", poseWheelOnly);
+
+    String poseWheelOnlyDelta =
+        String.format(
+            "(%.2f, %.2f) m %.1f deg | %.2f m",
+            wheelOnlyDeltaXMetres,
+            wheelOnlyDeltaYMetres,
+            wheelOnlyDeltaHeadingDegrees,
+            wheelOnlyDeltaMetres);
+    SmartDashboard.putString(PREFIX + "Swerve/pose_wheel_only_delta", poseWheelOnlyDelta);
 
     for (int i = 0; i < moduleCount; i++) {
       String name = moduleNames[i];

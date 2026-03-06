@@ -69,8 +69,10 @@ public class Pigeon2 implements Gyro {
 
   @Override
   public void zeroGyro() {
-    rollOffset = roll.getValueAsDouble();
-    pitchOffset = pitch.getValueAsDouble();
+    if (!onlyYaw) {
+      rollOffset = roll.getValueAsDouble();
+      pitchOffset = pitch.getValueAsDouble();
+    }
     yawOffset = yaw.getValueAsDouble();
   }
 

@@ -380,13 +380,9 @@ public class SwerveMath {
    */
   public static void optimizeWheelAngles(
       ModuleDirective desiredState, double currentWheelAngleDegrees) {
-    double angleError = Math.abs(desiredState.getAngle() - currentWheelAngleDegrees);
-    if (angleError > 90 && angleError < 270) {
-      double optimal =
-          currentWheelAngleDegrees < 0
-              ? desiredState.getAngle() + 180
-              : desiredState.getAngle() - 180;
-      optimal = normalizeDegrees(optimal);
+    double angleError = normalizeDegrees(desiredState.getAngle() - currentWheelAngleDegrees);
+    if (Math.abs(angleError) > 90) {
+      double optimal = normalizeDegrees(desiredState.getAngle() + 180);
       desiredState.set(-desiredState.getSpeed(), optimal);
     }
   }

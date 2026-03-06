@@ -180,13 +180,22 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
       }
 
       Pose2d pose = estimator.getEstimatedPosition();
+      Pose2d wheelOnlyPose = wheelOnlyEstimator.getEstimatedPosition();
       field.setRobotPose(pose);
 
-      if (telemetry.level == VERBOSE) {
-        telemetry.poseMetresX = pose.getTranslation().getX();
-        telemetry.poseMetresY = pose.getTranslation().getY();
-        telemetry.poseHeadingDegrees = pose.getRotation().getDegrees();
-      }
+      telemetry.poseMetresX = pose.getTranslation().getX();
+      telemetry.poseMetresY = pose.getTranslation().getY();
+      telemetry.poseHeadingDegrees = pose.getRotation().getDegrees();
+      telemetry.wheelOnlyPoseX = wheelOnlyPose.getTranslation().getX();
+      telemetry.wheelOnlyPoseY = wheelOnlyPose.getTranslation().getY();
+      telemetry.wheelOnlyPoseHeading = wheelOnlyPose.getRotation().getDegrees();
+
+      telemetry.wheelOnlyDeltaXMetres = pose.getX() - wheelOnlyPose.getX();
+      telemetry.wheelOnlyDeltaYMetres = pose.getY() - wheelOnlyPose.getY();
+      telemetry.wheelOnlyDeltaHeadingDegrees =
+          pose.getRotation().minus(wheelOnlyPose.getRotation()).getDegrees();
+      telemetry.wheelOnlyDeltaMetres =
+          Math.hypot(telemetry.wheelOnlyDeltaXMetres, telemetry.wheelOnlyDeltaYMetres);
 
       var states = getModuleStates();
       field.getObject("XModules").setPoses(asModulePoses(states, pose));
