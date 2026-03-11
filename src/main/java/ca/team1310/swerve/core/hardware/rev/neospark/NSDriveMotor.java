@@ -6,6 +6,8 @@ import static ca.team1310.swerve.utils.SwerveUtils.clamp;
 
 import ca.team1310.swerve.core.DriveMotor;
 import ca.team1310.swerve.core.config.MotorConfig;
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.config.SparkBaseConfig;
@@ -86,18 +88,22 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
     config
         .closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-        .pidf(cfg.p(), cfg.i(), cfg.d(), cfg.ff())
-        .iZone(cfg.izone())
         .outputRange(-1, 1)
-        .positionWrappingEnabled(false);
+        .positionWrappingEnabled(false)
+        .p(cfg.p())
+        .i(cfg.i())
+        .d(cfg.d())
+        .iZone(cfg.izone())
+        .feedForward
+        .kV(cfg.kV())
+        .kA(cfg.kA())
+        .kS(cfg.kS());
 
     // send them to the motor
     doWithRetry(
         () ->
             spark.configure(
-                config,
-                SparkBase.ResetMode.kNoResetSafeParameters,
-                SparkBase.PersistMode.kPersistParameters));
+                config, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters));
   }
 
   @Override
@@ -113,7 +119,9 @@ public abstract class NSDriveMotor<T extends SparkBase> extends NSBase<T> implem
     }
     prevTargetMPS = targetVelocityMPSClamped;
     doWithRetry(
-        () -> controller.setReference(targetVelocityMPSClamped, SparkBase.ControlType.kVelocity));
+        () -> // controller.setReference(targetVelocityMPSClamped,
+            // SparkBase.ControlType.kVelocity));
+            controller.setSetpoint(targetVelocityMPSClamped, SparkBase.ControlType.kVelocity));
   }
 
   @Override

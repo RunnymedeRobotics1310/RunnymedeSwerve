@@ -12,7 +12,9 @@ package ca.team1310.swerve.core.config;
  * @param p The proportional gain of the motor
  * @param i The integral gain of the motor
  * @param d The derivative gain of the motor
- * @param ff The feedforward gain of the motor
+ * @param kV Velocity feedforward
+ * @param kA Acceleration feedforward
+ * @param kS Static feedforward
  * @param izone The integral zone of the motor
  */
 public record MotorConfig(
@@ -25,5 +27,7 @@ public record MotorConfig(
     double p,
     double i,
     double d,
-    double ff,
+    double kV,
+    double kA,
+    double kS,
     double izone) {}

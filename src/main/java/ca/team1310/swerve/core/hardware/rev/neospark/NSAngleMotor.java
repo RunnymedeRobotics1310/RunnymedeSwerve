@@ -6,6 +6,8 @@ import static ca.team1310.swerve.utils.SwerveUtils.normalizeDegrees;
 
 import ca.team1310.swerve.core.AngleMotor;
 import ca.team1310.swerve.core.config.MotorConfig;
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
 import com.revrobotics.spark.FeedbackSensor;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.config.SparkBaseConfig;
@@ -84,19 +86,23 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
     config
         .closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-        .pidf(cfg.p(), cfg.i(), cfg.d(), cfg.ff())
         .iZone(cfg.izone())
         .outputRange(-180, 180)
         .positionWrappingEnabled(true)
-        .positionWrappingInputRange(-180, 180);
+        .positionWrappingInputRange(-180, 180)
+        .p(cfg.p())
+        .i(cfg.i())
+        .d(cfg.d())
+        .feedForward
+        .kV(cfg.kV())
+        .kA(cfg.kA())
+        .kS(cfg.kS());
 
     // send them to the motor
     doWithRetry(
         () ->
             spark.configure(
-                config,
-                SparkBase.ResetMode.kNoResetSafeParameters,
-                SparkBase.PersistMode.kPersistParameters));
+                config, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters));
   }
 
   @Override
@@ -116,7 +122,7 @@ public abstract class NSAngleMotor<T extends SparkBase> extends NSBase<T> implem
       return;
     }
     prevTargetDegrees = degrees;
-    doWithRetry(() -> controller.setReference(degrees, SparkBase.ControlType.kPosition));
+    doWithRetry(() -> controller.setSetpoint(degrees, SparkBase.ControlType.kPosition));
   }
 
   @Override
