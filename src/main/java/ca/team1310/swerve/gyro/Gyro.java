@@ -53,6 +53,13 @@ public interface Gyro extends NTSendable {
   double getYawRate();
 
   /**
+   * Refresh the gyro's cached sensor data. Implementations that cache data (like CTRE
+   * StatusSignals) should override this to fetch the latest values from hardware. The default
+   * implementation does nothing, which is correct for gyros that always return live data.
+   */
+  default void refresh() {}
+
+  /**
    * Return if the Gyro is connected or not
    *
    * @return true if connected

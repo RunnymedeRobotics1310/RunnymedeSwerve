@@ -58,6 +58,9 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
    */
   @Override
   protected final synchronized void updateModules() {
+
+    refreshGyro();
+
     if (fieldOriented) {
       double[] desired =
           SwerveMath.toRobotOriented(
@@ -83,6 +86,16 @@ public class GyroAwareSwerveDrive extends CoreSwerveDrive {
       case NAVX -> new MXPNavX();
       case PIGEON2 -> new Pigeon2(gyroConfig.canBusId(), gyroConfig.onlyYaw());
     };
+  }
+
+  /**
+   * Refresh the gyro's cached sensor data. Call this at the start of any periodic cycle that reads
+   * gyro values, to ensure the data is current.
+   */
+  protected final void refreshGyro() {
+    if (gyro != null) {
+      gyro.refresh();
+    }
   }
 
   @Override

@@ -116,6 +116,7 @@ public class FieldAwareSwerveDrive extends GyroAwareSwerveDrive {
     // During robot startup the updateOdometry thread may call function before the estimator has
     // been initialized, so check that it exists before updating odometry
     if (this.estimator != null) {
+      refreshGyro();
       Rotation2d rotation = Rotation2d.fromDegrees(getYawRaw());
       SwerveModulePosition[] positions = getSwerveModulePositions();
       estimator.update(rotation, positions);

@@ -98,8 +98,22 @@ public class Pigeon2 implements Gyro {
     return yawVelocity.getValueAsDouble();
   }
 
+  @Override
+  public void refresh() {
+    if (onlyYaw) {
+      BaseStatusSignal.refreshAll(yaw, yawVelocity);
+    } else {
+      BaseStatusSignal.refreshAll(yaw, yawVelocity, roll, pitch);
+    }
+  }
+
   public boolean isConnected() {
-    boolean connected = BaseStatusSignal.refreshAll(yaw, yawVelocity).equals(StatusCode.OK);
+    boolean connected;
+    if (onlyYaw) {
+      connected = BaseStatusSignal.refreshAll(yaw, yawVelocity).equals(StatusCode.OK);
+    } else {
+      connected = BaseStatusSignal.refreshAll(yaw, yawVelocity, roll, pitch).equals(StatusCode.OK);
+    }
     pigeonNotPresent.set(!connected);
     return connected;
   }
